@@ -1,4 +1,5 @@
 
+import { Footer } from "@/component/Footer";
 import { Hero } from "@/component/Hero";
 import { LinkCard } from "@/component/LinkCard";
 import { PhotoGallery } from "@/component/PhotoGallery";
@@ -76,6 +77,11 @@ export default function Home() {
         />
       </Section>
 
+      <Footer
+        names="Yasmim & Vitor"
+        dateText="20 • 06 • 2027"
+        note="Com carinho, esperamos você no nosso grande dia."
+      />
 
     </main>
   );

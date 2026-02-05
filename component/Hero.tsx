@@ -9,8 +9,18 @@ type HeroProps = {
 
 export function Hero({ dateText, coupleName, subtitle }: HeroProps) {
   return (
-    <div className="rounded-3xl border border-zinc-200 bg-white/70 backdrop-blur p-10 shadow-sm text-center">
+    <div className="relative rounded-3xl border border-zinc-200 bg-white/70 backdrop-blur p-10 shadow-sm text-center overflow-hidden">
       {/* Monograma central */}
+
+      {/* detalhe lavanda suave */}
+      <div
+        className="pointer-events-none absolute -top-24 left-1/2 h-56 w-56 -translate-x-1/2 rounded-full blur-3xl"
+        style={{ backgroundColor: "rgb(var(--lavender) / 0.25)" }}
+      />
+
+      {/* borda interna (efeito papelaria) */}
+      <div className="pointer-events-none absolute inset-2 rounded-3xl border border-white/40" />
+
       <div className="mx-auto mb-6 flex justify-center">
         <div
             className="monogram-mask"
@@ -21,7 +31,6 @@ export function Hero({ dateText, coupleName, subtitle }: HeroProps) {
             }}
         />
       </div>
-
 
       <p
         className="text-sm tracking-[0.25em] uppercase"

@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+/* Tema (claro) */
+:root {
+  /* RGB (3 valores) pra facilitar rgba() */
+  --olive: 88 102 74;
+  --lavender: 177 156 217;
+
+  --paper: 250 250 249; /* fundo */
+  --ink: 24 24 27;      /* texto */
+
+  /* Mantém compatibilidade com seu template */
+  --background: rgb(var(--paper));
+  --foreground: rgb(var(--ink));
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+/* (Opcional) dark mode — por enquanto vou deixar MUITO simples,
+   pra não "apagar" o nosso gradiente e parecer que não mudou. */
+/* @media (prefers-color-scheme: dark) {
+  :root {
+    --paper: 12 12 14;
+    --ink: 244 244 245;
+
+    --background: rgb(var(--paper));
+    --foreground: rgb(var(--ink));
+  }
+} */
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  color: var(--foreground);
+  min-height: 100vh;
+
+  background:
+    radial-gradient(1200px 700px at 8% 0%, rgb(var(--lavender) / 0.55), transparent 55%),
+    radial-gradient(1200px 700px at 92% 10%, rgb(var(--olive) / 0.45), transparent 55%),
+    linear-gradient(135deg, rgb(var(--lavender) / 0.18), rgb(var(--olive) / 0.18)),
+    var(--background);
+}
+
+.display-font {
+  font-family: var(--font-cormorant), serif;
+}
+
+.monogram-mask {
+  -webkit-mask-image: url("/brand/monograma.png");
+  mask-image: url("/brand/monograma.png");
+
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+
+  -webkit-mask-position: center;
+  mask-position: center;
+
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+.nav-chip {
+  color: rgb(var(--olive));
+  background: rgb(var(--lavender) / 0.16);
+  border: 1px solid rgb(var(--lavender) / 0.45);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.7) inset;
+  border-radius: 9999px;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: 150ms ease;
+}
+
+.nav-chip:hover {
+  background: rgb(var(--lavender) / 0.26);
+  border-color: rgb(var(--lavender) / 0.65);
+}
+
+.nav-chip:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(var(--lavender) / 0.35),
+    0 1px 0 rgba(255,255,255,0.7) inset;
+}
+
+

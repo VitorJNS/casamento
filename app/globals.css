@@ -42,11 +42,27 @@ body {
   min-height: 100vh;
 
   background:
-    radial-gradient(1200px 700px at 8% 0%, rgb(var(--lavender) / 0.55), transparent 55%),
-    radial-gradient(1200px 700px at 92% 10%, rgb(var(--olive) / 0.45), transparent 55%),
-    linear-gradient(135deg, rgb(var(--lavender) / 0.18), rgb(var(--olive) / 0.18)),
+    /* topo */
+    radial-gradient(1200px 700px at 8% 0%, rgb(var(--lavender) / 0.62), transparent 58%),
+    radial-gradient(1200px 700px at 92% 10%, rgb(var(--olive) / 0.52), transparent 58%),
+
+    /* meio */
+    radial-gradient(1000px 600px at 20% 55%, rgb(var(--lavender) / 0.32), transparent 60%),
+    radial-gradient(1000px 600px at 85% 60%, rgb(var(--olive) / 0.26), transparent 62%),
+
+    /* rodapé */
+    radial-gradient(1100px 650px at 30% 110%, rgb(var(--lavender) / 0.34), transparent 60%),
+    radial-gradient(1100px 650px at 75% 115%, rgb(var(--olive) / 0.28), transparent 60%),
+
+    /* wash geral */
+    linear-gradient(135deg, rgb(var(--lavender) / 0.14), rgb(var(--olive) / 0.12)),
+
     var(--background);
+
+  background-attachment: fixed;
 }
+
+
 
 .display-font {
   font-family: var(--font-cormorant), serif;
@@ -125,5 +141,70 @@ body {
 
 .btn-secondary:hover {
   background: rgb(var(--lavender) / 0.26);
+}
+
+/* =========================
+   Laterais decorativas
+   Lavanda (esquerda) + Oliveira (direita)
+   ========================= */
+
+body {
+  position: relative;
+}
+
+/* Base comum das laterais */
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 220px;
+  pointer-events: none;
+  z-index: 0; /* conteúdo fica acima com main z-10 */
+  opacity: 0.9;
+
+  /* repetição vertical “do começo ao fim” */
+  -webkit-mask-repeat: repeat-y;
+  mask-repeat: repeat-y;
+
+  -webkit-mask-position: top center;
+  mask-position: top center;
+
+  -webkit-mask-size: 220px auto;
+  mask-size: 220px auto;
+}
+
+/* ESQUERDA — lavanda */
+body::before {
+  left: 0;
+  background-color: rgb(var(--lavender) / 0.28);
+
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='220'%20height='520'%20viewBox='0%200%20220%20520'%3E%3Cg%20fill='none'%20stroke='%23fff'%20stroke-width='10'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M110%20500%20C90%20410%2090%20320%20110%20230%20C130%20140%20125%2070%20110%2030'/%3E%3Cpath%20d='M110%20410%20C78%20392%2068%20360%2076%20334'/%3E%3Cpath%20d='M110%20345%20C80%20320%2076%20290%2085%20265'/%3E%3Cpath%20d='M110%20285%20C84%20264%2080%20232%2088%20208'/%3E%3Cpath%20d='M110%20225%20C86%20208%2080%20176%2088%20152'/%3E%3Cpath%20d='M110%20165%20C92%20152%2084%20122%2090%20100'/%3E%3C/g%3E%3Cg%20fill='%23fff'%3E%3Ccircle%20cx='142'%20cy='120'%20r='10'/%3E%3Ccircle%20cx='152'%20cy='150'%20r='9'/%3E%3Ccircle%20cx='140'%20cy='180'%20r='10'/%3E%3Ccircle%20cx='150'%20cy='210'%20r='9'/%3E%3Ccircle%20cx='138'%20cy='240'%20r='10'/%3E%3Ccircle%20cx='150'%20cy='270'%20r='9'/%3E%3Ccircle%20cx='140'%20cy='300'%20r='10'/%3E%3Ccircle%20cx='150'%20cy='330'%20r='9'/%3E%3Ccircle%20cx='140'%20cy='360'%20r='10'/%3E%3Ccircle%20cx='150'%20cy='390'%20r='9'/%3E%3C/g%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='220'%20height='520'%20viewBox='0%200%20220%20520'%3E%3Cg%20fill='none'%20stroke='%23fff'%20stroke-width='10'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M110%20500%20C90%20410%2090%20320%20110%20230%20C130%20140%20125%2070%20110%2030'/%3E%3Cpath%20d='M110%20410%20C78%20392%2068%20360%2076%20334'/%3E%3Cpath%20d='M110%20345%20C80%20320%2076%20290%2085%20265'/%3E%3Cpath%20d='M110%20285%20C84%20264%2080%20232%2088%20208'/%3E%3Cpath%20d='M110%20225%20C86%20208%2080%20176%2088%20152'/%3E%3Cpath%20d='M110%20165%20C92%20152%2084%20122%2090%20100'/%3E%3C/g%3E%3Cg%20fill='%23fff'%3E%3Ccircle%20cx='142'%20cy='120'%20r='10'/%3E%3Ccircle%20cx='152'%20cy='150'%20r='9'/%3E%3Ccircle%20cx='140'%20cy='180'%20r='10'/%3E%3Ccircle%20cx='150'%20cy='210'%20r='9'/%3E%3Ccircle%20cx='138'%20cy='240'%20r='10'/%3E%3Ccircle%20cx='150'%20cy='270'%20r='9'/%3E%3Ccircle%20cx='140'%20cy='300'%20r='10'/%3E%3Ccircle%20cx='150'%20cy='330'%20r='9'/%3E%3Ccircle%20cx='140'%20cy='360'%20r='10'/%3E%3Ccircle%20cx='150'%20cy='390'%20r='9'/%3E%3C/g%3E%3C/svg%3E");
+
+  filter: blur(0.2px);
+}
+
+/* DIREITA — oliveira */
+body::after {
+  right: 0;
+  background-color: rgb(var(--olive) / 0.24);
+
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='220'%20height='520'%20viewBox='0%200%20220%20520'%3E%3Cg%20fill='none'%20stroke='%23fff'%20stroke-width='10'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M110%20500%20C140%20410%20155%20330%20135%20240%20C115%20150%20110%2080%20130%2030'/%3E%3Cpath%20d='M130%20390%20C165%20370%20182%20335%20174%20310'/%3E%3Cpath%20d='M126%20325%20C162%20305%20180%20272%20172%20248'/%3E%3Cpath%20d='M122%20260%20C158%20240%20176%20208%20168%20185'/%3E%3Cpath%20d='M120%20195%20C150%20176%20164%20146%20158%20124'/%3E%3C/g%3E%3Cg%20fill='%23fff'%3E%3Cellipse%20cx='88'%20cy='150'%20rx='16'%20ry='10'/%3E%3Cellipse%20cx='82'%20cy='220'%20rx='16'%20ry='10'/%3E%3Cellipse%20cx='90'%20cy='290'%20rx='16'%20ry='10'/%3E%3Cellipse%20cx='84'%20cy='360'%20rx='16'%20ry='10'/%3E%3Ccircle%20cx='95'%20cy='185'%20r='7'/%3E%3Ccircle%20cx='100'%20cy='255'%20r='7'/%3E%3Ccircle%20cx='96'%20cy='325'%20r='7'/%3E%3C/g%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='220'%20height='520'%20viewBox='0%200%20220%20520'%3E%3Cg%20fill='none'%20stroke='%23fff'%20stroke-width='10'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M110%20500%20C140%20410%20155%20330%20135%20240%20C115%20150%20110%2080%20130%2030'/%3E%3Cpath%20d='M130%20390%20C165%20370%20182%20335%20174%20310'/%3E%3Cpath%20d='M126%20325%20C162%20305%20180%20272%20172%20248'/%3E%3Cpath%20d='M122%20260%20C158%20240%20176%20208%20168%20185'/%3E%3Cpath%20d='M120%20195%20C150%20176%20164%20146%20158%20124'/%3E%3C/g%3E%3Cg%20fill='%23fff'%3E%3Cellipse%20cx='88'%20cy='150'%20rx='16'%20ry='10'/%3E%3Cellipse%20cx='82'%20cy='220'%20rx='16'%20ry='10'/%3E%3Cellipse%20cx='90'%20cy='290'%20rx='16'%20ry='10'/%3E%3Cellipse%20cx='84'%20cy='360'%20rx='16'%20ry='10'/%3E%3Ccircle%20cx='95'%20cy='185'%20r='7'/%3E%3Ccircle%20cx='100'%20cy='255'%20r='7'/%3E%3Ccircle%20cx='96'%20cy='325'%20r='7'/%3E%3C/g%3E%3C/svg%3E");
+
+  filter: blur(0.2px);
+}
+
+/* Ajuste para telas menores */
+@media (max-width: 640px) {
+  body::before,
+  body::after {
+    width: 130px;
+    -webkit-mask-size: 140px auto;
+    mask-size: 140px auto;
+    opacity: 0.75;
+  }
 }
 

@@ -2,6 +2,7 @@
 import { Footer } from "@/component/Footer";
 import { Hero } from "@/component/Hero";
 import { LinkCard } from "@/component/LinkCard";
+import { LocationCard } from "@/component/LocationCard";
 import { PhotoGallery } from "@/component/PhotoGallery";
 import { PixCard } from "@/component/PixCard";
 import { Section } from "@/component/Section";
@@ -9,22 +10,22 @@ import { siteContent } from "@/content/siteContent";
 
 export default function Home() {
   return (
-    <main className="min-h-screen px-6 py-10 max-w-4xl mx-auto">
+    <main className="relative z-10 min-h-screen px-6 py-10 max-w-4xl mx-auto">
       <div className="mb-8">
         <Hero
           dateText="20 • 06 • 2027"
-          coupleName="Yasmim & Vitor"
-          subtitle="Bem-vindos ao nosso site! Aqui você encontra informações rápidas e fotos"
+          coupleName="Yasmim & Vitor" subtitle={""}          
         />
 
         <nav className="mt-6 flex flex-wrap gap-2">
           {[
             ["#boas-vindas", "Boas-vindas"],
             ["#historia", "Nossa história"],
-            ["#dresscode", "Dress code"],
             ["#fotos", "Pré-wedding"],
-            ["#fotos-casamento", "Fotos do casamento"],
+            ["#dresscode", "Dress Code"],
+            ["#localizacao", "Localização"],
             ["#pix", "Pix"],
+            ["#fotos-casamento", "Fotos do casamento"],
           ].map(([href, label]) => (
             <a key={href} href={href} className="nav-chip">
               {label}
@@ -36,17 +37,12 @@ export default function Home() {
 
       <div className="my-10 h-px w-full bg-zinc-200/70" />
 
-
       <Section id="boas-vindas" title={siteContent.welcomeTitle}>
-        <p>{siteContent.welcomeText}</p>
+        <p className="whitespace-pre-line">{siteContent.welcomeText}</p>
       </Section>
 
       <Section id="historia" title={siteContent.storyTitle}>
         <p>{siteContent.storyText}</p>
-      </Section>
-
-      <Section id="dresscode" title={siteContent.dressCodeTitle}>
-        <p>{siteContent.dressCodeText}</p>
       </Section>
 
       <Section id="fotos" title="Fotos do pré-wedding">
@@ -54,6 +50,29 @@ export default function Home() {
         <PhotoGallery photos={siteContent.preWeddingPhotos} />
       </Section>
 
+      <Section id="dresscode" title={siteContent.dressCodeTitle}>
+        <p className="whitespace-pre-line">{siteContent.dressCodeText}</p>
+      </Section>
+
+      <Section id="localizacao" title={siteContent.localizacaoTitle}>
+        <p className="mb-4">{siteContent.localizacaoText}</p>
+
+        <LocationCard
+          address={siteContent.localizacaoAddress}
+          mapsLink={siteContent.localizacaoMapsLink}
+        />
+
+        <div className="mt-5 overflow-hidden rounded-2xl border border-zinc-200 bg-white/70 shadow-sm">
+          <iframe
+            title="Mapa do local do evento"
+            src="https://www.google.com/maps?q=Praca%20Antonio%20Keller%2C%2022%20-%20Monte%20Alegre%2C%20Piracicaba%20-%20SP%2C%2013415-020&output=embed"
+            className="h-[260px] sm:h-[360px] w-full"
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          />
+        </div>
+      </Section>
+      
       <Section id="fotos-casamento" title="Fotos do casamento">
         <p className="mb-4">{siteContent.photosUploadText}</p>
 
@@ -65,22 +84,21 @@ export default function Home() {
         />
       </Section>
 
-
-
       <Section id="pix" title={siteContent.pixTitle}>
         <p className="mb-4">{siteContent.pixText}</p>
 
         <PixCard
-          title="Chave Pix"
-          description="Você pode copiar a chave ou escanear o QR."
+          title="Pix"
+          description="Você pode escanear o QR ou copiar o código Pix."
           pixKey={siteContent.pixKey}
+          pixCopiaECola={siteContent.pixCopiaECola}
         />
       </Section>
 
       <Footer
         names="Yasmim & Vitor"
         dateText="20 • 06 • 2027"
-        note="Com carinho, esperamos você no nosso grande dia."
+        note="Esperamos você no nosso grande dia."
       />
 
     </main>

@@ -63,7 +63,7 @@ export function Countdown({ targetISO, label = "Faltam" }: CountdownProps) {
             </div>
 
             <p className="mt-2 text-zinc-700">
-            Obrigado por fazer parte desse momento com a gente.
+            Obrigado por fazer parte desse momento conosco.
             </p>
         </div>
         )}

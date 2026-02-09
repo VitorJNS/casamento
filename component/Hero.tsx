@@ -47,6 +47,8 @@ export function Hero({ dateText, coupleName, subtitle }: HeroProps) {
 
       <Countdown targetISO="2027-06-20T16:00:00-03:00" />
 
+      
+
       {/* O CODIGO ABAIXO COMENTA OS BOTOES NESSA INTERFACE PRINCIPAL */}
       {/* <div className="mt-7 flex flex-wrap gap-3 justify-center">
         <a

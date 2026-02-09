@@ -22,8 +22,8 @@ export function LinkCard({
       await navigator.clipboard.writeText(href);
       setCopied(true);
       setTimeout(() => setCopied(false), 1200);
-    } catch {
-      // se bloquear, só não copia (não é crítico)
+    } catch (e) {
+      console.log("ERRO COPY LINK ON LINK CARD -> ", e);
     }
   }
 

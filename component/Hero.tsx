@@ -21,14 +21,13 @@ export function Hero({ dateText, coupleName, subtitle }: HeroProps) {
       {/* borda interna (efeito papelaria) */}
       <div className="pointer-events-none absolute inset-2 rounded-3xl border border-white/40" />
 
-      <div className="mx-auto mb-6 flex justify-center">
-        <div
-            className="monogram-mask"
-            style={{
-            width: 160,
-            height: 160,
-            backgroundColor: "rgb(var(--olive))",
-            }}
+      <div className="relative mx-auto mb-6 h-36 w-36 sm:h-44 sm:w-44">
+        <Image
+          src="/brand/monograma.png"
+          alt="Monograma Yasmim & Vitor"
+          fill
+          priority
+          className="object-contain drop-shadow-sm"
         />
       </div>
 

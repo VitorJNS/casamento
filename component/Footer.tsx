@@ -10,14 +10,13 @@ export function Footer({ names, dateText, note }: FooterProps) {
   return (
     <footer className="mt-12 pb-10">
       <div className="rounded-3xl border border-zinc-200 bg-white/70 backdrop-blur p-6 shadow-sm text-center">
-        <div className="mx-auto mb-3 flex justify-center">
-            <div
-                className="monogram-mask"
-                style={{
-                width: 70,
-                height: 70,
-                backgroundColor: "rgb(var(--olive))",
-                }}
+        <div className="relative mx-auto mb-6 h-36 w-36 sm:h-44 sm:w-44">
+            <Image
+              src="/brand/monograma.png"
+              alt="Monograma Yasmim & Vitor"
+              fill
+              priority
+              className="object-contain drop-shadow-sm"
             />
         </div>
 

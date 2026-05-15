@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+This is a [Next.js](https://nextjs.org) wedding site.
 
 ## Getting Started
 
-First, run the development server:
+Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## External Payment Links
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+This version uses the simplest payment approach:
 
-## Learn More
+- no backend logic
+- no webhooks
+- no database
+- a gift list where each item can open a hosted checkout link from Mercado Pago or Stripe
 
-To learn more about Next.js, take a look at the following resources:
+To enable those buttons, edit `content/siteContent.ts` and fill the links inside `weddingGifts`:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```ts
+weddingGifts: [
+  {
+    id: "gift-jantar",
+    title: "Jantar especial",
+    priceLabel: "R$ 180",
+    mercadoPagoLink: "https://...",
+    stripeLink: "https://..."
+  }
+]
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+If the item links are empty, the site still renders the gift cards and keeps showing the manual Pix section as fallback.
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This version is static-friendly and works well on Vercel because it does not depend on server-side payment routes.

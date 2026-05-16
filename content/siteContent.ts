@@ -61,11 +61,11 @@ export const siteContent = {
     {
       id: "gift-jantar",
       category: "Experiencias",
-      title: "Jantar especial dos noivos",
+      title: "Teste",
       description:
         "Um presente para celebrarmos essa nova fase com um jantar bem especial.",
-      priceLabel: "R$ 180",
-      infinityPay: "",
+      priceLabel: "R$ 1,05",
+      infinityPay: "https://invoice.infinitepay.io/casamento-yasmim-vitor/iKobS9eNF5/",
       imageSrc: "/presents/pratos.jpg",
     },
     {

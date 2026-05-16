@@ -37,6 +37,11 @@ html {
   scroll-behavior: smooth;
 }
 
+html,
+body {
+  scroll-snap-type: y proximity;
+}
+
 body {
   color: var(--foreground);
   min-height: 100vh;
@@ -143,6 +148,36 @@ body {
   background: rgb(var(--lavender) / 0.26);
 }
 
+.section-shell {
+  scroll-margin-top: 6.5rem;
+  scroll-snap-align: start;
+}
+
+.section-fullscreen {
+  min-height: calc(100vh - 7rem);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+@media (max-width: 640px) {
+  html,
+  body {
+    scroll-snap-type: y mandatory;
+  }
+
+  .section-shell {
+    scroll-margin-top: 5.75rem;
+  }
+
+  .section-fullscreen {
+    min-height: calc(100svh - 6.5rem);
+    justify-content: flex-start;
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+}
+
 /* =========================
    Laterais decorativas
    Lavanda (esquerda) + Oliveira (direita)
@@ -201,4 +236,3 @@ body::after {
     opacity: 0.75;
   }
 }
-

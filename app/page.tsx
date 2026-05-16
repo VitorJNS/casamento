@@ -3,35 +3,33 @@ import { Hero } from "@/component/Hero";
 import { LinkCard } from "@/component/LinkCard";
 import { LocationCard } from "@/component/LocationCard";
 import { PhotoGallery } from "@/component/PhotoGallery";
-import { PixCard } from "@/component/PixCard";
 import { Section } from "@/component/Section";
+import { TopSectionNav } from "@/component/TopSectionNav";
 import { WeddingGiftList } from "@/component/WeddingGiftList";
 import { siteContent } from "@/content/siteContent";
 
 export default function Home() {
+  const navItems = [
+    { id: "inicio", label: "Inicio", mobileLabel: "Inicio" },
+    { id: "boas-vindas", label: "Boas-vindas", mobileLabel: "Boas" },
+    { id: "historia", label: "O casal", mobileLabel: "Casal" },
+    { id: "fotos", label: "Pre-wedding", mobileLabel: "Fotos" },
+    { id: "dresscode", label: "Dress Code", mobileLabel: "Traje" },
+    { id: "localizacao", label: "Localizacao", mobileLabel: "Local" },
+    { id: "pix", label: "Presentes", mobileLabel: "Lista" },
+    { id: "fotos-casamento", label: "Fotos", mobileLabel: "Envio" },
+  ];
+
   return (
     <main className="relative z-10 mx-auto min-h-screen max-w-6xl px-6 py-10">
-      <div className="mb-8">
+      <TopSectionNav items={navItems} />
+
+      <section
+        id="inicio"
+        className="section-shell section-fullscreen mb-10 rounded-3xl"
+      >
         <Hero dateText="20 • 06 • 2027" coupleName="Yasmim & Vitor" subtitle="" />
-
-        <nav className="mt-6 flex flex-wrap gap-2">
-          {[
-            ["#boas-vindas", "Boas-vindas"],
-            ["#historia", "O casal"],
-            ["#fotos", "Pre-wedding"],
-            ["#dresscode", "Dress Code"],
-            ["#localizacao", "Localizacao"],
-            ["#pix", "Presentes"],
-            ["#fotos-casamento", "Fotos do casamento"],
-          ].map(([href, label]) => (
-            <a key={href} href={href} className="nav-chip">
-              {label}
-            </a>
-          ))}
-        </nav>
-      </div>
-
-      <div className="my-10 h-px w-full bg-zinc-200/70" />
+      </section>
 
       <Section id="boas-vindas" title={siteContent.welcomeTitle}>
         <p className="whitespace-pre-line">{siteContent.welcomeText}</p>

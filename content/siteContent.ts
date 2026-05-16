@@ -54,7 +54,7 @@ export const siteContent = {
 
   pixTitle: "Lista de presentes",
   pixText:
-    "Se quiser nos presentear, escolha um item da nossa lista abaixo. Cada presente pode apontar para um link externo de pagamento. Se preferir, a chave Pix manual continua disponivel no final da secao.",
+    "Se quiser nos presentear, escolha um item da nossa lista abaixo. Cada presente aponta para um link externo de pagamento.",
   giftListIntro:
     "A ideia desta secao agora e ficar mais proxima de uma vitrine de presentes: varios itens por pagina, visual mais compacto e navegacao por paginas.",
   weddingGifts: [
@@ -181,7 +181,4 @@ export const siteContent = {
       stripeLink: "",
     },
   ],
-  pixKey: "46447151822",
-  pixCopiaECola:
-    "00020126330014BR.GOV.BCB.PIX0111464471518225204000053039865802BR5925VITOR JOSE DO NASCIMENTO 6010INDAIATUBA6226052271G6JiYhHMVBp0yB0qP8d1630460A9",
 };

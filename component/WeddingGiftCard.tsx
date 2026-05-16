@@ -9,6 +9,8 @@ type WeddingGiftCardProps = {
   imageSrc?: string;
   quantityInCart: number;
   onAddToCart: (giftId: string) => void;
+  onIncreaseCartItem: (giftId: string) => void;
+  onDecreaseCartItem: (giftId: string) => void;
 };
 
 export function WeddingGiftCard({
@@ -20,16 +22,18 @@ export function WeddingGiftCard({
   imageSrc,
   quantityInCart,
   onAddToCart,
+  onIncreaseCartItem,
+  onDecreaseCartItem,
 }: WeddingGiftCardProps) {
   return (
-    <article className="flex h-full flex-col overflow-hidden rounded-[22px] border border-zinc-200 bg-white shadow-sm sm:rounded-[26px]">
+    <article className="group flex h-full flex-col overflow-hidden rounded-[22px] border border-zinc-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md sm:rounded-[26px]">
       <div className="relative aspect-[4/3] border-b border-zinc-200">
         {imageSrc ? (
           <Image
             src={imageSrc}
             alt={title}
             fill
-            className="object-cover"
+            className="object-cover transition duration-500 group-hover:scale-[1.02]"
             sizes="(max-width: 640px) 50vw, (max-width: 1280px) 33vw, 25vw"
           />
         ) : (
@@ -71,18 +75,37 @@ export function WeddingGiftCard({
         </div>
 
         <div className="mt-auto pt-4 sm:pt-6">
-          <button
-            type="button"
-            onClick={() => onAddToCart(id)}
-            className="btn-primary flex w-full items-center justify-center rounded-[12px] px-4 py-2.5 text-sm font-semibold transition sm:rounded-full sm:py-3"
-          >
-            Adicionar ao carrinho
-          </button>
           {quantityInCart > 0 ? (
-            <p className="mt-2 text-center text-xs font-medium text-[rgb(var(--olive))] sm:text-sm">
-              {quantityInCart} {quantityInCart === 1 ? "presente no" : "presentes no"} carrinho
-            </p>
-          ) : null}
+            <div className="flex items-center justify-center gap-2 rounded-[14px] border border-zinc-200 bg-zinc-50 px-3 py-2.5 sm:gap-3 sm:rounded-full sm:bg-transparent sm:px-0 sm:py-0">
+              <button
+                type="button"
+                aria-label="Diminuir quantidade"
+                onClick={() => onDecreaseCartItem(id)}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-zinc-300 bg-white text-zinc-500 shadow-sm transition hover:border-zinc-400 hover:text-zinc-800 sm:h-10 sm:w-10"
+              >
+                <span className="-mt-0.5 text-[1.4rem] leading-none sm:text-[1.7rem]">-</span>
+              </button>
+              <span className="min-w-6 text-center text-sm font-semibold text-zinc-900 sm:min-w-7 sm:text-base">
+                {quantityInCart}
+              </span>
+              <button
+                type="button"
+                aria-label="Aumentar quantidade"
+                onClick={() => onIncreaseCartItem(id)}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-zinc-300 bg-white text-[rgb(var(--olive))] shadow-sm transition hover:border-[rgb(var(--olive))/0.45] hover:bg-[rgb(var(--olive))/0.08] sm:h-10 sm:w-10"
+              >
+                <span className="-mt-0.5 text-[1.4rem] leading-none sm:text-[1.7rem]">+</span>
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => onAddToCart(id)}
+              className="btn-primary flex w-full items-center justify-center rounded-[12px] px-4 py-2.5 text-sm font-semibold transition sm:rounded-full sm:py-3"
+            >
+              Adicionar ao carrinho
+            </button>
+          )}
         </div>
       </div>
     </article>

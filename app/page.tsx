@@ -20,8 +20,8 @@ export default async function Home() {
     { id: "fotos", label: "Pre-wedding", mobileLabel: "Fotos" },
     { id: "dresscode", label: "Dress Code", mobileLabel: "Traje" },
     { id: "localizacao", label: "Localizacao", mobileLabel: "Local" },
-    { id: "pix", label: "Presentes", mobileLabel: "Lista" },
     { id: "fotos-casamento", label: "Fotos", mobileLabel: "Envio" },
+    { id: "pix", label: "Presentes", mobileLabel: "Lista" },
   ];
 
   return (

@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useMemo, useRef, useState } from "react";
+
 import { WeddingGiftCard } from "@/component/WeddingGiftCard";
 import type { DisplayGift } from "@/lib/gifts";
 
@@ -13,6 +15,8 @@ type WeddingGiftListProps = {
   onOpenCart: () => void;
   getQuantityInCart: (giftId: string) => number;
   onAddToCart: (giftId: string) => void;
+  onIncreaseCartItem: (giftId: string) => void;
+  onDecreaseCartItem: (giftId: string) => void;
 };
 
 export function WeddingGiftList({
@@ -25,16 +29,44 @@ export function WeddingGiftList({
   onOpenCart,
   getQuantityInCart,
   onAddToCart,
+  onIncreaseCartItem,
+  onDecreaseCartItem,
 }: WeddingGiftListProps) {
-  const totalPages = Math.max(1, Math.ceil(gifts.length / itemsPerPage));
+  const [sortOrder, setSortOrder] = useState<"default" | "price-asc" | "price-desc">(
+    "default",
+  );
+  const listTopRef = useRef<HTMLDivElement | null>(null);
+
+  const sortedGifts = useMemo(() => {
+    const next = [...gifts];
+
+    if (sortOrder === "price-asc") {
+      next.sort((a, b) => a.priceCents - b.priceCents);
+    } else if (sortOrder === "price-desc") {
+      next.sort((a, b) => b.priceCents - a.priceCents);
+    }
+
+    return next;
+  }, [gifts, sortOrder]);
+
+  const totalPages = Math.max(1, Math.ceil(sortedGifts.length / itemsPerPage));
   const currentPage = Math.min(page, totalPages);
   const start = (currentPage - 1) * itemsPerPage;
-  const visibleGifts = gifts.slice(start, start + itemsPerPage);
-  const startItem = gifts.length === 0 ? 0 : start + 1;
-  const endItem = Math.min(start + itemsPerPage, gifts.length);
+  const visibleGifts = sortedGifts.slice(start, start + itemsPerPage);
+  const startItem = sortedGifts.length === 0 ? 0 : start + 1;
+  const endItem = Math.min(start + itemsPerPage, sortedGifts.length);
+
+  useEffect(() => {
+    listTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [currentPage, sortOrder]);
+
+  function handleSortChange(value: "default" | "price-asc" | "price-desc") {
+    setSortOrder(value);
+    onPageChange(1);
+  }
 
   return (
-    <div>
+    <div ref={listTopRef}>
       <div className="mb-4 rounded-[24px] border border-zinc-200 bg-white/80 p-3 shadow-sm sm:mb-5 sm:rounded-3xl sm:p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -42,21 +74,77 @@ export function WeddingGiftList({
               Lista de presentes
             </p>
             <p className="mt-1 text-sm text-zinc-600">
-              Mostrando {startItem}-{endItem} de {gifts.length} presentes
+              Mostrando {startItem}-{endItem} de {sortedGifts.length} presentes
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={onOpenCart}
-            className="hidden items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-700 sm:flex"
-          >
-            <span className="font-medium">
-              {cartQuantity > 0 ? `${cartQuantity} presentes` : "Carrinho vazio"}
-            </span>
-            <span className="text-zinc-400">|</span>
-            <span>{cartSubtotalLabel}</span>
-          </button>
+          <div className="flex w-full items-center gap-3 sm:w-auto sm:flex-row sm:items-center">
+            <label className="flex min-w-0 flex-1 items-center gap-2 rounded-[18px] border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-700 shadow-sm sm:min-w-[190px] sm:flex-none sm:rounded-full">
+              <span className="whitespace-nowrap text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
+                Ordenar
+              </span>
+              <select
+                value={sortOrder}
+                onChange={(event) =>
+                  handleSortChange(
+                    event.target.value as "default" | "price-asc" | "price-desc",
+                  )
+                }
+                className="bg-transparent text-sm font-medium text-zinc-800 outline-none"
+              >
+                <option value="default">Padrao</option>
+                <option value="price-asc">Mais barato</option>
+                <option value="price-desc">Mais caro</option>
+              </select>
+            </label>
+
+            <button
+              type="button"
+              onClick={onOpenCart}
+              aria-label="Ver carrinho"
+              className="flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-[16px] bg-[rgb(var(--olive))] text-white shadow-sm transition hover:opacity-95 sm:hidden"
+            >
+              <span className="relative inline-flex">
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="9" cy="20" r="1.25" />
+                  <circle cx="18" cy="20" r="1.25" />
+                  <path d="M3 4h2l2.2 9.2a1 1 0 0 0 1 .8h8.9a1 1 0 0 0 1-.76L20 7H7" />
+                </svg>
+                {cartQuantity > 0 ? (
+                  <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1 text-[10px] font-bold text-[rgb(var(--olive))]">
+                    {cartQuantity}
+                  </span>
+                ) : null}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={onOpenCart}
+              className="hidden items-center justify-between bg-[rgb(var(--olive))] px-4 py-3 text-left text-white shadow-sm transition hover:opacity-95 sm:flex sm:min-w-[250px] sm:rounded-full"
+            >
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/75">
+                  Ver carrinho
+                </p>
+                <p className="mt-1 text-sm font-semibold">
+                  {cartQuantity > 0
+                    ? `${cartQuantity} ${cartQuantity === 1 ? "item" : "itens"}`
+                    : "Nenhum item"}
+                </p>
+              </div>
+              <p className="text-sm font-semibold">{cartSubtotalLabel}</p>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -72,6 +160,8 @@ export function WeddingGiftList({
             imageSrc={gift.imageSrc}
             quantityInCart={getQuantityInCart(gift.id)}
             onAddToCart={onAddToCart}
+            onIncreaseCartItem={onIncreaseCartItem}
+            onDecreaseCartItem={onDecreaseCartItem}
           />
         ))}
       </div>

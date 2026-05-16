@@ -37,11 +37,6 @@ html {
   scroll-behavior: smooth;
 }
 
-html,
-body {
-  scroll-snap-type: y proximity;
-}
-
 body {
   color: var(--foreground);
   min-height: 100vh;
@@ -150,7 +145,6 @@ body {
 
 .section-shell {
   scroll-margin-top: 6.5rem;
-  scroll-snap-align: start;
 }
 
 .section-fullscreen {
@@ -161,11 +155,6 @@ body {
 }
 
 @media (max-width: 640px) {
-  html,
-  body {
-    scroll-snap-type: y mandatory;
-  }
-
   .section-shell {
     scroll-margin-top: 5.75rem;
   }

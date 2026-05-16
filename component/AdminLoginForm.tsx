@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -79,12 +80,12 @@ export function AdminLoginForm() {
           {isSubmitting ? "Entrando..." : "Acessar painel"}
         </button>
 
-        <a
+        <Link
           href="/"
           className="inline-flex rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-50 hover:text-zinc-900"
         >
           Voltar para o site
-        </a>
+        </Link>
       </div>
     </form>
   );

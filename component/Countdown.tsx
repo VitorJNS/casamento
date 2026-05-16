@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 
 type CountdownProps = {
   /** Data alvo em formato ISO. Ex: "2027-06-20T00:00:00-03:00" */
@@ -14,20 +14,24 @@ function pad2(n: number) {
 
 export function Countdown({ targetISO, label = "Faltam" }: CountdownProps) {
   const targetMs = useMemo(() => new Date(targetISO).getTime(), [targetISO]);
-  const [nowMs, setNowMs] = useState(() => Date.now());
+  const nowMs = useSyncExternalStore(
+    (onStoreChange) => {
+      const id = setInterval(onStoreChange, 1000);
+      return () => clearInterval(id);
+    },
+    () => Date.now(),
+    () => 0,
+  );
 
-  useEffect(() => {
-    const id = setInterval(() => setNowMs(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, []);
+  const diff = nowMs === 0 ? null : Math.max(0, targetMs - nowMs);
 
-  const diff = Math.max(0, targetMs - nowMs);
-
-  const totalSeconds = Math.floor(diff / 1000);
-  const days = Math.floor(totalSeconds / (60 * 60 * 24));
-  const hours = Math.floor((totalSeconds / (60 * 60)) % 24);
-  const minutes = Math.floor((totalSeconds / 60) % 60);
-  const seconds = Math.floor(totalSeconds % 60);
+  const totalSeconds = diff === null ? null : Math.floor(diff / 1000);
+  const days = totalSeconds === null ? "--" : Math.floor(totalSeconds / (60 * 60 * 24));
+  const hours =
+    totalSeconds === null ? "--" : pad2(Math.floor((totalSeconds / (60 * 60)) % 24));
+  const minutes =
+    totalSeconds === null ? "--" : pad2(Math.floor((totalSeconds / 60) % 60));
+  const seconds = totalSeconds === null ? "--" : pad2(Math.floor(totalSeconds % 60));
 
   const finished = diff === 0;
 
@@ -44,9 +48,9 @@ export function Countdown({ targetISO, label = "Faltam" }: CountdownProps) {
 
             <div className="mt-3 grid grid-cols-4 gap-2">
             <TimeBox value={days} label="Dias" />
-            <TimeBox value={pad2(hours)} label="Horas" />
-            <TimeBox value={pad2(minutes)} label="Min" />
-            <TimeBox value={pad2(seconds)} label="Seg" />
+            <TimeBox value={hours} label="Horas" />
+            <TimeBox value={minutes} label="Min" />
+            <TimeBox value={seconds} label="Seg" />
             </div>
         </>
         ) : (

@@ -4,6 +4,7 @@ import { Hero } from "@/component/Hero";
 import { LinkCard } from "@/component/LinkCard";
 import { LocationCard } from "@/component/LocationCard";
 import { PhotoGallery } from "@/component/PhotoGallery";
+import { RsvpForm } from "@/component/RsvpForm";
 import { Section } from "@/component/Section";
 import { TopSectionNav } from "@/component/TopSectionNav";
 import { siteContent } from "@/content/siteContent";
@@ -20,12 +21,22 @@ export default async function Home() {
     { id: "fotos", label: "Pre-wedding", mobileLabel: "Fotos" },
     { id: "dresscode", label: "Dress Code", mobileLabel: "Traje" },
     { id: "localizacao", label: "Localizacao", mobileLabel: "Local" },
+    { id: "rsvp", label: "Confirmar presenca", mobileLabel: "RSVP" },
     { id: "fotos-casamento", label: "Fotos", mobileLabel: "Envio" },
     { id: "pix", label: "Presentes", mobileLabel: "Lista" },
   ];
 
   return (
     <main className="relative z-10 mx-auto min-h-screen max-w-6xl px-6 py-10">
+      <div className="mb-4 flex justify-end">
+        <a
+          href="/admin"
+          className="inline-flex rounded-full border border-zinc-300 bg-white/80 px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm backdrop-blur transition hover:bg-white hover:text-zinc-900"
+        >
+          Area dos noivos
+        </a>
+      </div>
+
       <TopSectionNav items={navItems} />
 
       <section
@@ -69,6 +80,12 @@ export default async function Home() {
             referrerPolicy="no-referrer-when-downgrade"
           />
         </div>
+      </Section>
+
+      <Section id="rsvp" title={siteContent.rsvpTitle}>
+        <p className="mb-3">{siteContent.rsvpText}</p>
+        <p className="mb-5 text-sm text-zinc-600">{siteContent.rsvpNote}</p>
+        <RsvpForm />
       </Section>
 
       <Section id="fotos-casamento" title="Fotos do casamento">

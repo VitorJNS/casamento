@@ -33,6 +33,12 @@ export const siteContent = {
   localizacaoText:
     "Abaixo esta o endereco para copiar e o link para abrir no Google Maps.",
 
+  rsvpTitle: "Confirmacao de presenca",
+  rsvpText:
+    "Pedimos, com carinho, que confirme sua presenca para nos ajudar na organizacao do grande dia. Se precisar alterar sua resposta depois, e so preencher novamente.",
+  rsvpNote:
+    "Informe seu nome, contato e se estara presente. Caso venha acompanhado, nos conte quantas pessoas serao ao todo.",
+
   photosTitle: "Pre-wedding",
   photosText: "Vamos colocar uma galeria aqui (na proxima etapa).",
 

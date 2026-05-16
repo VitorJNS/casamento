@@ -36,6 +36,7 @@ export function WeddingGiftList({
     "default",
   );
   const listTopRef = useRef<HTMLDivElement | null>(null);
+  const hasMountedRef = useRef(false);
 
   const sortedGifts = useMemo(() => {
     const next = [...gifts];
@@ -57,6 +58,11 @@ export function WeddingGiftList({
   const endItem = Math.min(start + itemsPerPage, sortedGifts.length);
 
   useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
+
     listTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [currentPage, sortOrder]);
 

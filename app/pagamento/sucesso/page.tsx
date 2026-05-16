@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { OrderStatusCard } from "@/component/OrderStatusCard";
 
 export const dynamic = "force-dynamic";
@@ -18,6 +19,14 @@ export default async function PaymentSuccessPage({
           Estamos acompanhando seu presente
         </h1>
         <p className="mt-3 text-zinc-700">Se o pagamento ja tiver sido aprovado, ele aparecera aqui em alguns instantes. Caso contrario, voce pode atualizar o status manualmente.</p>
+        <div className="mt-5">
+          <Link
+            href="/"
+            className="inline-flex rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-50 hover:text-zinc-900"
+          >
+            Voltar para o site
+          </Link>
+        </div>
         <div className="mt-6">
           <OrderStatusCard orderId={params.orderId} orderNsu={params.order_nsu} autoCheck={autoCheck} />
         </div>

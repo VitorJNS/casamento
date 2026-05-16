@@ -1,3 +1,4 @@
+import { GiftRegistry } from "@/component/GiftRegistry";
 import { Footer } from "@/component/Footer";
 import { Hero } from "@/component/Hero";
 import { LinkCard } from "@/component/LinkCard";
@@ -5,10 +6,13 @@ import { LocationCard } from "@/component/LocationCard";
 import { PhotoGallery } from "@/component/PhotoGallery";
 import { Section } from "@/component/Section";
 import { TopSectionNav } from "@/component/TopSectionNav";
-import { WeddingGiftList } from "@/component/WeddingGiftList";
 import { siteContent } from "@/content/siteContent";
+import { getDisplayGiftCatalog } from "@/lib/gifts";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const giftCatalog = await getDisplayGiftCatalog();
   const navItems = [
     { id: "inicio", label: "Inicio", mobileLabel: "Inicio" },
     { id: "boas-vindas", label: "Boas-vindas", mobileLabel: "Boas" },
@@ -82,7 +86,7 @@ export default function Home() {
         <p className="mb-4">{siteContent.pixText}</p>
         <p className="mb-5 text-sm text-zinc-600">{siteContent.giftListIntro}</p>
 
-        <WeddingGiftList gifts={siteContent.weddingGifts} />
+        <GiftRegistry gifts={giftCatalog} />
       </Section>
 
       <Footer

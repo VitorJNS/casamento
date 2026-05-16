@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrderStatus {
+  draft
+  checkout_created
+  pending_payment
+  paid
+  failed
+  canceled
+  expired
+}
+
+model GiftItem {
+  id           String      @id @default(cuid())
+  slug         String      @unique
+  title        String
+  description  String
+  category     String?
+  priceCents   Int
+  imageSrc     String?
+  isActive     Boolean     @default(true)
+  displayOrder Int         @default(0)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  orderItems   OrderItem[]
+}
+
+model Order {
+  id                     String         @id @default(cuid())
+  publicId               String         @unique
+  guestName              String
+  guestEmail             String
+  guestMessage           String?
+  status                 OrderStatus    @default(draft)
+  subtotalCents          Int
+  paidCents              Int            @default(0)
+  provider               String
+  providerOrderNsu       String?        @unique
+  providerSlug           String?
+  providerTransactionNsu String?        @unique
+  providerCheckoutUrl    String?
+  receiptUrl             String?
+  paymentMethod          String?
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+  paidAt                 DateTime?
+  items                  OrderItem[]
+  paymentEvents          PaymentEvent[]
+}
+
+model OrderItem {
+  id             String   @id @default(cuid())
+  orderId        String
+  giftItemId     String
+  titleSnapshot  String
+  unitPriceCents Int
+  quantity       Int
+  lineTotalCents Int
+  createdAt      DateTime @default(now())
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  giftItem       GiftItem @relation(fields: [giftItemId], references: [id], onDelete: Restrict)
+}
+
+model PaymentEvent {
+  id              String   @id @default(cuid())
+  orderId         String?
+  providerEventId String?
+  dedupeKey       String   @unique
+  providerPayload Json
+  status          String
+  processedAt     DateTime?
+  createdAt       DateTime @default(now())
+  order           Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+}

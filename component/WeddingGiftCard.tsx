@@ -1,25 +1,26 @@
 import Image from "next/image";
 
 type WeddingGiftCardProps = {
+  id: string;
   title: string;
   description: string;
   priceLabel: string;
   category?: string;
-  infinityPay?: string;
   imageSrc?: string;
+  quantityInCart: number;
+  onAddToCart: (giftId: string) => void;
 };
 
 export function WeddingGiftCard({
+  id,
   title,
   description,
   priceLabel,
   category,
-  infinityPay,
   imageSrc,
+  quantityInCart,
+  onAddToCart,
 }: WeddingGiftCardProps) {
-  const actionHref = infinityPay;
-  const actionLabel = "Presentear";
-
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-[22px] border border-zinc-200 bg-white shadow-sm sm:rounded-[26px]">
       <div className="relative aspect-[4/3] border-b border-zinc-200">
@@ -70,20 +71,18 @@ export function WeddingGiftCard({
         </div>
 
         <div className="mt-auto pt-4 sm:pt-6">
-          {actionHref ? (
-            <a
-              href={actionHref}
-              target="_blank"
-              rel="noreferrer"
-              className="btn-primary flex w-full items-center justify-center rounded-[12px] px-4 py-2.5 text-sm font-semibold transition sm:rounded-full sm:py-3"
-            >
-              {actionLabel}
-            </a>
-          ) : (
-            <div className="rounded-[12px] border border-zinc-200 bg-zinc-100 px-4 py-2.5 text-center text-sm font-medium text-zinc-500 sm:rounded-full sm:py-3">
-              Em breve
-            </div>
-          )}
+          <button
+            type="button"
+            onClick={() => onAddToCart(id)}
+            className="btn-primary flex w-full items-center justify-center rounded-[12px] px-4 py-2.5 text-sm font-semibold transition sm:rounded-full sm:py-3"
+          >
+            Adicionar ao carrinho
+          </button>
+          {quantityInCart > 0 ? (
+            <p className="mt-2 text-center text-xs font-medium text-[rgb(var(--olive))] sm:text-sm">
+              {quantityInCart} {quantityInCart === 1 ? "presente no" : "presentes no"} carrinho
+            </p>
+          ) : null}
         </div>
       </div>
     </article>

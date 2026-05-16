@@ -54,9 +54,9 @@ export const siteContent = {
 
   pixTitle: "Lista de presentes",
   pixText:
-    "Se quiser nos presentear, escolha um item da nossa lista abaixo. Cada presente aponta para um link externo de pagamento.",
+    "Se quiser nos presentear, monte seu carrinho com um ou mais itens e siga para o checkout com Pix ou cartao.",
   giftListIntro:
-    "A ideia desta secao agora e ficar mais proxima de uma vitrine de presentes: varios itens por pagina, visual mais compacto e navegacao por paginas.",
+    "Agora voce pode juntar varios presentes em uma unica compra, preencher seus dados e concluir tudo em um checkout unico.",
   weddingGifts: [
     {
       id: "gift-jantar",
@@ -64,7 +64,7 @@ export const siteContent = {
       title: "Teste",
       description:
         "Um presente para celebrarmos essa nova fase com um jantar bem especial.",
-      priceLabel: "R$ 1,05",
+      priceLabel: "R$ 10",
       infinityPay: "https://invoice.infinitepay.io/casamento-yasmim-vitor/iKobS9eNF5/",
       imageSrc: "/presents/pratos.jpg",
     },

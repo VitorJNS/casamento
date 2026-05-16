@@ -1,30 +1,31 @@
 "use client";
 
-import { useState } from "react";
-
 import { WeddingGiftCard } from "@/component/WeddingGiftCard";
-
-type WeddingGift = {
-  id: string;
-  category?: string;
-  title: string;
-  description: string;
-  priceLabel: string;
-  infinityPay?: string;
-  imageSrc?: string;
-};
+import type { DisplayGift } from "@/lib/gifts";
 
 type WeddingGiftListProps = {
-  gifts: WeddingGift[];
+  gifts: DisplayGift[];
   itemsPerPage?: number;
+  page: number;
+  onPageChange: (page: number) => void;
+  cartQuantity: number;
+  cartSubtotalLabel: string;
+  onOpenCart: () => void;
+  getQuantityInCart: (giftId: string) => number;
+  onAddToCart: (giftId: string) => void;
 };
 
 export function WeddingGiftList({
   gifts,
   itemsPerPage = 8,
+  page,
+  onPageChange,
+  cartQuantity,
+  cartSubtotalLabel,
+  onOpenCart,
+  getQuantityInCart,
+  onAddToCart,
 }: WeddingGiftListProps) {
-  const [page, setPage] = useState(1);
-
   const totalPages = Math.max(1, Math.ceil(gifts.length / itemsPerPage));
   const currentPage = Math.min(page, totalPages);
   const start = (currentPage - 1) * itemsPerPage;
@@ -45,11 +46,17 @@ export function WeddingGiftList({
             </p>
           </div>
 
-          <div className="hidden items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-700 sm:flex">
-            <span className="font-medium">Carrinho vazio</span>
+          <button
+            type="button"
+            onClick={onOpenCart}
+            className="hidden items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-700 sm:flex"
+          >
+            <span className="font-medium">
+              {cartQuantity > 0 ? `${cartQuantity} presentes` : "Carrinho vazio"}
+            </span>
             <span className="text-zinc-400">|</span>
-            <span>Ver carrinho (0 presentes)</span>
-          </div>
+            <span>{cartSubtotalLabel}</span>
+          </button>
         </div>
       </div>
 
@@ -57,12 +64,14 @@ export function WeddingGiftList({
         {visibleGifts.map((gift) => (
           <WeddingGiftCard
             key={gift.id}
+            id={gift.id}
             title={gift.title}
             description={gift.description}
             priceLabel={gift.priceLabel}
             category={gift.category}
-            infinityPay={gift.infinityPay}
             imageSrc={gift.imageSrc}
+            quantityInCart={getQuantityInCart(gift.id)}
+            onAddToCart={onAddToCart}
           />
         ))}
       </div>
@@ -71,7 +80,7 @@ export function WeddingGiftList({
         <div className="mt-5 flex flex-wrap items-center justify-center gap-2 sm:mt-6">
           <button
             type="button"
-            onClick={() => setPage((value) => Math.max(1, value - 1))}
+            onClick={() => onPageChange(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
             className="rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
           >
@@ -86,7 +95,7 @@ export function WeddingGiftList({
               <button
                 key={nextPage}
                 type="button"
-                onClick={() => setPage(nextPage)}
+                onClick={() => onPageChange(nextPage)}
                 className={`h-10 min-w-10 rounded-full px-3 text-sm font-semibold transition ${
                   isActive
                     ? "bg-black text-white"
@@ -100,7 +109,7 @@ export function WeddingGiftList({
 
           <button
             type="button"
-            onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
+            onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
             disabled={currentPage === totalPages}
             className="rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
           >

@@ -65,10 +65,8 @@ export const siteContent = {
       description:
         "Um presente para celebrarmos essa nova fase com um jantar bem especial.",
       priceLabel: "R$ 180",
-      infinityPay:
-        "https://invoice.infinitepay.io/casamento-yasmim-vitor/EfKoJlJPfQ/",
-      stripeLink: "",
-      note: "Ideal para um link de pagamento com valor fixo.",
+      infinityPay: "",
+      imageSrc: "/presents/pratos.jpg",
     },
     {
       id: "gift-enxoval",
@@ -76,9 +74,9 @@ export const siteContent = {
       title: "Jogo de cama",
       description:
         "Uma ajuda para montarmos o enxoval da nossa casa com carinho.",
-      priceLabel: "R$ 240",
-      infinityPay: "",
-      stripeLink: "",
+      priceLabel: "R$ 280",
+      infinityPay: "https://invoice.infinitepay.io/casamento-yasmim-vitor/EfKoJlJPfQ/",
+      imageSrc: "/presents/jogo-de-cama.jpg",
     },
     {
       id: "gift-cozinha",
@@ -88,7 +86,7 @@ export const siteContent = {
         "Contribuicao para panelas, talheres e pequenos itens do dia a dia.",
       priceLabel: "R$ 150",
       infinityPay: "",
-      stripeLink: "",
+      imageSrc: "/presents/utensilios-cozinha.jpg",
     },
     {
       id: "gift-lua-de-mel",
@@ -98,7 +96,7 @@ export const siteContent = {
         "Um presente para nos ajudar a viver um momento especial na viagem.",
       priceLabel: "R$ 300",
       infinityPay: "",
-      stripeLink: "",
+      imageSrc: "/presents/lua-de-mel-roma.jpg",
     },
     {
       id: "gift-toalhas",
@@ -108,7 +106,7 @@ export const siteContent = {
         "Um presente util e carinhoso para o comeco da nossa nova rotina.",
       priceLabel: "R$ 130",
       infinityPay: "",
-      stripeLink: "",
+      imageSrc: "/presents/toalhas.jpg",
     },
     {
       id: "gift-cafeteira",
@@ -118,7 +116,7 @@ export const siteContent = {
         "Para deixar nossos cafes da manha ainda mais especiais.",
       priceLabel: "R$ 260",
       infinityPay: "",
-      stripeLink: "",
+      imageSrc: "/presents/cafeteira.jpg",
     },
     {
       id: "gift-pratos",
@@ -128,7 +126,7 @@ export const siteContent = {
         "Contribua com um item especial para montarmos nossa mesa.",
       priceLabel: "R$ 190",
       infinityPay: "",
-      stripeLink: "",
+      imageSrc: "/presents/pratos.jpg",
     },
     {
       id: "gift-bebidas",
@@ -138,7 +136,7 @@ export const siteContent = {
         "Um presente para celebrarmos com uma noite especial e cheia de brindes.",
       priceLabel: "R$ 160",
       infinityPay: "",
-      stripeLink: "",
+      imageSrc: "/presents/brindes.jpg",
     },
     {
       id: "gift-mala",
@@ -148,7 +146,7 @@ export const siteContent = {
         "Ajude com um item importante para nossas proximas aventuras.",
       priceLabel: "R$ 280",
       infinityPay: "",
-      stripeLink: "",
+      imageSrc: "/presents/mala.jpg",
     },
     {
       id: "gift-liquidificador",
@@ -158,7 +156,7 @@ export const siteContent = {
         "Um presente pratico para equipar nossa cozinha do dia a dia.",
       priceLabel: "R$ 170",
       infinityPay: "",
-      stripeLink: "",
+      imageSrc: "/presents/liquidificador.jpg",
     },
     {
       id: "gift-hotel",
@@ -168,7 +166,7 @@ export const siteContent = {
         "Uma experiencia para celebrarmos juntos esse novo comeco.",
       priceLabel: "R$ 350",
       infinityPay: "",
-      stripeLink: "",
+      imageSrc: "/presents/hotel.jpg",
     },
     {
       id: "gift-piquenique",
@@ -178,7 +176,7 @@ export const siteContent = {
         "Um presente leve e romantico para um momento simples e feliz.",
       priceLabel: "R$ 120",
       infinityPay: "",
-      stripeLink: "",
+      imageSrc: "/presents/piquenique-clean.jpg",
     },
   ],
 };

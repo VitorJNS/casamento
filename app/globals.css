@@ -148,7 +148,7 @@ body {
 }
 
 .section-fullscreen {
-  min-height: calc(100vh - 7rem);
+  min-height: calc(100vh - 9rem);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -160,10 +160,10 @@ body {
   }
 
   .section-fullscreen {
-    min-height: calc(100svh - 6.5rem);
+    min-height: calc(100svh - 7.75rem);
     justify-content: flex-start;
-    padding-top: 1.5rem;
-    padding-bottom: 1.5rem;
+    padding-top: 0.75rem;
+    padding-bottom: 1.25rem;
   }
 }
 

@@ -84,7 +84,7 @@ export function TopSectionNav({ items }: TopSectionNavProps) {
 
   return (
     <>
-      <div className="sticky top-4 z-30 mb-6 hidden sm:block">
+      <div className="sticky top-3 z-30 mb-4 hidden sm:block">
         <div className="rounded-full border border-zinc-200 bg-white/85 p-2 shadow-sm backdrop-blur">
           <nav className="flex flex-wrap justify-center gap-2">
             {items.map((item) => {
@@ -111,11 +111,22 @@ export function TopSectionNav({ items }: TopSectionNavProps) {
               );
             })}
 
+            <a
+              href="/admin"
+              className="rounded-full px-3 py-2 text-sm font-medium text-zinc-900 transition"
+              style={{
+                backgroundColor: "rgb(255 255 255 / 0.92)",
+                border: "1px solid rgb(var(--lavender) / 0.35)",
+              }}
+            >
+              Noivos
+            </a>
+
           </nav>
         </div>
       </div>
 
-      <div className="sticky top-4 z-30 mb-3 flex justify-end sm:mb-6 sm:hidden">
+      <div className="sticky top-3 z-30 mb-2 flex justify-end sm:mb-6 sm:hidden">
         <button
           type="button"
           onClick={() => setIsOpen(true)}

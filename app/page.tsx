@@ -29,16 +29,7 @@ export default async function Home() {
   ];
 
   return (
-    <main className="relative z-10 mx-auto min-h-screen max-w-6xl px-6 py-10">
-      <div className="mb-4 hidden justify-end sm:flex">
-        <a
-          href="/admin"
-          className="inline-flex rounded-full border border-zinc-300 bg-white/80 px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm backdrop-blur transition hover:bg-white hover:text-zinc-900"
-        >
-          Area dos noivos
-        </a>
-      </div>
-
+    <main className="relative z-10 mx-auto min-h-screen max-w-6xl px-6 pb-10 pt-6">
       <TopSectionNav items={navItems} />
 
       <section
@@ -47,6 +38,8 @@ export default async function Home() {
       >
         <Hero dateText="20 • 06 • 2027" coupleName="Yasmim & Vitor" subtitle="" />
       </section>
+
+      <SectionDivider />
 
       <Section id="boas-vindas" title={siteContent.welcomeTitle}>
         <p className="whitespace-pre-line">{siteContent.welcomeText}</p>

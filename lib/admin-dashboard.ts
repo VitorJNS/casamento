@@ -1,5 +1,11 @@
 import { formatPriceCents } from "@/lib/currency";
+import { getPresenceDashboardData } from "@/lib/presence-dashboard";
 import { getPrisma } from "@/lib/prisma";
+import {
+  ensureRsvpTable,
+  listGuestListEntries,
+  normalizeWhatsapp,
+} from "@/lib/rsvp-store";
 
 type RsvpRow = {
   id: string;
@@ -20,8 +26,9 @@ function normalizeCompanionNames(value: unknown) {
 
 export async function getAdminDashboardData() {
   const prisma = getPrisma();
+  await ensureRsvpTable();
 
-  const [orders, paidOrders, paidAggregate, rsvpRows] = await Promise.all([
+  const [orders, paidOrders, paidAggregate, rsvpRows, presenceData] = await Promise.all([
     prisma.order.findMany({
       orderBy: { createdAt: "desc" },
       include: { items: true },
@@ -50,6 +57,7 @@ export async function getAdminDashboardData() {
       FROM rsvp_confirmations
       ORDER BY created_at DESC
     `),
+    getPresenceDashboardData(),
   ]);
 
   const paidGiftUnits = paidOrders.reduce(
@@ -64,6 +72,14 @@ export async function getAdminDashboardData() {
     (sum, row) => sum + row.guest_count,
     0,
   );
+  const declinedGuests = rsvpDeclined.reduce(
+    (sum, row) => sum + row.guest_count,
+    0,
+  );
+  const guestListEntries = await listGuestListEntries({ includeInactive: false });
+  const presenceByWhatsapp = new Map(
+    dataToPresenceMap(presenceData.guests).map((entry) => [entry.whatsappNormalized, entry]),
+  );
 
   return {
     summary: {
@@ -71,6 +87,7 @@ export async function getAdminDashboardData() {
       confirmedRsvps: rsvpConfirmed.length,
       declinedRsvps: rsvpDeclined.length,
       confirmedGuests,
+      declinedGuests,
       totalOrders: orders.length,
       paidOrders: paidAggregate._count._all,
       totalReceivedCents: paidAggregate._sum.paidCents ?? 0,
@@ -103,7 +120,33 @@ export async function getAdminDashboardData() {
         title: item.titleSnapshot,
         quantity: item.quantity,
         lineTotalLabel: formatPriceCents(item.lineTotalCents),
-      })),
+        })),
     })),
+    guestPresence: presenceData,
+    guestList: guestListEntries.map((guest) => {
+      const presence = presenceByWhatsapp.get(normalizeWhatsapp(guest.whatsapp));
+
+      return {
+        id: guest.id,
+        guestName: guest.guest_name,
+        whatsapp: guest.whatsapp,
+        note: guest.note,
+        status: presence?.status ?? "pending",
+        rsvpId: presence?.rsvpId ?? null,
+        email: presence?.email ?? null,
+        guestCount: presence?.guestCount ?? null,
+        companionNames: presence?.companionNames ?? [],
+        responseNote: presence?.responseNote ?? null,
+        respondedAt: presence?.respondedAt ?? null,
+        sourceKind: "guest-list" as const,
+        whatsappNormalized: normalizeWhatsapp(guest.whatsapp),
+      };
+    }),
   };
+}
+
+function dataToPresenceMap(
+  guests: Awaited<ReturnType<typeof getPresenceDashboardData>>["guests"],
+) {
+  return guests;
 }

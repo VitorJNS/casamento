@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getPrisma } from "@/lib/prisma";
+import { ensureRsvpTable, normalizeWhatsapp } from "@/lib/rsvp-store";
 
 export const runtime = "nodejs";
 
@@ -26,29 +27,6 @@ const rsvpSchema = z.object({
   }
 });
 
-async function ensureRsvpTable() {
-  const prisma = getPrisma();
-  await prisma.$executeRawUnsafe(`
-    CREATE TABLE IF NOT EXISTS rsvp_confirmations (
-      id TEXT PRIMARY KEY,
-      guest_name TEXT NOT NULL,
-      whatsapp TEXT NOT NULL,
-      email TEXT,
-      attendance TEXT NOT NULL,
-      guest_count INTEGER NOT NULL,
-      companion_names JSONB NOT NULL DEFAULT '[]'::jsonb,
-      note TEXT,
-      created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-  `);
-
-  await prisma.$executeRawUnsafe(`
-    ALTER TABLE rsvp_confirmations
-    ADD COLUMN IF NOT EXISTS companion_names JSONB NOT NULL DEFAULT '[]'::jsonb;
-  `);
-}
-
 export async function POST(request: Request) {
   try {
     const payload = rsvpSchema.parse(await request.json());
@@ -63,17 +41,19 @@ export async function POST(request: Request) {
           id,
           guest_name,
           whatsapp,
+          whatsapp_normalized,
           email,
           attendance,
           guest_count,
           companion_names,
           note,
           updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, CURRENT_TIMESTAMP)
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9, CURRENT_TIMESTAMP)
       `,
       id,
       payload.guestName,
       payload.whatsapp,
+      normalizeWhatsapp(payload.whatsapp),
       payload.email ?? null,
       payload.attendance,
       payload.guestCount,

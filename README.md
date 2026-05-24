@@ -34,6 +34,8 @@ INFINITEPAY_WEBHOOK_SECRET="token-opcional-para-proteger-o-webhook"
 NEXT_PUBLIC_SITE_URL="http://localhost:3000"
 ADMIN_PASSWORD="uma-senha-forte"
 ADMIN_SESSION_SECRET="um-segredo-longo-para-cookie"
+CERIMONIAL_PASSWORD="uma-senha-forte-para-cerimonial"
+CERIMONIAL_SESSION_SECRET="um-segredo-longo-para-cookie-da-cerimonial"
 ```
 
 Notes:
@@ -45,6 +47,8 @@ Notes:
 - `NEXT_PUBLIC_SITE_URL`: base URL used to build redirect and webhook URLs
 - `ADMIN_PASSWORD`: password used in the couple admin area
 - `ADMIN_SESSION_SECRET`: secret used to sign the admin session cookie
+- `CERIMONIAL_PASSWORD`: password used in the cerimonial area
+- `CERIMONIAL_SESSION_SECRET`: secret used to sign the cerimonial session cookie
 
 ## Testing Webhooks Locally With ngrok
 
@@ -123,6 +127,10 @@ In Vercel, configure these environment variables:
 - `INFINITEPAY_API_BASE_URL`
 - `INFINITEPAY_WEBHOOK_SECRET`
 - `NEXT_PUBLIC_SITE_URL`
+- `ADMIN_PASSWORD`
+- `ADMIN_SESSION_SECRET`
+- `CERIMONIAL_PASSWORD`
+- `CERIMONIAL_SESSION_SECRET`
 
 For production, `NEXT_PUBLIC_SITE_URL` should be your real public domain, for example:
 
@@ -139,6 +147,28 @@ After updating variables in Vercel:
 3. Save the values
 4. Go to `Deployments`
 5. Click `Redeploy`
+
+## Admin Areas
+
+- Couple area:
+  - login: `/admin`
+  - dashboard: `/admin/dashboard`
+  - sees RSVPs, guest list management, paid gifts, and total received
+
+- Cerimonial area:
+  - login: `/cerimonial`
+  - dashboard: `/cerimonial/dashboard`
+  - sees only guest presence tracking
+
+How presence tracking works:
+
+- RSVPs continue to be saved in `rsvp_confirmations`
+- the couple maintains a base guest list inside the admin area
+- the cerimonial dashboard compares that guest list with the latest RSVP by WhatsApp
+- derived statuses:
+  - `confirmed`
+  - `declined`
+  - `pending`
 
 ## Payment Notes
 

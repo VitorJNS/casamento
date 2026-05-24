@@ -1,11 +1,12 @@
 import { AdminLogoutButton } from "@/component/AdminLogoutButton";
+import { GuestListManager } from "@/component/GuestListManager";
 import { requireAdminAuth } from "@/lib/admin-auth";
 import { getAdminDashboardData } from "@/lib/admin-dashboard";
 
 export const dynamic = "force-dynamic";
 
 function formatAttendance(value: string) {
-  return value === "confirmed" ? "Confirmado" : "Nao comparece";
+  return value === "confirmed" ? "Confirmado" : "Recusado";
 }
 
 export default async function AdminDashboardPage() {
@@ -24,7 +25,7 @@ export default async function AdminDashboardPage() {
               Painel do casamento
             </h1>
             <p className="mt-2 text-sm leading-6 text-zinc-600">
-              Aqui voces acompanham as confirmacoes de presenca e o resumo dos presentes pagos.
+              Aqui voces acompanham as confirmacoes de presenca, gerenciam a lista-base de convidados e veem o resumo dos presentes pagos.
             </p>
           </div>
 
@@ -52,7 +53,10 @@ export default async function AdminDashboardPage() {
               {data.summary.declinedRsvps}
             </p>
             <p className="mt-1 text-sm text-zinc-600">
-              {data.summary.totalRsvps} respostas registradas
+              {data.summary.declinedGuests}{" "}
+              {data.summary.declinedGuests === 1
+                ? "pessoa nao ira ao casamento"
+                : "pessoas não irão ao casamento"}
             </p>
           </div>
 
@@ -94,7 +98,7 @@ export default async function AdminDashboardPage() {
               </div>
             </div>
 
-            <div className="mt-5 space-y-4">
+            <div className="mt-5 max-h-[42rem] space-y-4 overflow-y-auto pr-2">
               {data.rsvps.length === 0 ? (
                 <p className="rounded-2xl border border-dashed border-zinc-300 bg-[rgb(var(--paper))] px-4 py-5 text-sm text-zinc-600">
                   Nenhuma confirmacao registrada ainda.
@@ -170,7 +174,7 @@ export default async function AdminDashboardPage() {
               </p>
             </div>
 
-            <div className="mt-5 space-y-4">
+            <div className="mt-5 max-h-[42rem] space-y-4 overflow-y-auto pr-2">
               {data.paidOrders.length === 0 ? (
                 <p className="rounded-2xl border border-dashed border-zinc-300 bg-[rgb(var(--paper))] px-4 py-5 text-sm text-zinc-600">
                   Nenhum presente pago ainda.
@@ -220,6 +224,10 @@ export default async function AdminDashboardPage() {
               )}
             </div>
           </section>
+        </div>
+
+        <div className="mt-6">
+          <GuestListManager initialGuests={data.guestList} />
         </div>
       </div>
     </main>

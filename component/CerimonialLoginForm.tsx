@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
-export function AdminLoginForm() {
+export function CerimonialLoginForm() {
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -16,7 +16,7 @@ export function AdminLoginForm() {
     setErrorMessage(null);
 
     try {
-      const response = await fetch("/api/admin/login", {
+      const response = await fetch("/api/cerimonial/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password }),
@@ -28,7 +28,7 @@ export function AdminLoginForm() {
         throw new Error(data?.error?.message ?? "Nao foi possivel entrar.");
       }
 
-      router.push(data?.destination ?? "/admin/dashboard");
+      router.push("/cerimonial/dashboard");
       router.refresh();
     } catch (error) {
       setErrorMessage(
@@ -45,11 +45,11 @@ export function AdminLoginForm() {
       className="mx-auto w-full max-w-md rounded-[28px] border border-zinc-200 bg-white/92 p-6 shadow-sm backdrop-blur"
     >
       <p className="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500">
-        Area dos noivos
+        Area da cerimonialista
       </p>
       <h1 className="mt-2 text-3xl font-semibold text-zinc-900">Entrar</h1>
       <p className="mt-2 text-sm leading-6 text-zinc-600">
-        Use a senha configurada para acessar a area dos noivos ou, se for a cerimonialista, a area de confirmacao de presenca.
+        Use a senha da cerimonialista para acompanhar apenas a confirmacao de presenca dos convidados.
       </p>
 
       <label className="mt-5 block">
@@ -90,3 +90,4 @@ export function AdminLoginForm() {
     </form>
   );
 }
+

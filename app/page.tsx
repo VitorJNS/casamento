@@ -6,6 +6,7 @@ import { LocationCard } from "@/component/LocationCard";
 import { PhotoGallery } from "@/component/PhotoGallery";
 import { RsvpForm } from "@/component/RsvpForm";
 import { Section } from "@/component/Section";
+import { SectionDivider } from "@/component/SectionDivider";
 import { TopSectionNav } from "@/component/TopSectionNav";
 import { siteContent } from "@/content/siteContent";
 import { getDisplayGiftCatalog } from "@/lib/gifts";
@@ -49,19 +50,23 @@ export default async function Home() {
       <Section id="boas-vindas" title={siteContent.welcomeTitle}>
         <p className="whitespace-pre-line">{siteContent.welcomeText}</p>
       </Section>
+      <SectionDivider />
 
       <Section id="historia" title={siteContent.storyTitle}>
         <p>{siteContent.storyText}</p>
       </Section>
+      <SectionDivider />
 
       <Section id="fotos" title="Pre-wedding">
         <p className="mb-4">Alguns registros desse momento especial.</p>
         <PhotoGallery photos={siteContent.preWeddingPhotos} />
       </Section>
+      <SectionDivider />
 
       <Section id="dresscode" title={siteContent.dressCodeTitle}>
         <p className="whitespace-pre-line">{siteContent.dressCodeText}</p>
       </Section>
+      <SectionDivider />
 
       <Section id="localizacao" title={siteContent.localizacaoTitle}>
         <p className="mb-4">{siteContent.localizacaoText}</p>
@@ -81,12 +86,14 @@ export default async function Home() {
           />
         </div>
       </Section>
+      <SectionDivider />
 
       <Section id="rsvp" title={siteContent.rsvpTitle}>
         <p className="mb-3">{siteContent.rsvpText}</p>
         <p className="mb-5 text-sm text-zinc-600">{siteContent.rsvpNote}</p>
         <RsvpForm />
       </Section>
+      <SectionDivider />
 
       <Section id="fotos-casamento" title="Fotos do casamento">
         <p className="mb-4">{siteContent.photosUploadText}</p>
@@ -98,6 +105,7 @@ export default async function Home() {
           buttonText="Enviar fotos"
         />
       </Section>
+      <SectionDivider />
 
       <Section id="pix" title={siteContent.pixTitle}>
         <p className="mb-4">{siteContent.pixText}</p>

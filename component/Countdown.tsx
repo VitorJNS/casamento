@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type CountdownProps = {
   /** Data alvo em formato ISO. Ex: "2027-06-20T00:00:00-03:00" */
@@ -14,16 +14,17 @@ function pad2(n: number) {
 
 export function Countdown({ targetISO, label = "Faltam" }: CountdownProps) {
   const targetMs = useMemo(() => new Date(targetISO).getTime(), [targetISO]);
-  const nowMs = useSyncExternalStore(
-    (onStoreChange) => {
-      const id = setInterval(onStoreChange, 1000);
-      return () => clearInterval(id);
-    },
-    () => Date.now(),
-    () => 0,
-  );
+  const [nowMs, setNowMs] = useState<number | null>(null);
 
-  const diff = nowMs === 0 ? null : Math.max(0, targetMs - nowMs);
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setNowMs(Date.now());
+    }, 1000);
+
+    return () => window.clearInterval(id);
+  }, []);
+
+  const diff = nowMs === null ? null : Math.max(0, targetMs - nowMs);
 
   const totalSeconds = diff === null ? null : Math.floor(diff / 1000);
   const days = totalSeconds === null ? "--" : Math.floor(totalSeconds / (60 * 60 * 24));

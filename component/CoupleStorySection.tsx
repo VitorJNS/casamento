@@ -85,7 +85,7 @@ export function CoupleStorySection({
   return (
     <section
       id={id}
-      className="section-shell mb-10 min-h-[calc(100vh-7.5rem)] rounded-3xl border border-zinc-200 bg-white/70 p-5 shadow-sm backdrop-blur sm:min-h-0 sm:p-8"
+      className="section-shell mb-10 rounded-3xl border border-zinc-200 bg-white/70 p-5 shadow-sm backdrop-blur sm:min-h-0 sm:p-8"
     >
       <div className="mx-auto max-w-5xl text-center">
         <h2

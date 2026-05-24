@@ -110,30 +110,20 @@ export function TopSectionNav({ items }: TopSectionNavProps) {
                 </a>
               );
             })}
+
           </nav>
         </div>
       </div>
 
-      <div className="sticky top-4 z-30 mb-6 sm:hidden">
-        <div className="flex items-center justify-between rounded-full border border-zinc-200 bg-white/88 px-4 py-3 shadow-sm backdrop-blur">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">
-              Navegacao
-            </p>
-            <p className="text-sm font-medium text-zinc-900">
-              {items.find((item) => item.id === activeId)?.label ?? "Inicio"}
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setIsOpen(true)}
-            className="rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium text-[rgb(var(--olive))]"
-            aria-label="Abrir menu"
-          >
-            Menu
-          </button>
-        </div>
+      <div className="sticky top-4 z-30 mb-3 flex justify-end sm:mb-6 sm:hidden">
+        <button
+          type="button"
+          onClick={() => setIsOpen(true)}
+          className="inline-flex items-center rounded-full border border-zinc-200 bg-white/88 px-5 py-3 text-sm font-medium text-[rgb(var(--olive))] shadow-sm backdrop-blur"
+          aria-label="Abrir menu"
+        >
+          Menu
+        </button>
       </div>
 
       {isOpen ? (
@@ -166,6 +156,17 @@ export function TopSectionNav({ items }: TopSectionNavProps) {
             </div>
 
             <nav className="mt-6 grid gap-2">
+              <a
+                href="/admin"
+                className="rounded-2xl px-4 py-3 text-sm font-medium text-zinc-900 transition"
+                style={{
+                  backgroundColor: "rgb(255 255 255 / 0.92)",
+                  border: "1px solid rgb(var(--lavender) / 0.32)",
+                }}
+              >
+                Area dos noivos
+              </a>
+
               {items.map((item) => {
                 const isActive = item.id === activeId;
 

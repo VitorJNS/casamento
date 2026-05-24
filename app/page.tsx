@@ -30,7 +30,7 @@ export default async function Home() {
 
   return (
     <main className="relative z-10 mx-auto min-h-screen max-w-6xl px-6 py-10">
-      <div className="mb-4 flex justify-end">
+      <div className="mb-4 hidden justify-end sm:flex">
         <a
           href="/admin"
           className="inline-flex rounded-full border border-zinc-300 bg-white/80 px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm backdrop-blur transition hover:bg-white hover:text-zinc-900"

@@ -30,7 +30,7 @@ function buildSessionValue(secret: string) {
 }
 
 export function validateAdminPassword(password: string) {
-  return password === getAdminEnv().password;
+  return password.trim() === getAdminEnv().password.trim();
 }
 
 export async function createAdminSession() {

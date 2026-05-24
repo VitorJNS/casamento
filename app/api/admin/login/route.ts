@@ -1,7 +1,16 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { createAdminSession, validateAdminPassword } from "@/lib/admin-auth";
+import {
+  clearAdminSession,
+  createAdminSession,
+  validateAdminPassword,
+} from "@/lib/admin-auth";
+import {
+  clearCerimonialSession,
+  createCerimonialSession,
+  validateCerimonialPassword,
+} from "@/lib/cerimonial-auth";
 
 export const runtime = "nodejs";
 
@@ -13,20 +22,37 @@ export async function POST(request: Request) {
   try {
     const payload = loginSchema.parse(await request.json());
 
-    if (!validateAdminPassword(payload.password)) {
-      return NextResponse.json(
-        {
-          error: {
-            code: "INVALID_CREDENTIALS",
-            message: "Senha invalida.",
-          },
-        },
-        { status: 401 },
-      );
+    if (validateAdminPassword(payload.password)) {
+      await clearCerimonialSession();
+      await createAdminSession();
+
+      return NextResponse.json({
+        success: true,
+        destination: "/admin/dashboard",
+        role: "admin",
+      });
     }
 
-    await createAdminSession();
-    return NextResponse.json({ success: true });
+    if (validateCerimonialPassword(payload.password)) {
+      await clearAdminSession();
+      await createCerimonialSession();
+
+      return NextResponse.json({
+        success: true,
+        destination: "/cerimonial/dashboard",
+        role: "cerimonial",
+      });
+    }
+
+    return NextResponse.json(
+      {
+        error: {
+          code: "INVALID_CREDENTIALS",
+          message: "Senha invalida.",
+        },
+      },
+      { status: 401 },
+    );
   } catch (error) {
     return NextResponse.json(
       {

@@ -6,9 +6,21 @@ import { useRouter } from "next/navigation";
 
 export function AdminLoginForm() {
   const router = useRouter();
+  const [role, setRole] = useState<"admin" | "cerimonial">("admin");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const isAdminRole = role === "admin";
+  const title = isAdminRole ? "Area dos noivos" : "Area da cerimonialista";
+  const description = isAdminRole
+    ? "Use a senha dos noivos para acessar confirmacoes de presenca, lista-base de convidados e resumo dos presentes."
+    : "Use a senha da cerimonialista para acompanhar apenas a confirmacao de presenca dos convidados.";
+  const submitLabel = isAdminRole ? "Acessar painel dos noivos" : "Acessar painel da cerimonialista";
+  const endpoint = isAdminRole ? "/api/admin/login" : "/api/cerimonial/login";
+  const fallbackDestination = isAdminRole
+    ? "/admin/dashboard"
+    : "/cerimonial/dashboard";
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -16,7 +28,7 @@ export function AdminLoginForm() {
     setErrorMessage(null);
 
     try {
-      const response = await fetch("/api/admin/login", {
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password }),
@@ -28,7 +40,7 @@ export function AdminLoginForm() {
         throw new Error(data?.error?.message ?? "Nao foi possivel entrar.");
       }
 
-      router.push(data?.destination ?? "/admin/dashboard");
+      router.push(data?.destination ?? fallbackDestination);
       router.refresh();
     } catch (error) {
       setErrorMessage(
@@ -44,12 +56,47 @@ export function AdminLoginForm() {
       onSubmit={handleSubmit}
       className="mx-auto w-full max-w-md rounded-[28px] border border-zinc-200 bg-white/92 p-6 shadow-sm backdrop-blur"
     >
-      <p className="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500">
-        Area dos noivos
+      <div className="rounded-full border border-zinc-200 bg-[rgb(var(--paper))] p-1">
+        <div className="grid grid-cols-2 gap-1">
+          <button
+            type="button"
+            onClick={() => {
+              setRole("admin");
+              setPassword("");
+              setErrorMessage(null);
+            }}
+            className={`rounded-full px-4 py-2.5 text-sm font-semibold transition ${
+              isAdminRole
+                ? "bg-white text-zinc-900 shadow-sm"
+                : "text-zinc-600 hover:text-zinc-900"
+            }`}
+          >
+            Noivos
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setRole("cerimonial");
+              setPassword("");
+              setErrorMessage(null);
+            }}
+            className={`rounded-full px-4 py-2.5 text-sm font-semibold transition ${
+              !isAdminRole
+                ? "bg-white text-zinc-900 shadow-sm"
+                : "text-zinc-600 hover:text-zinc-900"
+            }`}
+          >
+            Cerimonialista
+          </button>
+        </div>
+      </div>
+
+      <p className="mt-5 text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500">
+        {title}
       </p>
       <h1 className="mt-2 text-3xl font-semibold text-zinc-900">Entrar</h1>
       <p className="mt-2 text-sm leading-6 text-zinc-600">
-        Use a senha configurada para acessar a area dos noivos ou, se for a cerimonialista, a area de confirmacao de presenca.
+        {description}
       </p>
 
       <label className="mt-5 block">
@@ -77,7 +124,7 @@ export function AdminLoginForm() {
           disabled={isSubmitting}
           className="btn-primary rounded-full px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isSubmitting ? "Entrando..." : "Acessar painel"}
+          {isSubmitting ? "Entrando..." : submitLabel}
         </button>
 
         <Link

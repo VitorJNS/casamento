@@ -12,7 +12,7 @@ export function CerimonialLogoutButton() {
 
     try {
       await fetch("/api/cerimonial/logout", { method: "POST" });
-      router.push("/cerimonial");
+      router.push("/admin");
       router.refresh();
     } finally {
       setIsSubmitting(false);

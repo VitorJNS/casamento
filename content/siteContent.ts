@@ -6,9 +6,17 @@ export const siteContent = {
     Com amor,
     Yasmim e Vitor`,
 
-  storyTitle: "Nossa historia",
+  storyTitle: "O Casal",
   storyText:
-    "Aqui vamos contar nossa historia de um jeito bem bonito e curto.",
+    "Historias de amor existem e, as vezes, nem nos mesmos acreditamos em tudo o que ja vivemos juntos. Com muito carinho, estamos preparando cada detalhe desse grande dia para celebrar nossa historia ao lado das pessoas que mais amamos.",
+  storyPortraitLeft: {
+    src: "/prewedding/01.jpg",
+    alt: "Retrato da noiva",
+  },
+  storyPortraitRight: {
+    src: "/prewedding/02.jpg",
+    alt: "Retrato do noivo",
+  },
 
   dressCodeTitle: "Dress Code",
   dressCodeText: `Escolhemos com muito amor o traje esporte fino para o nosso grande dia.

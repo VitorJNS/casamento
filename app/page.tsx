@@ -1,3 +1,4 @@
+import { CoupleStorySection } from "@/component/CoupleStorySection";
 import { GiftRegistry } from "@/component/GiftRegistry";
 import { Footer } from "@/component/Footer";
 import { Hero } from "@/component/Hero";
@@ -52,9 +53,14 @@ export default async function Home() {
       </Section>
       <SectionDivider />
 
-      <Section id="historia" title={siteContent.storyTitle}>
-        <p>{siteContent.storyText}</p>
-      </Section>
+      <CoupleStorySection
+        id="historia"
+        title={siteContent.storyTitle}
+        text={siteContent.storyText}
+        leftPortrait={siteContent.storyPortraitLeft}
+        rightPortrait={siteContent.storyPortraitRight}
+        carouselPhotos={siteContent.preWeddingPhotos}
+      />
       <SectionDivider />
 
       <Section id="fotos" title="Pre-wedding">

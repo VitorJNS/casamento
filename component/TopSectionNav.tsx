@@ -17,6 +17,25 @@ export function TopSectionNav({ items }: TopSectionNavProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const hash = window.location.hash.replace(/^#/, "");
+    if (!hash) return;
+
+    const target = document.getElementById(hash);
+    if (!target) return;
+
+    const syncToHash = () => {
+      target.scrollIntoView({ behavior: "auto", block: "start" });
+    };
+
+    requestAnimationFrame(syncToHash);
+    const timeoutId = window.setTimeout(syncToHash, 250);
+
+    return () => window.clearTimeout(timeoutId);
+  }, []);
+
+  useEffect(() => {
     const sections = items
       .map((item) => document.getElementById(item.id))
       .filter((section): section is HTMLElement => Boolean(section));

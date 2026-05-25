@@ -85,8 +85,8 @@ export function TopSectionNav({ items }: TopSectionNavProps) {
   return (
     <>
       <div className="sticky top-3 z-30 mb-4 hidden sm:block">
-        <div className="rounded-full border border-zinc-200 bg-white/85 p-2 shadow-sm backdrop-blur">
-          <nav className="flex flex-wrap justify-center gap-2">
+        <div className="rounded-full border border-zinc-200 bg-white/85 p-1.5 shadow-sm backdrop-blur">
+          <nav className="flex flex-nowrap items-center justify-between gap-1">
             {items.map((item) => {
               const isActive = item.id === activeId;
 
@@ -94,7 +94,7 @@ export function TopSectionNav({ items }: TopSectionNavProps) {
                 <a
                   key={item.id}
                   href={`#${item.id}`}
-                  className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+                  className={`whitespace-nowrap rounded-full px-2.5 py-2 text-[9px] font-semibold tracking-[0.08em] uppercase transition lg:px-3 lg:text-[10px] ${
                     isActive ? "text-white" : "text-[rgb(var(--olive))]"
                   }`}
                   style={
@@ -113,7 +113,7 @@ export function TopSectionNav({ items }: TopSectionNavProps) {
 
             <a
               href="/admin"
-              className="rounded-full px-3 py-2 text-sm font-medium text-zinc-900 transition"
+              className="whitespace-nowrap rounded-full px-2.5 py-2 text-[9px] font-semibold tracking-[0.08em] uppercase text-zinc-900 transition lg:px-3 lg:text-[10px]"
               style={{
                 backgroundColor: "rgb(255 255 255 / 0.92)",
                 border: "1px solid rgb(var(--lavender) / 0.35)",
@@ -186,7 +186,7 @@ export function TopSectionNav({ items }: TopSectionNavProps) {
                     key={item.id}
                     href={`#${item.id}`}
                     onClick={closeMenu}
-                    className={`rounded-2xl px-4 py-3 text-sm font-medium transition ${
+                    className={`rounded-2xl px-4 py-3 text-sm font-semibold uppercase tracking-[0.08em] transition ${
                       isActive ? "text-white" : "text-[rgb(var(--olive))]"
                     }`}
                     style={

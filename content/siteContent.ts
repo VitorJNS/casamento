@@ -1,10 +1,17 @@
 export const siteContent = {
   coupleName: "Yasmim & Vitor",
   welcomeTitle: "Sejam bem-vindos",
-  welcomeText: `Criamos este cantinho com muito carinho para compartilhar os detalhes do nosso grande dia com as pessoas que mais amamos. Aqui voce encontra um pouquinho da nossa historia, dicas de Dress Code, localizacao e nossa lista de presentes. Naveguem e nao esquecam de confirmar presenca!
+  welcomeText: `Estamos muito felizes em compartilhar este momento tao especial com pessoas que fazem parte da nossa historia.
 
-    Com amor,
-    Yasmim e Vitor`,
+Depois de tantos anos caminhando juntos, chegou o dia de celebrarmos o nosso amor diante de Deus e ao lado de quem amamos.
+
+Criamos este espaco para compartilhar um pouco da nossa trajetoria e reunir todas as informacoes importantes sobre o casamento.
+
+Cada presenca sera extremamente importante para nos.
+Esperamos que este dia seja leve, emocionante e inesquecivel - nao apenas para nos, mas tambem para todos que estarao vivendo esse sonho conosco.
+
+Com amor,
+Yas & Vitor`,
 
   storyTitle: "O Casal",
   storyText:
@@ -33,13 +40,22 @@ export const siteContent = {
     Cores especiais:
     Nossos padrinhos usarao verde oliva, nossas madrinhas lavanda e a cor branca e reservada para a noiva. Pedimos, com carinho, que evitem esses tons para que eles tenham seu destaque especial.`,
 
-  localizacaoTitle: "Localizacao do evento",
-  localizacaoAddress:
+  ceremonyTitle: "Cerimonia",
+  ceremonyText:
+    "Em breve vamos atualizar aqui o endereco da igreja para voce se programar com tranquilidade.",
+  ceremonyAddress: "Endereco da igreja em atualizacao.",
+  ceremonyMapsLink: "",
+  ceremonyMapEmbedUrl: "",
+
+  dinnerTitle: "Jantar",
+  dinnerAddress:
     "Praca Antonio Keller, 22 - Monte Alegre, Piracicaba - SP, 13415-020",
-  localizacaoMapsLink:
+  dinnerMapsLink:
     "https://www.google.com/maps/search/?api=1&query=Praca%20Antonio%20Keller%2C%2022%20-%20Monte%20Alegre%2C%20Piracicaba%20-%20SP%2C%2013415-020",
-  localizacaoText:
-    "Abaixo esta o endereco para copiar e o link para abrir no Google Maps.",
+  dinnerMapEmbedUrl:
+    "https://www.google.com/maps?q=Praca%20Antonio%20Keller%2C%2022%20-%20Monte%20Alegre%2C%20Piracicaba%20-%20SP%2C%2013415-020&output=embed",
+  dinnerText:
+    "Abaixo esta o endereco do jantar para copiar e o link para abrir no Google Maps.",
 
   rsvpTitle: "Confirmacao de presenca",
   rsvpText:

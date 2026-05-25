@@ -12,7 +12,7 @@ function pad2(n: number) {
   return String(n).padStart(2, "0");
 }
 
-export function Countdown({ targetISO, label = "Faltam" }: CountdownProps) {
+export function Countdown({ targetISO, label = "Depois de tantos capítulos juntos, chegou o momento do nosso para sempre. Faltam" }: CountdownProps) {
   const targetMs = useMemo(() => new Date(targetISO).getTime(), [targetISO]);
   const [nowMs, setNowMs] = useState<number | null>(null);
 
@@ -47,7 +47,7 @@ export function Countdown({ targetISO, label = "Faltam" }: CountdownProps) {
             {label}
             </p>
 
-            <div className="mt-3 grid grid-cols-4 gap-2">
+            <div className="mt-4 grid grid-cols-4 gap-2">
             <TimeBox value={days} label="Dias" />
             <TimeBox value={hours} label="Horas" />
             <TimeBox value={minutes} label="Min" />
@@ -79,11 +79,11 @@ export function Countdown({ targetISO, label = "Faltam" }: CountdownProps) {
 
 function TimeBox({ value, label }: { value: string | number; label: string }) {
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white/70 backdrop-blur px-3 py-3 text-center shadow-sm transition hover:-translate-y-0.5">
+    <div className="rounded-2xl border border-zinc-200 bg-white/70 backdrop-blur px-4 py-4 text-center shadow-sm transition hover:-translate-y-0.5">
       <div className="display-font text-2xl font-semibold leading-none tabular-nums">
         {value}
       </div>
-      <div className="mt-1 text-xs text-zinc-600">{label}</div>
+      <div className="mt-2 text-xs text-zinc-600">{label}</div>
     </div>
   );
 }

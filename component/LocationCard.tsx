@@ -4,7 +4,7 @@ import { useState } from "react";
 
 type LocationCardProps = {
   address: string;
-  mapsLink: string;
+  mapsLink?: string;
 };
 
 export function LocationCard({ address, mapsLink }: LocationCardProps) {
@@ -35,19 +35,21 @@ export function LocationCard({ address, mapsLink }: LocationCardProps) {
           {copied ? "Copiado ✅" : "Copiar endereço"}
         </button>
 
-        <a
-          href={mapsLink}
-          target="_blank"
-          rel="noreferrer"
-          className="rounded-full px-5 py-2 text-sm font-medium border transition hover:bg-white/60"
-          style={{
-            borderColor: "rgb(var(--lavender) / 0.55)",
-            backgroundColor: "rgb(var(--lavender) / 0.18)",
-            color: "rgb(var(--olive))",
-          }}
-        >
-          Abrir no Google Maps
-        </a>
+        {mapsLink ? (
+          <a
+            href={mapsLink}
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-full px-5 py-2 text-sm font-medium border transition hover:bg-white/60"
+            style={{
+              borderColor: "rgb(var(--lavender) / 0.55)",
+              backgroundColor: "rgb(var(--lavender) / 0.18)",
+              color: "rgb(var(--olive))",
+            }}
+          >
+            Abrir no Google Maps
+          </a>
+        ) : null}
       </div>
     </div>
   );

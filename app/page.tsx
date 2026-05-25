@@ -1,3 +1,4 @@
+import { CoupleStorySection } from "@/component/CoupleStorySection";
 import { GiftRegistry } from "@/component/GiftRegistry";
 import { Footer } from "@/component/Footer";
 import { Hero } from "@/component/Hero";
@@ -16,28 +17,20 @@ export const dynamic = "force-dynamic";
 export default async function Home() {
   const giftCatalog = await getDisplayGiftCatalog();
   const navItems = [
-    { id: "inicio", label: "Inicio", mobileLabel: "Inicio" },
-    { id: "boas-vindas", label: "Boas-vindas", mobileLabel: "Boas" },
-    { id: "historia", label: "O casal", mobileLabel: "Casal" },
-    { id: "fotos", label: "Pre-wedding", mobileLabel: "Fotos" },
-    { id: "dresscode", label: "Dress Code", mobileLabel: "Traje" },
-    { id: "localizacao", label: "Localizacao", mobileLabel: "Local" },
-    { id: "rsvp", label: "Confirmar presenca", mobileLabel: "RSVP" },
-    { id: "fotos-casamento", label: "Fotos", mobileLabel: "Envio" },
-    { id: "pix", label: "Presentes", mobileLabel: "Lista" },
+    { id: "inicio", label: "HOME" },
+    { id: "boas-vindas", label: "BEM VINDOS" },
+    { id: "historia", label: "O CASAL" },
+    { id: "fotos", label: "PRE-WEDDING" },
+    { id: "dresscode", label: "DRESS CODE" },
+    { id: "cerimonia", label: "CERIMONIA" },
+    { id: "jantar", label: "JANTAR" },
+    { id: "rsvp", label: "CONFIRME SUA PRESENCA" },
+    { id: "pix", label: "LISTA DE PRESENTES" },
+    { id: "fotos-casamento", label: "MOMENTOS" },
   ];
 
   return (
-    <main className="relative z-10 mx-auto min-h-screen max-w-6xl px-6 py-10">
-      <div className="mb-4 flex justify-end">
-        <a
-          href="/admin"
-          className="inline-flex rounded-full border border-zinc-300 bg-white/80 px-4 py-2 text-sm font-medium text-zinc-700 shadow-sm backdrop-blur transition hover:bg-white hover:text-zinc-900"
-        >
-          Area dos noivos
-        </a>
-      </div>
-
+    <main className="relative z-10 mx-auto min-h-screen max-w-6xl px-6 pb-10 pt-6">
       <TopSectionNav items={navItems} />
 
       <section
@@ -47,14 +40,25 @@ export default async function Home() {
         <Hero dateText="20 • 06 • 2027" coupleName="Yasmim & Vitor" subtitle="" />
       </section>
 
-      <Section id="boas-vindas" title={siteContent.welcomeTitle}>
+      <SectionDivider />
+
+      <Section
+        id="boas-vindas"
+        title={siteContent.welcomeTitle}
+        titleClassName="text-3xl tracking-[0.08em] sm:text-5xl"
+      >
         <p className="whitespace-pre-line">{siteContent.welcomeText}</p>
       </Section>
       <SectionDivider />
 
-      <Section id="historia" title={siteContent.storyTitle}>
-        <p>{siteContent.storyText}</p>
-      </Section>
+      <CoupleStorySection
+        id="historia"
+        title={siteContent.storyTitle}
+        text={siteContent.storyText}
+        leftPortrait={siteContent.storyPortraitLeft}
+        rightPortrait={siteContent.storyPortraitRight}
+        timelineImage={siteContent.storyTimelineImage}
+      />
       <SectionDivider />
 
       <Section id="fotos" title="Pre-wedding">
@@ -68,18 +72,28 @@ export default async function Home() {
       </Section>
       <SectionDivider />
 
-      <Section id="localizacao" title={siteContent.localizacaoTitle}>
-        <p className="mb-4">{siteContent.localizacaoText}</p>
+      <Section id="cerimonia" title={siteContent.ceremonyTitle}>
+        <p className="mb-4">{siteContent.ceremonyText}</p>
 
         <LocationCard
-          address={siteContent.localizacaoAddress}
-          mapsLink={siteContent.localizacaoMapsLink}
+          address={siteContent.ceremonyAddress}
+          mapsLink={siteContent.ceremonyMapsLink}
+        />
+      </Section>
+      <SectionDivider />
+
+      <Section id="jantar" title={siteContent.dinnerTitle}>
+        <p className="mb-4">{siteContent.dinnerText}</p>
+
+        <LocationCard
+          address={siteContent.dinnerAddress}
+          mapsLink={siteContent.dinnerMapsLink}
         />
 
         <div className="mt-5 overflow-hidden rounded-2xl border border-zinc-200 bg-white/70 shadow-sm">
           <iframe
-            title="Mapa do local do evento"
-            src="https://www.google.com/maps?q=Praca%20Antonio%20Keller%2C%2022%20-%20Monte%20Alegre%2C%20Piracicaba%20-%20SP%2C%2013415-020&output=embed"
+            title="Mapa do jantar"
+            src={siteContent.dinnerMapEmbedUrl}
             className="h-[260px] w-full sm:h-[360px]"
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
@@ -95,6 +109,14 @@ export default async function Home() {
       </Section>
       <SectionDivider />
 
+      <Section id="pix" title={siteContent.pixTitle}>
+        <p className="mb-4">{siteContent.pixText}</p>
+        <p className="mb-5 text-sm text-zinc-600">{siteContent.giftListIntro}</p>
+
+        <GiftRegistry gifts={giftCatalog} />
+      </Section>
+      <SectionDivider />
+
       <Section id="fotos-casamento" title="Fotos do casamento">
         <p className="mb-4">{siteContent.photosUploadText}</p>
 
@@ -104,14 +126,6 @@ export default async function Home() {
           href={siteContent.photosUploadLink}
           buttonText="Enviar fotos"
         />
-      </Section>
-      <SectionDivider />
-
-      <Section id="pix" title={siteContent.pixTitle}>
-        <p className="mb-4">{siteContent.pixText}</p>
-        <p className="mb-5 text-sm text-zinc-600">{siteContent.giftListIntro}</p>
-
-        <GiftRegistry gifts={giftCatalog} />
       </Section>
 
       <Footer

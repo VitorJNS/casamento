@@ -14,8 +14,13 @@ Com amor,
 Yas & Vitor`,
 
   storyTitle: "O Casal",
-  storyText:
-    "Historias de amor existem e, as vezes, nem nos mesmos acreditamos em tudo o que ja vivemos juntos. Com muito carinho, estamos preparando cada detalhe desse grande dia para celebrar nossa historia ao lado das pessoas que mais amamos.",
+  storyText: `Alguns encontros mudam completamente o rumo da nossa vida - e o nosso comecou la em 2020.
+
+Desde entao, crescemos juntos, amadurecemos, realizamos sonhos, enfrentamos mudanças e construimos, dia apos dia, a nossa familia e o nosso lar.
+
+Entre conquistas, recomeços, quilometros de distancia e muitos planos compartilhados, entendemos que o amor esta justamente nos pequenos momentos vividos lado a lado.
+
+E agora, depois de tantos capitulos especiais, estamos prontos para viver o mais importante deles: o nosso casamento. ✨`,
   storyPortraitLeft: {
     src: "/prewedding/01.jpg",
     alt: "Retrato da noiva",
@@ -23,6 +28,10 @@ Yas & Vitor`,
   storyPortraitRight: {
     src: "/prewedding/02.jpg",
     alt: "Retrato do noivo",
+  },
+  storyTimelineImage: {
+    src: "/story/timeline.png",
+    alt: "Linha do tempo da historia do casal",
   },
 
   dressCodeTitle: "Dress Code",

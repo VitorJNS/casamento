@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 type StoryPhoto = {
   src: string;
@@ -14,7 +15,7 @@ type CoupleStorySectionProps = {
   text: string;
   leftPortrait: StoryPhoto;
   rightPortrait: StoryPhoto;
-  carouselPhotos: StoryPhoto[];
+  timelineImage: StoryPhoto;
 };
 
 export function CoupleStorySection({
@@ -23,64 +24,27 @@ export function CoupleStorySection({
   text,
   leftPortrait,
   rightPortrait,
-  carouselPhotos,
+  timelineImage,
 }: CoupleStorySectionProps) {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const transitionTimeoutRef = useRef<number | null>(null);
-
-  const safePhotos = carouselPhotos.length > 0 ? carouselPhotos : [leftPortrait, rightPortrait];
-  const activePhoto = safePhotos[activeIndex] ?? safePhotos[0];
-
-  const scheduleIndexChange = useCallback(
-    (nextIndex: number) => {
-      if (nextIndex === activeIndex || isTransitioning) {
-        return;
-      }
-
-      setIsTransitioning(true);
-
-      if (transitionTimeoutRef.current !== null) {
-        window.clearTimeout(transitionTimeoutRef.current);
-      }
-
-      transitionTimeoutRef.current = window.setTimeout(() => {
-        setActiveIndex(nextIndex);
-        setIsTransitioning(false);
-        transitionTimeoutRef.current = null;
-      }, 240);
-    },
-    [activeIndex, isTransitioning],
-  );
+  const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
 
   useEffect(() => {
-    if (safePhotos.length <= 1) {
+    if (!mobilePreviewOpen) {
       return;
     }
 
-    const intervalId = window.setInterval(() => {
-      const nextIndex = activeIndex === safePhotos.length - 1 ? 0 : activeIndex + 1;
-      scheduleIndexChange(nextIndex);
-    }, 5000);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
 
-    return () => window.clearInterval(intervalId);
-  }, [activeIndex, isTransitioning, safePhotos.length, scheduleIndexChange]);
-
-  useEffect(() => {
     return () => {
-      if (transitionTimeoutRef.current !== null) {
-        window.clearTimeout(transitionTimeoutRef.current);
-      }
+      document.body.style.overflow = previousOverflow;
     };
-  }, []);
+  }, [mobilePreviewOpen]);
 
-  const goToPrevious = () => {
-    scheduleIndexChange(activeIndex === 0 ? safePhotos.length - 1 : activeIndex - 1);
-  };
-
-  const goToNext = () => {
-    scheduleIndexChange(activeIndex === safePhotos.length - 1 ? 0 : activeIndex + 1);
-  };
+  const storyParagraphs = text
+    .split("\n\n")
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
 
   return (
     <section
@@ -100,78 +64,61 @@ export function CoupleStorySection({
           <PortraitCircle photo={rightPortrait} />
         </div>
 
-        <p className="mx-auto mt-8 max-w-3xl text-sm leading-7 text-zinc-600 sm:text-base">
-          {text}
-        </p>
+        <div className="mx-auto mt-8 max-w-3xl space-y-4 text-sm leading-7 text-zinc-600 sm:text-base">
+          {storyParagraphs.map((paragraph) => (
+            <p key={paragraph}>{paragraph}</p>
+          ))}
+        </div>
 
-        <div className="mt-10 overflow-hidden rounded-[2rem] border border-zinc-200 bg-white shadow-sm">
-          <div className="relative aspect-[16/10] w-full bg-zinc-100">
+        <div className="mt-10">
+          <button
+            type="button"
+            onClick={() => setMobilePreviewOpen(true)}
+            className="relative aspect-[4/3] w-full cursor-zoom-in sm:pointer-events-none sm:cursor-default"
+            aria-label="Ampliar linha do tempo"
+          >
             <Image
-              key={activePhoto.src}
-              src={activePhoto.src}
-              alt={activePhoto.alt}
+              src={timelineImage.src}
+              alt={timelineImage.alt}
               fill
-              sizes="(max-width: 768px) 100vw, 960px"
-              className={`object-cover transition-all duration-500 ease-out ${
-                isTransitioning ? "scale-[1.03] opacity-0" : "scale-100 opacity-100"
-              }`}
               priority
+              sizes="(max-width: 768px) 100vw, 960px"
+              className="object-contain"
             />
-
-            {safePhotos.length > 1 ? (
-              <>
-                <button
-                  type="button"
-                  onClick={goToPrevious}
-                  className="absolute left-3 top-1/2 z-10 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/40 bg-white/15 text-3xl text-white shadow-lg backdrop-blur transition hover:bg-white/25 sm:left-4"
-                  aria-label="Foto anterior"
-                >
-                  ‹
-                </button>
-
-                <button
-                  type="button"
-                  onClick={goToNext}
-                  className="absolute right-3 top-1/2 z-10 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/40 bg-white/15 text-3xl text-white shadow-lg backdrop-blur transition hover:bg-white/25 sm:right-4"
-                  aria-label="Proxima foto"
-                >
-                  ›
-                </button>
-              </>
-            ) : null}
-
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent px-4 pb-4 pt-14">
-              <div className="mx-auto flex max-w-xl items-center justify-center gap-2 overflow-x-auto pb-1">
-                {safePhotos.map((photo, index) => {
-                  const isActive = index === activeIndex;
-
-                  return (
-                    <button
-                      key={`${photo.src}-${index}`}
-                      type="button"
-                      onClick={() => scheduleIndexChange(index)}
-                      className={`relative h-12 w-12 shrink-0 overflow-hidden rounded-md border transition sm:h-14 sm:w-14 ${
-                        isActive
-                          ? "border-white shadow-lg"
-                          : "border-white/50 opacity-80 hover:opacity-100"
-                      }`}
-                      aria-label={`Abrir foto ${index + 1}`}
-                    >
-                      <Image
-                        src={photo.src}
-                        alt={photo.alt}
-                        fill
-                        sizes="56px"
-                        className="object-cover"
-                      />
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
+          </button>
         </div>
       </div>
+
+      {typeof document !== "undefined" && mobilePreviewOpen
+        ? createPortal(
+            <div
+              className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 p-4 sm:hidden"
+              onClick={() => setMobilePreviewOpen(false)}
+            >
+              <button
+                type="button"
+                onClick={() => setMobilePreviewOpen(false)}
+                className="absolute right-4 top-4 rounded-full border border-white/35 bg-white/12 px-4 py-2 text-sm font-medium text-white backdrop-blur"
+              >
+                Fechar
+              </button>
+
+              <div
+                className="relative aspect-[4/3] w-full max-w-md"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <Image
+                  src={timelineImage.src}
+                  alt={timelineImage.alt}
+                  fill
+                  sizes="100vw"
+                  className="object-contain"
+                />
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </section>
   );
 }

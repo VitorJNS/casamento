@@ -3,6 +3,7 @@ type SectionProps = {
   title: string;
   children: React.ReactNode;
   fullScreen?: boolean;
+  titleClassName?: string;
 };
 
 export function Section({
@@ -10,6 +11,7 @@ export function Section({
   title,
   children,
   fullScreen = true,
+  titleClassName = "",
 }: SectionProps) {
   return (
     <section
@@ -19,7 +21,7 @@ export function Section({
       }`}
     >
       <h2
-        className="display-font text-2xl font-semibold"
+        className={`display-font text-2xl font-semibold ${titleClassName}`.trim()}
         style={{ color: "rgb(var(--olive))" }}
       >
         {title}

@@ -42,7 +42,11 @@ export default async function Home() {
 
       <SectionDivider />
 
-      <Section id="boas-vindas" title={siteContent.welcomeTitle}>
+      <Section
+        id="boas-vindas"
+        title={siteContent.welcomeTitle}
+        titleClassName="text-3xl tracking-[0.08em] sm:text-5xl"
+      >
         <p className="whitespace-pre-line">{siteContent.welcomeText}</p>
       </Section>
       <SectionDivider />
@@ -53,7 +57,7 @@ export default async function Home() {
         text={siteContent.storyText}
         leftPortrait={siteContent.storyPortraitLeft}
         rightPortrait={siteContent.storyPortraitRight}
-        carouselPhotos={siteContent.preWeddingPhotos}
+        timelineImage={siteContent.storyTimelineImage}
       />
       <SectionDivider />
 

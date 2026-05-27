@@ -17,7 +17,7 @@ export function Hero({
   heroPhotoAlt = "Foto do casal",
 }: HeroProps) {
   return (
-    <div className="relative flex h-full min-h-[46rem] w-full flex-col justify-start overflow-hidden rounded-3xl border border-zinc-200 bg-white/70 px-8 pb-10 pt-6 text-center shadow-sm backdrop-blur sm:min-h-[50rem] sm:justify-center sm:p-10">
+    <div className="relative flex h-full min-h-[44rem] w-full flex-col justify-start overflow-hidden rounded-3xl border border-zinc-200 bg-white/70 px-8 pb-8 pt-4 text-center shadow-sm backdrop-blur sm:min-h-[50rem] sm:justify-center sm:p-10">
       <div
         className="pointer-events-none absolute -top-24 left-1/2 h-56 w-56 -translate-x-1/2 rounded-full blur-3xl"
         style={{ backgroundColor: "rgb(var(--lavender) / 0.25)" }}

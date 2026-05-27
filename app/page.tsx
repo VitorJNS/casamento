@@ -11,11 +11,13 @@ import { SectionDivider } from "@/component/SectionDivider";
 import { TopSectionNav } from "@/component/TopSectionNav";
 import { siteContent } from "@/content/siteContent";
 import { getDisplayGiftCatalog } from "@/lib/gifts";
+import Image from "next/image";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const giftCatalog = await getDisplayGiftCatalog();
+  const dressCodeParagraphs = siteContent.dressCodeText.split("\n");
   const navItems = [
     { id: "inicio", label: "HOME" },
     { id: "boas-vindas", label: "BEM VINDOS" },
@@ -68,7 +70,59 @@ export default async function Home() {
       <SectionDivider />
 
       <Section id="dresscode" title={siteContent.dressCodeTitle}>
-        <p className="whitespace-pre-line">{siteContent.dressCodeText}</p>
+        <div className="space-y-3 text-zinc-700">
+          {dressCodeParagraphs.map((paragraph, index) => {
+            const trimmedParagraph = paragraph.trim();
+            const nextTrimmedParagraph = dressCodeParagraphs[index + 1]?.trim() ?? "";
+
+            if (!trimmedParagraph) {
+              const isBeforeSpecialColors = nextTrimmedParagraph === "Cores especiais 🌿";
+
+              return (
+                <div
+                  key={`dresscode-space-${index}`}
+                  className={isBeforeSpecialColors ? "h-0.5" : "h-2"}
+                />
+              );
+            }
+
+            if (trimmedParagraph === "Para elas ✨" || trimmedParagraph === "Para eles 🤎") {
+              return (
+                <p key={trimmedParagraph} className="font-semibold text-zinc-900">
+                  {trimmedParagraph}
+                </p>
+              );
+            }
+
+            if (trimmedParagraph === "Cores especiais 🌿") {
+              return (
+                <div key={trimmedParagraph} className="pt-1">
+                  <div className="mb-3">
+                    <div className="relative h-[13rem] w-full overflow-hidden sm:h-[18rem]">
+                      <Image
+                        src="/dresscode/dresscode.png?v=20260526-2244"
+                        alt="Referencia visual para o dress code do casamento"
+                        fill
+                        quality={100}
+                        priority
+                        sizes="(max-width: 640px) 100vw, 960px"
+                        className="object-contain object-center"
+                        style={{ transform: "translateY(-42%) scale(1.4)" }}
+                      />
+                    </div>
+                  </div>
+
+                  <p className="text-lg font-semibold text-zinc-900">
+                    {trimmedParagraph}
+                  </p>
+                </div>
+              );
+            }
+
+            return <p key={`${trimmedParagraph}-${index}`}>{trimmedParagraph}</p>;
+          })}
+        </div>
+
       </Section>
       <SectionDivider />
 
@@ -79,6 +133,19 @@ export default async function Home() {
           address={siteContent.ceremonyAddress}
           mapsLink={siteContent.ceremonyMapsLink}
         />
+
+        <div className="mt-5 overflow-hidden rounded-2xl border border-zinc-200 bg-white/55 shadow-sm">
+          <div className="relative aspect-[16/10] w-full">
+            <Image
+              src="/locations/capela.jpg"
+              alt="Capela da cerimonia"
+              fill
+              quality={100}
+              sizes="(max-width: 640px) 100vw, 960px"
+              className="object-cover"
+            />
+          </div>
+        </div>
       </Section>
       <SectionDivider />
 
@@ -90,7 +157,20 @@ export default async function Home() {
           mapsLink={siteContent.dinnerMapsLink}
         />
 
-        <div className="mt-5 overflow-hidden rounded-2xl border border-zinc-200 bg-white/70 shadow-sm">
+        <div className="mt-5 overflow-hidden rounded-2xl border border-zinc-200 bg-white/55 shadow-sm">
+          <div className="relative aspect-[16/10] w-full">
+            <Image
+              src="/locations/casa-lucca.png"
+              alt="Casa Lucca, local do jantar"
+              fill
+              quality={100}
+              sizes="(max-width: 640px) 100vw, 960px"
+              className="object-cover"
+            />
+          </div>
+        </div>
+
+        {/* <div className="mt-5 overflow-hidden rounded-2xl border border-zinc-200 bg-white/70 shadow-sm">
           <iframe
             title="Mapa do jantar"
             src={siteContent.dinnerMapEmbedUrl}
@@ -98,7 +178,7 @@ export default async function Home() {
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
           />
-        </div>
+        </div> */}
       </Section>
       <SectionDivider />
 

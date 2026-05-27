@@ -35,25 +35,38 @@ E agora, depois de tantos capitulos especiais, estamos prontos para viver o mais
   },
 
   dressCodeTitle: "Dress Code",
-  dressCodeText: `Escolhemos com muito amor o traje esporte fino para o nosso grande dia.
-    Nosso casamento sera ao final da tarde e, como acontece em junho, o clima costuma ser mais frio. Vale considerar isso na escolha do look.
+  dressCodeText: `Escolhemos com muito carinho o traje esporte fino para celebrar este momento tao especial ao nosso lado.
+Nosso casamento acontecera ao final da tarde, em junho - uma epoca em que as temperaturas costumam ser mais frias. Por isso, sugerimos looks elegantes, confortaveis e adequados para o clima da estacao.
 
-    Orientacoes:
+Para elas ✨
+Vestidos midi ou longos, tecidos fluidos e tons suaves combinarao perfeitamente com a atmosfera do nosso grande dia.
+Sugerimos evitar:
+  - Jeans
+  - Roupas muito curtas
+  - Decotes excessivos
+  - Salto desconfortavel
 
-    Para elas:
-    * Evitem roupas curtas, jeans e sapatos desconfortaveis.
+Casacos delicados e mangas longas tambem serao muito bem-vindos.
 
-    Para eles:
-    * Evitem bermudas e jeans.
+Para eles 🤎
+Camisa, calca de alfaiataria e sapatos sociais ou esportivos elegantes sao otimas escolhas para a ocasiao.
+Blazers e sobreposicoes sofisticadas tambem combinarao perfeitamente com o clima do casamento.
+Sugerimos evitar:
+  - Jeans
+  - Bermudas
+  - Tenis esportivos
 
-    Cores especiais:
-    Nossos padrinhos usarao verde oliva, nossas madrinhas lavanda e a cor branca e reservada para a noiva. Pedimos, com carinho, que evitem esses tons para que eles tenham seu destaque especial.`,
+Cores especiais 🌿
+Nossos padrinhos usarao tons de verde oliva, nossas madrinhas estarao em lavanda, e o branco sera reservado para a noiva.
+Pedimos, com carinho, que evitem essas tonalidades para que cada um tenha seu destaque especial neste dia tao importante.`,
 
   ceremonyTitle: "Cerimonia",
   ceremonyText:
-    "Em breve vamos atualizar aqui o endereco da igreja para voce se programar com tranquilidade.",
-  ceremonyAddress: "Endereco da igreja em atualizacao.",
-  ceremonyMapsLink: "",
+    "Abaixo, disponibilizamos o endereço completo e o link para acesso pelo Google Maps, para facilitar sua chegada no grande dia.",
+  ceremonyAddress:
+    "Av. Comendador Pedro Morganti, s/n - Monte Alegre, Piracicaba - SP, 13415-001",
+  ceremonyMapsLink:
+    "https://maps.app.goo.gl/fXMbsrVRAooaDbXQ9",
   ceremonyMapEmbedUrl: "",
 
   dinnerTitle: "Jantar",
@@ -64,7 +77,7 @@ E agora, depois de tantos capitulos especiais, estamos prontos para viver o mais
   dinnerMapEmbedUrl:
     "https://www.google.com/maps?q=Praca%20Antonio%20Keller%2C%2022%20-%20Monte%20Alegre%2C%20Piracicaba%20-%20SP%2C%2013415-020&output=embed",
   dinnerText:
-    "Abaixo esta o endereco do jantar para copiar e o link para abrir no Google Maps.",
+    "Abaixo, disponibilizamos o endereco completo e o link para acesso pelo Google Maps, para facilitar sua chegada no grande dia.",
 
   rsvpTitle: "Confirmacao de presenca",
   rsvpText:

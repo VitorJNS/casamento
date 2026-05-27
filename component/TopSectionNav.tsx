@@ -84,7 +84,7 @@ export function TopSectionNav({ items }: TopSectionNavProps) {
 
   return (
     <>
-      <div className="sticky top-3 z-30 mb-4 hidden sm:block">
+      <div className="sticky top-2 z-30 mb-3 hidden lg:block">
         <div className="rounded-full border border-zinc-200 bg-white/85 p-1.5 shadow-sm backdrop-blur">
           <nav className="flex flex-nowrap items-center justify-between gap-1">
             {items.map((item) => {
@@ -113,20 +113,19 @@ export function TopSectionNav({ items }: TopSectionNavProps) {
 
             <a
               href="/admin"
-              className="whitespace-nowrap rounded-full px-2.5 py-2 text-[9px] font-semibold tracking-[0.08em] uppercase text-zinc-900 transition lg:px-3 lg:text-[10px]"
+              className="whitespace-nowrap rounded-full px-2.5 py-2 text-[9px] font-semibold tracking-[0.08em] uppercase text-[rgb(var(--olive))] transition lg:px-3 lg:text-[10px]"
               style={{
-                backgroundColor: "rgb(255 255 255 / 0.92)",
+                backgroundColor: "rgb(var(--lavender) / 0.16)",
                 border: "1px solid rgb(var(--lavender) / 0.35)",
               }}
             >
               Noivos
             </a>
-
           </nav>
         </div>
       </div>
 
-      <div className="sticky top-3 z-30 mb-2 flex justify-end sm:mb-6 sm:hidden">
+      <div className="sticky top-2 z-30 mb-1 flex justify-end sm:mb-3 lg:hidden">
         <button
           type="button"
           onClick={() => setIsOpen(true)}
@@ -146,7 +145,7 @@ export function TopSectionNav({ items }: TopSectionNavProps) {
             aria-label="Fechar menu"
           />
 
-          <aside className="absolute right-0 top-0 h-full w-[82%] max-w-xs border-l border-zinc-200 bg-[rgb(var(--paper))] p-5 shadow-2xl">
+          <aside className="absolute right-0 top-0 h-full w-[82%] max-w-sm border-l border-zinc-200 bg-[rgb(var(--paper))] p-5 shadow-2xl">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">
@@ -169,10 +168,10 @@ export function TopSectionNav({ items }: TopSectionNavProps) {
             <nav className="mt-6 grid gap-2">
               <a
                 href="/admin"
-                className="rounded-2xl px-4 py-3 text-sm font-medium text-zinc-900 transition"
+                className="rounded-2xl px-4 py-3 text-sm font-semibold uppercase tracking-[0.08em] text-[rgb(var(--olive))] transition"
                 style={{
-                  backgroundColor: "rgb(255 255 255 / 0.92)",
-                  border: "1px solid rgb(var(--lavender) / 0.32)",
+                  backgroundColor: "rgb(var(--lavender) / 0.14)",
+                  border: "1px solid rgb(var(--lavender) / 0.28)",
                 }}
               >
                 Area dos noivos

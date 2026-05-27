@@ -162,8 +162,8 @@ body {
   .section-fullscreen {
     min-height: calc(100svh - 7.75rem);
     justify-content: flex-start;
-    padding-top: 0.75rem;
-    padding-bottom: 1.25rem;
+    padding-top: 0.35rem;
+    padding-bottom: 0.85rem;
   }
 }
 

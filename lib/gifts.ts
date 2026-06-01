@@ -75,6 +75,19 @@ export async function ensureGiftCatalogSeeded() {
 
   const prisma = getPrisma();
   const seeds = getStaticGiftSeeds();
+  const activeSeedSlugs = seeds.map((gift) => gift.slug);
+
+  await prisma.giftItem.updateMany({
+    where: {
+      isActive: true,
+      slug: {
+        notIn: activeSeedSlugs,
+      },
+    },
+    data: {
+      isActive: false,
+    },
+  });
 
   await Promise.all(
     seeds.map((gift) =>

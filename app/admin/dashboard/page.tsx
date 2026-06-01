@@ -41,7 +41,12 @@ export default async function AdminDashboardPage() {
               {data.summary.confirmedRsvps}
             </p>
             <p className="mt-1 text-sm text-zinc-600">
-              {data.summary.confirmedGuests} pessoas confirmadas no total
+              {data.summary.confirmedGuests} pessoas contáveis
+              {data.summary.confirmedChildren > 0
+                ? ` + ${data.summary.confirmedChildren} ${
+                    data.summary.confirmedChildren === 1 ? "crianca" : "criancas"
+                  }`
+                : ""}
             </p>
           </div>
 
@@ -55,8 +60,13 @@ export default async function AdminDashboardPage() {
             <p className="mt-1 text-sm text-zinc-600">
               {data.summary.declinedGuests}{" "}
               {data.summary.declinedGuests === 1
-                ? "pessoa nao ira ao casamento"
-                : "pessoas não irão ao casamento"}
+                ? "pessoa contável não irá"
+                : "pessoas contáveis não irão"}
+              {data.summary.declinedChildren > 0
+                ? ` + ${data.summary.declinedChildren} ${
+                    data.summary.declinedChildren === 1 ? "crianca" : "criancas"
+                  }`
+                : ""}
             </p>
           </div>
 
@@ -115,8 +125,15 @@ export default async function AdminDashboardPage() {
                           {rsvp.guestName}
                         </h2>
                         <p className="mt-1 text-sm text-zinc-600">
-                          {formatAttendance(rsvp.attendance)} • {rsvp.guestCount}{" "}
-                          {rsvp.guestCount === 1 ? "pessoa" : "pessoas"}
+                          {formatAttendance(rsvp.attendance)} • {rsvp.countableGuestCount}{" "}
+                          {rsvp.countableGuestCount === 1
+                            ? "pessoa contável"
+                            : "pessoas contáveis"}
+                          {rsvp.childCount > 0
+                            ? ` + ${rsvp.childCount} ${
+                                rsvp.childCount === 1 ? "crianca" : "criancas"
+                              }`
+                            : ""}
                         </p>
                       </div>
                       <p className="text-xs text-zinc-500">
@@ -132,6 +149,14 @@ export default async function AdminDashboardPage() {
                       <p className="text-sm text-zinc-700">
                         <span className="font-medium text-zinc-900">Email:</span>{" "}
                         {rsvp.email || "Nao informado"}
+                      </p>
+                      <p className="text-sm text-zinc-700">
+                        <span className="font-medium text-zinc-900">Total informado:</span>{" "}
+                        {rsvp.guestCount} {rsvp.guestCount === 1 ? "pessoa" : "pessoas"}
+                      </p>
+                      <p className="text-sm text-zinc-700">
+                        <span className="font-medium text-zinc-900">Crianças até 8 anos:</span>{" "}
+                        {rsvp.childCount}
                       </p>
                     </div>
 

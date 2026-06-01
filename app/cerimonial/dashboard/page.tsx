@@ -5,7 +5,7 @@ import { getPresenceDashboardData } from "@/lib/presence-dashboard";
 export const dynamic = "force-dynamic";
 
 function formatStatus(status: "confirmed" | "declined" | "pending") {
-  if (status === "confirmed") return "COnfirmado";
+  if (status === "confirmed") return "Confirmado";
   if (status === "declined") return "Recusado";
   return "Falta confirmar";
 }
@@ -66,11 +66,22 @@ export default async function CerimonialDashboardPage() {
                 Total
               </p>
               <p className="mt-1 text-sm text-zinc-700">
-                {guest.guestCount
-                  ? `${guest.guestCount} ${
-                      guest.guestCount === 1 ? "pessoa" : "pessoas"
+                {guest.countableGuestCount !== null
+                  ? `${guest.countableGuestCount} ${
+                      guest.countableGuestCount === 1
+                        ? "pessoa contável"
+                        : "pessoas contáveis"
                     }`
                   : "Sem resposta"}
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-zinc-200 bg-white px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
+                Crianças
+              </p>
+              <p className="mt-1 text-sm text-zinc-700">
+                {guest.guestCount !== null ? guest.childCount : "Sem resposta"}
               </p>
             </div>
           </div>
@@ -157,6 +168,14 @@ export default async function CerimonialDashboardPage() {
             <p className="mt-2 text-3xl font-semibold text-zinc-900">
               {data.summary.confirmedGuests}
             </p>
+            <p className="mt-1 text-sm text-zinc-600">
+              {data.summary.confirmedCountableGuests} pessoas contáveis
+              {data.summary.confirmedChildren > 0
+                ? ` + ${data.summary.confirmedChildren} ${
+                    data.summary.confirmedChildren === 1 ? "crianca" : "criancas"
+                  }`
+                : ""}
+            </p>
           </div>
 
           <div className="rounded-[24px] border border-zinc-200 bg-[rgb(var(--paper))] p-4">
@@ -165,6 +184,14 @@ export default async function CerimonialDashboardPage() {
             </p>
             <p className="mt-2 text-3xl font-semibold text-zinc-900">
               {data.summary.declinedGuests}
+            </p>
+            <p className="mt-1 text-sm text-zinc-600">
+              {data.summary.declinedCountableGuests} pessoas contáveis
+              {data.summary.declinedChildren > 0
+                ? ` + ${data.summary.declinedChildren} ${
+                    data.summary.declinedChildren === 1 ? "crianca" : "criancas"
+                  }`
+                : ""}
             </p>
           </div>
 

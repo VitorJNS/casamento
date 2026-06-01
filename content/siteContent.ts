@@ -1,26 +1,26 @@
 export const siteContent = {
   coupleName: "Yasmim & Vitor",
   welcomeTitle: "Sejam bem-vindos",
-  welcomeText: `Estamos muito felizes em compartilhar este momento tao especial com pessoas que fazem parte da nossa historia.
+  welcomeText: `Estamos muito felizes em compartilhar este momento tão especial com pessoas que fazem parte da nossa história.
 
 Depois de tantos anos caminhando juntos, chegou o dia de celebrarmos o nosso amor diante de Deus e ao lado de quem amamos.
 
-Criamos este espaco para compartilhar um pouco da nossa trajetoria e reunir todas as informacoes importantes sobre o casamento.
+Criamos este espaço para compartilhar um pouco da nossa trajetória e reunir todas as informações importantes sobre o casamento.
 
-Cada presenca sera extremamente importante para nos.
-Esperamos que este dia seja leve, emocionante e inesquecivel - nao apenas para nos, mas tambem para todos que estarao vivendo esse sonho conosco.
+Cada presença será extremamente importante para nós.
+Esperamos que este dia seja leve, emocionante e inesquecível — não apenas para nós, mas também para todos que estarão vivendo esse sonho conosco.
 
 Com amor,
 Yas & Vitor`,
 
   storyTitle: "O Casal",
-  storyText: `Alguns encontros mudam completamente o rumo da nossa vida - e o nosso comecou la em 2020.
+  storyText: `Alguns encontros mudam completamente o rumo da nossa vida — e o nosso começou lá em 2020.
 
-Desde entao, crescemos juntos, amadurecemos, realizamos sonhos, enfrentamos mudanças e construimos, dia apos dia, a nossa familia e o nosso lar.
+Desde então, crescemos juntos, amadurecemos, realizamos sonhos, enfrentamos mudanças e construímos, dia após dia, a nossa família e o nosso lar.
 
-Entre conquistas, recomeços, quilometros de distancia e muitos planos compartilhados, entendemos que o amor esta justamente nos pequenos momentos vividos lado a lado.
+Entre conquistas, recomeços, quilômetros de distância e muitos planos compartilhados, entendemos que o amor está justamente nos pequenos momentos vividos lado a lado.
 
-E agora, depois de tantos capitulos especiais, estamos prontos para viver o mais importante deles: o nosso casamento. ✨`,
+E agora, depois de tantos capítulos especiais, estamos prontos para viver o mais importante deles: o nosso casamento. ✨`,
   storyPortraitLeft: {
     src: "/prewedding/01.jpg",
     alt: "Retrato da noiva",
@@ -31,42 +31,41 @@ E agora, depois de tantos capitulos especiais, estamos prontos para viver o mais
   },
   storyTimelineImage: {
     src: "/story/timeline.png",
-    alt: "Linha do tempo da historia do casal",
+    alt: "Linha do tempo da história do casal",
   },
 
   dressCodeTitle: "Dress Code",
-  dressCodeText: `Escolhemos com muito carinho o traje esporte fino para celebrar este momento tao especial ao nosso lado.
-Nosso casamento acontecera ao final da tarde, em junho - uma epoca em que as temperaturas costumam ser mais frias. Por isso, sugerimos looks elegantes, confortaveis e adequados para o clima da estacao.
+  dressCodeText: `Escolhemos com muito carinho o traje esporte fino para celebrar este momento tão especial ao nosso lado.
+Nosso casamento acontecerá ao final da tarde, em junho — uma época em que as temperaturas costumam ser mais frias. Por isso, sugerimos looks elegantes, confortáveis e adequados para o clima da estação.
 
 Para elas ✨
-Vestidos midi ou longos, tecidos fluidos e tons suaves combinarao perfeitamente com a atmosfera do nosso grande dia.
+Vestidos midi ou longos, tecidos fluidos e tons suaves combinarão perfeitamente com a atmosfera do nosso grande dia.
 Sugerimos evitar:
   - Jeans
   - Roupas muito curtas
   - Decotes excessivos
-  - Salto desconfortavel
+  - Salto desconfortável
 
-Casacos delicados e mangas longas tambem serao muito bem-vindos.
+Casacos delicados e mangas longas também serão muito bem-vindos.
 
 Para eles 🤎
-Camisa, calca de alfaiataria e sapatos sociais ou esportivos elegantes sao otimas escolhas para a ocasiao.
-Blazers e sobreposicoes sofisticadas tambem combinarao perfeitamente com o clima do casamento.
+Camisa, calça de alfaiataria e sapatos sociais ou esportivos elegantes são ótimas escolhas para a ocasião.
+Blazers e sobreposições sofisticadas também combinarão perfeitamente com o clima do casamento.
 Sugerimos evitar:
   - Jeans
   - Bermudas
-  - Tenis esportivos
+  - Tênis esportivos
 
 Cores especiais 🌿
-Nossos padrinhos usarao tons de verde oliva, nossas madrinhas estarao em lavanda, e o branco sera reservado para a noiva.
-Pedimos, com carinho, que evitem essas tonalidades para que cada um tenha seu destaque especial neste dia tao importante.`,
+Nossos padrinhos usarão tons de verde oliva, nossas madrinhas estarão em lavanda, e o branco será reservado para a noiva.
+Pedimos, com carinho, que evitem essas tonalidades para que cada um tenha seu destaque especial neste dia tão importante.`,
 
   ceremonyTitle: "Cerimonia",
   ceremonyText:
     "Abaixo, disponibilizamos o endereço completo e o link para acesso pelo Google Maps, para facilitar sua chegada no grande dia.",
   ceremonyAddress:
     "Av. Comendador Pedro Morganti, s/n - Monte Alegre, Piracicaba - SP, 13415-001",
-  ceremonyMapsLink:
-    "https://maps.app.goo.gl/fXMbsrVRAooaDbXQ9",
+  ceremonyMapsLink: "https://maps.app.goo.gl/fXMbsrVRAooaDbXQ9",
   ceremonyMapEmbedUrl: "",
 
   dinnerTitle: "Jantar",
@@ -77,20 +76,21 @@ Pedimos, com carinho, que evitem essas tonalidades para que cada um tenha seu de
   dinnerMapEmbedUrl:
     "https://www.google.com/maps?q=Praca%20Antonio%20Keller%2C%2022%20-%20Monte%20Alegre%2C%20Piracicaba%20-%20SP%2C%2013415-020&output=embed",
   dinnerText:
-    "Abaixo, disponibilizamos o endereco completo e o link para acesso pelo Google Maps, para facilitar sua chegada no grande dia.",
+    "Abaixo, disponibilizamos o endereço completo e o link para acesso pelo Google Maps, para facilitar sua chegada no grande dia.",
 
-  rsvpTitle: "Confirmacao de presenca",
-  rsvpText:
-    "Pedimos, com carinho, que confirme sua presenca para nos ajudar na organizacao do grande dia. Se precisar alterar sua resposta depois, e so preencher novamente.",
+  rsvpTitle: "Confirmação de presença",
+  rsvpText: `
+Para nos auxiliar na organização do casamento, pedimos que confirme sua presença através do formulário abaixo.
+Agradecemos imensamente por fazer parte deste momento tão especial. 🤍`,
   rsvpNote:
-    "Informe seu nome, contato e se estara presente. Caso venha acompanhado, nos conte quantas pessoas serao ao todo.",
+    "Informe seu nome, contato e se estará presente. Caso venha acompanhado, nos conte quantas pessoas serão ao todo.",
 
   photosTitle: "Pre-wedding",
-  photosText: "Vamos colocar uma galeria aqui (na proxima etapa).",
+  photosText: "Vamos colocar uma galeria aqui (na próxima etapa).",
 
   qrTitle: "QR Code",
   qrText:
-    "Aponte a camera para acessar rapidamente o site, album ou local do evento.",
+    "Aponte a câmera para acessar rapidamente o site, álbum ou local do evento.",
 
   preWeddingPhotos: [
     { src: "/prewedding/01.jpg", alt: "Pre-wedding 1" },
@@ -99,16 +99,26 @@ Pedimos, com carinho, que evitem essas tonalidades para que cada um tenha seu de
   ],
 
   photosUploadTitle: "Envie suas fotos do casamento",
-  photosUploadText:
-    "Tirou fotos do casamento? Envie aqui para a nossa pasta compartilhada.",
+  photosUploadText: `Compartilhar memórias 🤍
+Cada sorriso, abraço e momento vivido neste dia será extremamente especial para nós.
+Criamos este espaço para que vocês possam compartilhar todas as fotos e vídeos registrados durante o casamento. Assim, poderemos reviver cada detalhe através do olhar de pessoas tão importantes em nossa história. ✨
+
+📸 Compartilhe seus registros
+Clique no botão abaixo para acessar nossa pasta compartilhada no Google Drive e enviar suas fotos.
+
+☁️ Armazenamento das fotos
+Todos os arquivos enviados serão salvos diretamente em nossa pasta do Google Drive.
+
+🤍 Nosso pedido especial
+Não deixe nenhum momento passar despercebido — queremos guardar cada memória deste dia inesquecível ao lado de vocês.`,
   photosUploadLink:
     "https://drive.google.com/drive/folders/1AeLG19cg5cFsDOj0DJwHgvfh6dLpQAK8?usp=sharing",
 
   pixTitle: "Lista de presentes",
   pixText:
-    "Se quiser nos presentear, monte seu carrinho com um ou mais itens e siga para o checkout com Pix ou cartao.",
+    "A presença de cada um de vocês já torna este dia ainda mais especial para nós.\nCriamos nossa lista de presentes apenas para aqueles que desejarem participar, de alguma forma, da construção do nosso novo lar e do início desta nova fase das nossas vidas. ✨\nCada gesto será recebido com muita gratidão e carinho, e certamente fará parte da nossa história e do nosso futuro juntos.",
   giftListIntro:
-    "Agora voce pode juntar varios presentes em uma unica compra, preencher seus dados e concluir tudo em um checkout unico.",
+    "Agora você pode juntar vários presentes em uma única compra, preencher seus dados e concluir tudo em um checkout único.",
   weddingGifts: [
     {
       id: "gift-jantar",
@@ -117,7 +127,8 @@ Pedimos, com carinho, que evitem essas tonalidades para que cada um tenha seu de
       description:
         "Um presente para celebrarmos essa nova fase com um jantar bem especial.",
       priceLabel: "R$ 10",
-      infinityPay: "https://invoice.infinitepay.io/casamento-yasmim-vitor/iKobS9eNF5/",
+      infinityPay:
+        "https://invoice.infinitepay.io/casamento-yasmim-vitor/iKobS9eNF5/",
       imageSrc: "/presents/pratos.jpg",
     },
     {
@@ -127,7 +138,8 @@ Pedimos, com carinho, que evitem essas tonalidades para que cada um tenha seu de
       description:
         "Uma ajuda para montarmos o enxoval da nossa casa com carinho.",
       priceLabel: "R$ 280",
-      infinityPay: "https://invoice.infinitepay.io/casamento-yasmim-vitor/EfKoJlJPfQ/",
+      infinityPay:
+        "https://invoice.infinitepay.io/casamento-yasmim-vitor/EfKoJlJPfQ/",
       imageSrc: "/presents/jogo-de-cama.jpg",
     },
     {
@@ -164,8 +176,7 @@ Pedimos, com carinho, que evitem essas tonalidades para que cada um tenha seu de
       id: "gift-cafeteira",
       category: "Casa nova",
       title: "Cafeteira",
-      description:
-        "Para deixar nossos cafes da manha ainda mais especiais.",
+      description: "Para deixar nossos cafes da manha ainda mais especiais.",
       priceLabel: "R$ 260",
       infinityPay: "",
       imageSrc: "/presents/cafeteira.jpg",
@@ -174,8 +185,7 @@ Pedimos, com carinho, que evitem essas tonalidades para que cada um tenha seu de
       id: "gift-pratos",
       category: "Casa nova",
       title: "Jogo de pratos",
-      description:
-        "Contribua com um item especial para montarmos nossa mesa.",
+      description: "Contribua com um item especial para montarmos nossa mesa.",
       priceLabel: "R$ 190",
       infinityPay: "",
       imageSrc: "/presents/pratos.jpg",

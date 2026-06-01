@@ -19,16 +19,16 @@ export default async function Home() {
   const giftCatalog = await getDisplayGiftCatalog();
   const dressCodeParagraphs = siteContent.dressCodeText.split("\n");
   const navItems = [
-    { id: "inicio", label: "HOME" },
-    { id: "boas-vindas", label: "BEM VINDOS" },
-    { id: "historia", label: "O CASAL" },
-    { id: "fotos", label: "PRE-WEDDING" },
-    { id: "dresscode", label: "DRESS CODE" },
+    { id: "home", label: "HOME" },
+    { id: "bem-vindos", label: "BEM VINDOS" },
+    { id: "o-casal", label: "O CASAL" },
+    { id: "pre-wedding", label: "PRE-WEDDING" },
+    { id: "dress-code", label: "DRESS CODE" },
     { id: "cerimonia", label: "CERIMONIA" },
     { id: "jantar", label: "JANTAR" },
-    { id: "rsvp", label: "CONFIRME SUA PRESENCA" },
-    { id: "pix", label: "LISTA DE PRESENTES" },
-    { id: "fotos-casamento", label: "MOMENTOS" },
+    { id: "confirmar-presenca", label: "CONFIRME SUA PRESENCA" },
+    { id: "lista-de-presentes", label: "LISTA DE PRESENTES" },
+    { id: "momentos", label: "MOMENTOS" },
   ];
 
   return (
@@ -36,7 +36,7 @@ export default async function Home() {
       <TopSectionNav items={navItems} />
 
       <section
-        id="inicio"
+        id="home"
         className="section-shell section-fullscreen mb-10 rounded-3xl"
       >
         <Hero dateText="20 • 06 • 2027" coupleName="Yasmim & Vitor" subtitle="" />
@@ -45,7 +45,7 @@ export default async function Home() {
       <SectionDivider />
 
       <Section
-        id="boas-vindas"
+        id="bem-vindos"
         title={siteContent.welcomeTitle}
         titleClassName="text-3xl tracking-[0.08em] sm:text-5xl"
       >
@@ -54,7 +54,7 @@ export default async function Home() {
       <SectionDivider />
 
       <CoupleStorySection
-        id="historia"
+        id="o-casal"
         title={siteContent.storyTitle}
         text={siteContent.storyText}
         leftPortrait={siteContent.storyPortraitLeft}
@@ -63,13 +63,13 @@ export default async function Home() {
       />
       <SectionDivider />
 
-      <Section id="fotos" title="Pre-wedding">
+      <Section id="pre-wedding" title="Pre-wedding">
         <p className="mb-4">Alguns registros desse momento especial.</p>
         <PhotoGallery photos={siteContent.preWeddingPhotos} />
       </Section>
       <SectionDivider />
 
-      <Section id="dresscode" title={siteContent.dressCodeTitle}>
+      <Section id="dress-code" title={siteContent.dressCodeTitle}>
         <div className="space-y-3 text-zinc-700">
           {dressCodeParagraphs.map((paragraph, index) => {
             const trimmedParagraph = paragraph.trim();
@@ -98,7 +98,7 @@ export default async function Home() {
               return (
                 <div key={trimmedParagraph} className="pt-1">
                   <div className="mb-3">
-                    <div className="relative h-[13rem] w-full overflow-hidden sm:h-[18rem]">
+                    <div className="relative h-[14rem] w-full overflow-hidden sm:h-[19rem]">
                       <Image
                         src="/dresscode/dresscode.png?v=20260526-2244"
                         alt="Referencia visual para o dress code do casamento"
@@ -107,7 +107,7 @@ export default async function Home() {
                         priority
                         sizes="(max-width: 640px) 100vw, 960px"
                         className="object-contain object-center"
-                        style={{ transform: "translateY(-42%) scale(1.4)" }}
+                        style={{ transform: "translateY(-5%) scale(1.0)" }}
                       />
                     </div>
                   </div>
@@ -182,14 +182,14 @@ export default async function Home() {
       </Section>
       <SectionDivider />
 
-      <Section id="rsvp" title={siteContent.rsvpTitle}>
+      <Section id="confirmar-presenca" title={siteContent.rsvpTitle}>
         <p className="mb-3">{siteContent.rsvpText}</p>
         <p className="mb-5 text-sm text-zinc-600">{siteContent.rsvpNote}</p>
         <RsvpForm />
       </Section>
       <SectionDivider />
 
-      <Section id="pix" title={siteContent.pixTitle}>
+      <Section id="lista-de-presentes" title={siteContent.pixTitle}>
         <p className="mb-4">{siteContent.pixText}</p>
         <p className="mb-5 text-sm text-zinc-600">{siteContent.giftListIntro}</p>
 
@@ -197,8 +197,8 @@ export default async function Home() {
       </Section>
       <SectionDivider />
 
-      <Section id="fotos-casamento" title="Fotos do casamento">
-        <p className="mb-4">{siteContent.photosUploadText}</p>
+      <Section id="momentos" title="Momentos" fullScreen={false}>
+        <p className="mb-4 whitespace-pre-line">{siteContent.photosUploadText}</p>
 
         <LinkCard
           title={siteContent.photosUploadTitle}
@@ -207,6 +207,7 @@ export default async function Home() {
           buttonText="Enviar fotos"
         />
       </Section>
+      <SectionDivider />
 
       <Footer
         names="Yasmim & Vitor"

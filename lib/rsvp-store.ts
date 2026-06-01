@@ -8,6 +8,7 @@ export type RsvpConfirmationRow = {
   email: string | null;
   attendance: string;
   guest_count: number;
+  child_count: number;
   companion_names: unknown;
   note: string | null;
   created_at: Date;
@@ -41,6 +42,7 @@ export async function ensureRsvpTable() {
       email TEXT,
       attendance TEXT NOT NULL,
       guest_count INTEGER NOT NULL,
+      child_count INTEGER NOT NULL DEFAULT 0,
       companion_names JSONB NOT NULL DEFAULT '[]'::jsonb,
       note TEXT,
       created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -51,6 +53,11 @@ export async function ensureRsvpTable() {
   await prisma.$executeRawUnsafe(`
     ALTER TABLE rsvp_confirmations
     ADD COLUMN IF NOT EXISTS companion_names JSONB NOT NULL DEFAULT '[]'::jsonb;
+  `);
+
+  await prisma.$executeRawUnsafe(`
+    ALTER TABLE rsvp_confirmations
+    ADD COLUMN IF NOT EXISTS child_count INTEGER NOT NULL DEFAULT 0;
   `);
 
   await prisma.$executeRawUnsafe(`

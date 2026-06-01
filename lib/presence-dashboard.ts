@@ -11,6 +11,7 @@ type PresenceRow = {
   response_email: string | null;
   attendance: string | null;
   guest_count: number | null;
+  child_count: number | null;
   companion_names: unknown;
   response_note: string | null;
   response_created_at: Date | null;
@@ -28,6 +29,8 @@ export type PresenceGuest = {
   rsvpId: string | null;
   email: string | null;
   guestCount: number | null;
+  childCount: number;
+  countableGuestCount: number | null;
   companionNames: string[];
   responseNote: string | null;
   respondedAt: string | null;
@@ -59,6 +62,7 @@ export async function getPresenceDashboardData() {
         email,
         attendance,
         guest_count,
+        child_count,
         companion_names,
         note,
         created_at
@@ -77,6 +81,7 @@ export async function getPresenceDashboardData() {
         latest.email AS response_email,
         latest.attendance,
         latest.guest_count,
+        latest.child_count,
         latest.companion_names,
         latest.note AS response_note,
         latest.created_at AS response_created_at,
@@ -98,6 +103,7 @@ export async function getPresenceDashboardData() {
         latest.email AS response_email,
         latest.attendance,
         latest.guest_count,
+        latest.child_count,
         latest.companion_names,
         latest.note AS response_note,
         latest.created_at AS response_created_at,
@@ -131,6 +137,9 @@ export async function getPresenceDashboardData() {
       rsvpId: row.rsvp_id,
       email: row.response_email,
       guestCount: row.guest_count ?? null,
+      childCount: row.child_count ?? 0,
+      countableGuestCount:
+        row.guest_count !== null ? Math.max(row.guest_count - (row.child_count ?? 0), 0) : null,
       companionNames: normalizeCompanionNames(row.companion_names),
       responseNote: row.response_note,
       respondedAt: row.response_created_at?.toISOString() ?? null,
@@ -141,6 +150,16 @@ export async function getPresenceDashboardData() {
   const confirmed = guests.filter((guest) => guest.status === "confirmed");
   const declined = guests.filter((guest) => guest.status === "declined");
   const pending = guests.filter((guest) => guest.status === "pending");
+  const confirmedCountableGuests = confirmed.reduce(
+    (sum, guest) => sum + (guest.countableGuestCount ?? 0),
+    0,
+  );
+  const confirmedChildren = confirmed.reduce((sum, guest) => sum + guest.childCount, 0);
+  const declinedCountableGuests = declined.reduce(
+    (sum, guest) => sum + (guest.countableGuestCount ?? 0),
+    0,
+  );
+  const declinedChildren = declined.reduce((sum, guest) => sum + guest.childCount, 0);
 
   return {
     summary: {
@@ -148,6 +167,10 @@ export async function getPresenceDashboardData() {
       confirmedGuests: confirmed.length,
       declinedGuests: declined.length,
       pendingGuests: pending.length,
+      confirmedCountableGuests,
+      confirmedChildren,
+      declinedCountableGuests,
+      declinedChildren,
     },
     guests,
   };

@@ -10,6 +10,7 @@ type FormState = {
   email: string;
   attendance: AttendanceStatus;
   guestCount: string;
+  childCount: string;
   companionNames: string[];
   note: string;
 };
@@ -20,6 +21,7 @@ const initialState: FormState = {
   email: "",
   attendance: "confirmed",
   guestCount: "1",
+  childCount: "0",
   companionNames: [],
   note: "",
 };
@@ -31,14 +33,20 @@ export function RsvpForm() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const guestCount = Number(formState.guestCount);
+  const childCount = Number(formState.childCount);
   const companionSlots =
     formState.attendance === "confirmed" ? Math.max(guestCount - 1, 0) : 0;
+  const adultCompanionSlots =
+    formState.attendance === "confirmed"
+      ? Math.max(guestCount - childCount - 1, 0)
+      : 0;
 
   function syncCompanionNames(nextCount: number) {
     setFormState((current) => {
       const nextLength =
         current.attendance === "confirmed" ? Math.max(nextCount - 1, 0) : 0;
       const nextNames = current.companionNames.slice(0, nextLength);
+      const nextChildCount = Math.min(Number(current.childCount), nextCount);
 
       while (nextNames.length < nextLength) {
         nextNames.push("");
@@ -47,6 +55,7 @@ export function RsvpForm() {
       return {
         ...current,
         guestCount: String(nextCount),
+        childCount: String(nextChildCount),
         companionNames: nextNames,
       };
     });
@@ -68,6 +77,7 @@ export function RsvpForm() {
           email: formState.email || undefined,
           attendance: formState.attendance,
           guestCount: Number(formState.guestCount),
+          childCount: Number(formState.childCount),
           companionNames:
             formState.attendance === "confirmed"
               ? formState.companionNames
@@ -201,6 +211,31 @@ export function RsvpForm() {
           </select>
         </label>
 
+        <label className="block">
+          <span className="mb-1.5 block text-sm font-medium text-zinc-700">
+            Crianças até 8 anos
+          </span>
+          <select
+            value={formState.childCount}
+            onChange={(event) =>
+              setFormState((current) => ({
+                ...current,
+                childCount: event.target.value,
+              }))
+            }
+            className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28]"
+          >
+            {Array.from({ length: guestCount + 1 }, (_, index) => (
+              <option key={index} value={String(index)}>
+                {index}
+              </option>
+            ))}
+          </select>
+          <span className="mt-1.5 block text-xs leading-5 text-zinc-500">
+            As crianças já devem estar incluídas no total de pessoas acima.
+          </span>
+        </label>
+
         {companionSlots > 0 ? (
           <div className="sm:col-span-2">
             <div className="rounded-[24px] border border-zinc-200 bg-[rgb(var(--paper))] p-4">
@@ -208,14 +243,17 @@ export function RsvpForm() {
                 Nomes dos acompanhantes
               </p>
               <p className="mt-1 text-sm leading-6 text-zinc-600">
-                Preencha os nomes das outras pessoas que irao com voce.
+                Preencha os nomes das outras pessoas que irão com você,
+                incluindo crianças quando houver.
               </p>
 
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 {Array.from({ length: companionSlots }, (_, index) => (
                   <label key={index} className="block">
                     <span className="mb-1.5 block text-sm font-medium text-zinc-700">
-                      Acompanhante {index + 1}
+                      {index < adultCompanionSlots
+                        ? `Acompanhante ${index + 1}`
+                        : `Criança ${index - adultCompanionSlots + 1}`}
                     </span>
                     <input
                       value={formState.companionNames[index] ?? ""}
@@ -230,7 +268,11 @@ export function RsvpForm() {
                         })
                       }
                       className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28]"
-                      placeholder={`Nome do acompanhante ${index + 1}`}
+                      placeholder={
+                        index < adultCompanionSlots
+                          ? `Nome do acompanhante ${index + 1}`
+                          : `Nome da criança ${index - adultCompanionSlots + 1}`
+                      }
                     />
                   </label>
                 ))}
@@ -265,9 +307,30 @@ export function RsvpForm() {
       ) : null}
 
       {successMessage ? (
-        <p className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-          {successMessage}
-        </p>
+        <div className="mt-4 space-y-3">
+          <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+            {successMessage}
+          </p>
+
+          <div className="rounded-2xl border border-[rgb(var(--lavender))/0.4] bg-white/90 px-4 py-4 text-sm text-zinc-700">
+            <p className="font-semibold text-zinc-900">
+              Se quiser, aproveite para visitar nossa lista de presentes ✨
+            </p>
+            <p className="mt-1 leading-6">
+              Ela foi preparada com muito carinho para quem desejar participar da
+              construção do nosso novo lar.
+            </p>
+
+            <div className="mt-3">
+              <a
+                href="#lista-de-presentes"
+                className="btn-secondary rounded-full px-4 py-2 text-sm font-semibold"
+              >
+                Ver lista de presentes
+              </a>
+            </div>
+          </div>
+        </div>
       ) : null}
 
       <div className="mt-5 flex flex-wrap gap-3">

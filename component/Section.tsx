@@ -10,7 +10,7 @@ export function Section({
   id,
   title,
   children,
-  fullScreen = true,
+  fullScreen = false,
   titleClassName = "",
 }: SectionProps) {
   return (
@@ -21,13 +21,13 @@ export function Section({
       }`}
     >
       <h2
-        className={`display-font text-2xl font-semibold ${titleClassName}`.trim()}
+        className={`display-font text-center text-3xl font-semibold tracking-[0.08em] sm:text-5xl ${titleClassName}`.trim()}
         style={{ color: "rgb(var(--olive))" }}
       >
         {title}
       </h2>
 
-      <div className="mt-3 text-zinc-700">{children}</div>
+      <div className="mt-6 text-zinc-700">{children}</div>
     </section>
   );
 }

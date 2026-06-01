@@ -12,9 +12,18 @@ const rsvpSchema = z.object({
   email: z.string().trim().email().max(160).optional(),
   attendance: z.enum(["confirmed", "declined"]),
   guestCount: z.number().int().min(1).max(6),
+  childCount: z.number().int().min(0).max(6).default(0),
   companionNames: z.array(z.string().trim().min(2).max(140)).max(5).default([]),
   note: z.string().trim().max(600).optional(),
 }).superRefine((data, ctx) => {
+  if (data.childCount > data.guestCount) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["childCount"],
+      message: "A quantidade de criancas nao pode ser maior que o total de pessoas.",
+    });
+  }
+
   if (data.attendance === "confirmed") {
     const expectedCompanions = Math.max(data.guestCount - 1, 0);
     if (data.companionNames.length !== expectedCompanions) {
@@ -45,10 +54,11 @@ export async function POST(request: Request) {
           email,
           attendance,
           guest_count,
+          child_count,
           companion_names,
           note,
           updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9, CURRENT_TIMESTAMP)
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10, CURRENT_TIMESTAMP)
       `,
       id,
       payload.guestName,
@@ -57,6 +67,7 @@ export async function POST(request: Request) {
       payload.email ?? null,
       payload.attendance,
       payload.guestCount,
+      payload.childCount,
       JSON.stringify(payload.companionNames),
       payload.note ?? null,
     );

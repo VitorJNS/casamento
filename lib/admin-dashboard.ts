@@ -14,6 +14,7 @@ type RsvpRow = {
   email: string | null;
   attendance: string;
   guest_count: number;
+  child_count: number;
   companion_names: unknown;
   note: string | null;
   created_at: Date;
@@ -51,6 +52,7 @@ export async function getAdminDashboardData() {
         email,
         attendance,
         guest_count,
+        child_count,
         companion_names,
         note,
         created_at
@@ -69,11 +71,19 @@ export async function getAdminDashboardData() {
   const rsvpConfirmed = rsvpRows.filter((row) => row.attendance === "confirmed");
   const rsvpDeclined = rsvpRows.filter((row) => row.attendance === "declined");
   const confirmedGuests = rsvpConfirmed.reduce(
-    (sum, row) => sum + row.guest_count,
+    (sum, row) => sum + Math.max(row.guest_count - row.child_count, 0),
+    0,
+  );
+  const confirmedChildren = rsvpConfirmed.reduce(
+    (sum, row) => sum + row.child_count,
     0,
   );
   const declinedGuests = rsvpDeclined.reduce(
-    (sum, row) => sum + row.guest_count,
+    (sum, row) => sum + Math.max(row.guest_count - row.child_count, 0),
+    0,
+  );
+  const declinedChildren = rsvpDeclined.reduce(
+    (sum, row) => sum + row.child_count,
     0,
   );
   const guestListEntries = await listGuestListEntries({ includeInactive: false });
@@ -87,7 +97,9 @@ export async function getAdminDashboardData() {
       confirmedRsvps: rsvpConfirmed.length,
       declinedRsvps: rsvpDeclined.length,
       confirmedGuests,
+      confirmedChildren,
       declinedGuests,
+      declinedChildren,
       totalOrders: orders.length,
       paidOrders: paidAggregate._count._all,
       totalReceivedCents: paidAggregate._sum.paidCents ?? 0,
@@ -101,6 +113,8 @@ export async function getAdminDashboardData() {
       email: row.email,
       attendance: row.attendance,
       guestCount: row.guest_count,
+      childCount: row.child_count,
+      countableGuestCount: Math.max(row.guest_count - row.child_count, 0),
       companionNames: normalizeCompanionNames(row.companion_names),
       note: row.note,
       createdAt: row.created_at.toISOString(),
@@ -135,6 +149,8 @@ export async function getAdminDashboardData() {
         rsvpId: presence?.rsvpId ?? null,
         email: presence?.email ?? null,
         guestCount: presence?.guestCount ?? null,
+        childCount: presence?.childCount ?? 0,
+        countableGuestCount: presence?.countableGuestCount ?? null,
         companionNames: presence?.companionNames ?? [],
         responseNote: presence?.responseNote ?? null,
         respondedAt: presence?.respondedAt ?? null,

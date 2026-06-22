@@ -32,6 +32,10 @@ type GiftRecord = {
   imageSrc?: string | null;
 };
 
+const globalForGiftSeed = globalThis as typeof globalThis & {
+  ensureGiftCatalogSeededPromise?: Promise<void>;
+};
+
 function getStaticGiftSeeds(): StaticGiftSeed[] {
   return siteContent.weddingGifts.map((gift, index) => ({
     slug: gift.id,
@@ -73,48 +77,56 @@ export async function ensureGiftCatalogSeeded() {
     return;
   }
 
-  const prisma = getPrisma();
-  const seeds = getStaticGiftSeeds();
-  const activeSeedSlugs = seeds.map((gift) => gift.slug);
+  if (globalForGiftSeed.ensureGiftCatalogSeededPromise) {
+    return globalForGiftSeed.ensureGiftCatalogSeededPromise;
+  }
 
-  await prisma.giftItem.updateMany({
-    where: {
-      isActive: true,
-      slug: {
-        notIn: activeSeedSlugs,
+  globalForGiftSeed.ensureGiftCatalogSeededPromise = (async () => {
+    const prisma = getPrisma();
+    const seeds = getStaticGiftSeeds();
+    const activeSeedSlugs = seeds.map((gift) => gift.slug);
+
+    await prisma.giftItem.updateMany({
+      where: {
+        isActive: true,
+        slug: {
+          notIn: activeSeedSlugs,
+        },
       },
-    },
-    data: {
-      isActive: false,
-    },
-  });
+      data: {
+        isActive: false,
+      },
+    });
 
-  await Promise.all(
-    seeds.map((gift) =>
-      prisma.giftItem.upsert({
-        where: { slug: gift.slug },
-        create: {
-          slug: gift.slug,
-          title: gift.title,
-          description: gift.description,
-          category: gift.category,
-          priceCents: gift.priceCents,
-          imageSrc: gift.imageSrc,
-          isActive: true,
-          displayOrder: gift.displayOrder,
-        },
-        update: {
-          title: gift.title,
-          description: gift.description,
-          category: gift.category,
-          priceCents: gift.priceCents,
-          imageSrc: gift.imageSrc,
-          isActive: true,
-          displayOrder: gift.displayOrder,
-        },
-      }),
-    ),
-  );
+    await Promise.all(
+      seeds.map((gift) =>
+        prisma.giftItem.upsert({
+          where: { slug: gift.slug },
+          create: {
+            slug: gift.slug,
+            title: gift.title,
+            description: gift.description,
+            category: gift.category,
+            priceCents: gift.priceCents,
+            imageSrc: gift.imageSrc,
+            isActive: true,
+            displayOrder: gift.displayOrder,
+          },
+          update: {
+            title: gift.title,
+            description: gift.description,
+            category: gift.category,
+            priceCents: gift.priceCents,
+            imageSrc: gift.imageSrc,
+            isActive: true,
+            displayOrder: gift.displayOrder,
+          },
+        }),
+      ),
+    );
+  })();
+
+  return globalForGiftSeed.ensureGiftCatalogSeededPromise;
 }
 
 export async function getDisplayGiftCatalog() {

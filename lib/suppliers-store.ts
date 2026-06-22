@@ -17,57 +17,69 @@ export type SupplierEntryRow = {
   updated_at: Date;
 };
 
+const globalForSupplierSetup = globalThis as typeof globalThis & {
+  ensureSuppliersTablePromise?: Promise<void>;
+};
+
 export async function ensureSuppliersTable() {
-  const prisma = getPrisma();
+  if (globalForSupplierSetup.ensureSuppliersTablePromise) {
+    return globalForSupplierSetup.ensureSuppliersTablePromise;
+  }
 
-  await prisma.$executeRawUnsafe(`
-    CREATE TABLE IF NOT EXISTS cerimonial_suppliers (
-      id TEXT PRIMARY KEY,
-      supplier_name TEXT NOT NULL,
-      category TEXT NOT NULL,
-      supplier_status TEXT NOT NULL DEFAULT 'pendente',
-      contact_name TEXT,
-      phone TEXT NOT NULL,
-      email TEXT,
-      contract_value_cents INTEGER,
-      amount_paid_cents INTEGER NOT NULL DEFAULT 0,
-      next_payment_due DATE,
-      note TEXT,
-      is_active BOOLEAN NOT NULL DEFAULT TRUE,
-      created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
-    );
-  `);
+  globalForSupplierSetup.ensureSuppliersTablePromise = (async () => {
+    const prisma = getPrisma();
 
-  await prisma.$executeRawUnsafe(`
-    ALTER TABLE cerimonial_suppliers
-    ADD COLUMN IF NOT EXISTS supplier_status TEXT NOT NULL DEFAULT 'pendente';
-  `);
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS cerimonial_suppliers (
+        id TEXT PRIMARY KEY,
+        supplier_name TEXT NOT NULL,
+        category TEXT NOT NULL,
+        supplier_status TEXT NOT NULL DEFAULT 'pendente',
+        contact_name TEXT,
+        phone TEXT NOT NULL,
+        email TEXT,
+        contract_value_cents INTEGER,
+        amount_paid_cents INTEGER NOT NULL DEFAULT 0,
+        next_payment_due DATE,
+        note TEXT,
+        is_active BOOLEAN NOT NULL DEFAULT TRUE,
+        created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
 
-  await prisma.$executeRawUnsafe(`
-    ALTER TABLE cerimonial_suppliers
-    ADD COLUMN IF NOT EXISTS contract_value_cents INTEGER;
-  `);
+    await prisma.$executeRawUnsafe(`
+      ALTER TABLE cerimonial_suppliers
+      ADD COLUMN IF NOT EXISTS supplier_status TEXT NOT NULL DEFAULT 'pendente';
+    `);
 
-  await prisma.$executeRawUnsafe(`
-    ALTER TABLE cerimonial_suppliers
-    ADD COLUMN IF NOT EXISTS amount_paid_cents INTEGER NOT NULL DEFAULT 0;
-  `);
+    await prisma.$executeRawUnsafe(`
+      ALTER TABLE cerimonial_suppliers
+      ADD COLUMN IF NOT EXISTS contract_value_cents INTEGER;
+    `);
 
-  await prisma.$executeRawUnsafe(`
-    ALTER TABLE cerimonial_suppliers
-    ADD COLUMN IF NOT EXISTS next_payment_due DATE;
-  `);
+    await prisma.$executeRawUnsafe(`
+      ALTER TABLE cerimonial_suppliers
+      ADD COLUMN IF NOT EXISTS amount_paid_cents INTEGER NOT NULL DEFAULT 0;
+    `);
 
-  await prisma.$executeRawUnsafe(`
-    CREATE INDEX IF NOT EXISTS idx_cerimonial_suppliers_category
-    ON cerimonial_suppliers (category);
-  `);
+    await prisma.$executeRawUnsafe(`
+      ALTER TABLE cerimonial_suppliers
+      ADD COLUMN IF NOT EXISTS next_payment_due DATE;
+    `);
 
-  await prisma.$executeRawUnsafe(`
-    CREATE INDEX IF NOT EXISTS idx_cerimonial_suppliers_is_active
-    ON cerimonial_suppliers (is_active);
-  `);
+    await prisma.$executeRawUnsafe(`
+      CREATE INDEX IF NOT EXISTS idx_cerimonial_suppliers_category
+      ON cerimonial_suppliers (category);
+    `);
+
+    await prisma.$executeRawUnsafe(`
+      CREATE INDEX IF NOT EXISTS idx_cerimonial_suppliers_is_active
+      ON cerimonial_suppliers (is_active);
+    `);
+  })();
+
+  return globalForSupplierSetup.ensureSuppliersTablePromise;
 }
 
 export async function listSuppliers(options?: { includeInactive?: boolean }) {

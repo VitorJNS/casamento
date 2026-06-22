@@ -13,7 +13,7 @@ import { siteContent } from "@/content/siteContent";
 import { getDisplayGiftCatalog } from "@/lib/gifts";
 import Image from "next/image";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export default async function Home() {
   const giftCatalog = await getDisplayGiftCatalog();

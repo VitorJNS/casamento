@@ -5,9 +5,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
-import { CerimonialLogoutButton } from "@/component/CerimonialLogoutButton";
+import { AdminLogoutButton } from "@/component/AdminLogoutButton";
 
-type CerimonialShellProps = {
+type AdminShellProps = {
   children: ReactNode;
   title?: string;
   topRight?: ReactNode;
@@ -15,28 +15,27 @@ type CerimonialShellProps = {
 
 type NavItem = {
   label: string;
-  href?: string;
+  href: string;
   icon: ({ className }: { className?: string }) => ReactNode;
 };
 
 const navItems: NavItem[] = [
-  { label: "Lista de Convidados", href: "/cerimonial/dashboard", icon: UsersIcon },
-  { label: "Fornecedores", href: "/cerimonial/fornecedores", icon: HandshakeIcon },
-  // { label: "Mesas e Setores", icon: ChairIcon },
-  // { label: "Relatorios", icon: ChartIcon },
+  { label: "Lista de Convidados", href: "/admin/convidados", icon: UsersIcon },
+  { label: "Fornecedores", href: "/admin/fornecedores", icon: HandshakeIcon },
+  { label: "Presentes", href: "/admin/presentes", icon: GiftIcon },
 ];
 
-export function CerimonialShell({
+export function AdminShell({
   children,
-  title = "Area da Cerimonialista",
+  title = "Area dos Noivos",
   topRight,
-}: CerimonialShellProps) {
+}: AdminShellProps) {
   const pathname = usePathname();
 
   return (
     <main className="relative z-10 min-h-screen bg-[linear-gradient(180deg,rgba(255,255,255,0.35),rgba(255,255,255,0.82))] text-zinc-950">
       <div className="xl:grid xl:min-h-screen xl:grid-cols-[290px_minmax(0,1fr)] xl:items-start">
-        <aside className="border-b border-zinc-200/80 bg-white/88 px-5 py-6 backdrop-blur xl:sticky xl:top-0 xl:h-screen xl:self-start xl:overflow-y-auto xl:border-b-0 xl:border-r xl:px-6 xl:py-7">
+        <aside className="border-b border-zinc-200/80 bg-white/88 px-5 py-6 backdrop-blur xl:sticky xl:top-0 xl:h-screen xl:self-start xl:border-b-0 xl:border-r xl:px-6 xl:py-7">
           <div className="flex justify-center xl:justify-start">
             <div className="flex h-28 w-28 items-center justify-center rounded-full bg-[rgb(var(--paper))] shadow-[0_18px_50px_rgba(24,24,27,0.08)]">
               <Image
@@ -52,45 +51,32 @@ export function CerimonialShell({
 
           <nav className="mt-8 flex gap-3 overflow-x-auto pb-1 xl:mt-14 xl:block xl:space-y-3 xl:overflow-visible">
             {navItems.map((item) => {
-              const isActive = item.href ? pathname === item.href : false;
-              const content = (
-                <>
+              const isActive = pathname === item.href;
+
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className={`flex shrink-0 items-center gap-3 rounded-[18px] px-4 py-3.5 text-sm transition xl:w-full ${
+                    isActive
+                      ? "bg-[rgb(var(--olive)/0.24)] text-zinc-900"
+                      : "text-zinc-700 hover:bg-white"
+                  }`}
+                >
                   <item.icon className="h-5 w-5" />
                   <span className="whitespace-nowrap font-medium tracking-[0.06em]">
                     {item.label}
                   </span>
-                </>
-              );
-
-              const className = `flex shrink-0 items-center gap-3 rounded-[18px] px-4 py-3.5 text-sm transition xl:w-full ${
-                isActive
-                  ? "bg-[rgb(var(--olive)/0.24)] text-zinc-900"
-                  : item.href
-                    ? "text-zinc-700 hover:bg-white"
-                    : "cursor-default text-zinc-400"
-              }`;
-
-              if (item.href) {
-                return (
-                  <Link key={item.label} href={item.href} className={className}>
-                    {content}
-                  </Link>
-                );
-              }
-
-              return (
-                <div key={item.label} className={className} aria-disabled="true">
-                  {content}
-                </div>
+                </Link>
               );
             })}
           </nav>
 
           <div className="mt-8 space-y-3 xl:mt-auto xl:flex xl:min-h-[62vh] xl:flex-col xl:justify-end">
-            <CerimonialLogoutButton className="flex w-full items-center gap-3 rounded-[18px] border border-transparent px-5 py-4 text-left text-base font-medium text-zinc-700 hover:bg-white/80 disabled:cursor-not-allowed disabled:opacity-60">
+            <AdminLogoutButton className="flex w-full items-center gap-3 rounded-[18px] border border-transparent px-5 py-4 text-left text-base font-medium text-zinc-700 hover:bg-white/80 disabled:cursor-not-allowed disabled:opacity-60">
               <LogoutIcon className="h-5 w-5" />
               <span>Sair</span>
-            </CerimonialLogoutButton>
+            </AdminLogoutButton>
           </div>
         </aside>
 
@@ -152,17 +138,6 @@ function UsersIcon({ className }: { className?: string }) {
   );
 }
 
-function ChairIcon({ className }: { className?: string }) {
-  return (
-    <SvgIcon className={className}>
-      <path d="M6 11V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v5" />
-      <path d="M4 13h16v4H4z" />
-      <path d="M6 17v3" />
-      <path d="M18 17v3" />
-    </SvgIcon>
-  );
-}
-
 function HandshakeIcon({ className }: { className?: string }) {
   return (
     <SvgIcon className={className}>
@@ -174,14 +149,14 @@ function HandshakeIcon({ className }: { className?: string }) {
   );
 }
 
-function ChartIcon({ className }: { className?: string }) {
+function GiftIcon({ className }: { className?: string }) {
   return (
     <SvgIcon className={className}>
-      <path d="M4 19V5" />
-      <path d="M20 19H4" />
-      <path d="M8 17v-6" />
-      <path d="M12 17V9" />
-      <path d="M16 17V7" />
+      <rect x="3" y="8" width="18" height="13" rx="2" />
+      <path d="M12 8v13" />
+      <path d="M3 12h18" />
+      <path d="M7.5 8a2.5 2.5 0 1 1 0-5c2 0 4.5 2.4 4.5 5" />
+      <path d="M16.5 8a2.5 2.5 0 1 0 0-5C14.5 3 12 5.4 12 8" />
     </SvgIcon>
   );
 }

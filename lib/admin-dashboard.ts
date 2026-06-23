@@ -166,3 +166,141 @@ function dataToPresenceMap(
 ) {
   return guests;
 }
+
+export async function getAdminGuestsData() {
+  const prisma = getPrisma();
+  await ensureRsvpTable();
+
+  const [rsvpRows, presenceData, guestListEntries] = await Promise.all([
+    prisma.$queryRawUnsafe<RsvpRow[]>(`
+      SELECT
+        id,
+        guest_name,
+        whatsapp,
+        email,
+        attendance,
+        guest_count,
+        child_count,
+        companion_names,
+        note,
+        created_at
+      FROM rsvp_confirmations
+      ORDER BY created_at DESC
+    `),
+    getPresenceDashboardData(),
+    listGuestListEntries({ includeInactive: false }),
+  ]);
+
+  const rsvpConfirmed = rsvpRows.filter((row) => row.attendance === "confirmed");
+  const rsvpDeclined = rsvpRows.filter((row) => row.attendance === "declined");
+  const confirmedGuests = rsvpConfirmed.reduce(
+    (sum, row) => sum + Math.max(row.guest_count - row.child_count, 0),
+    0,
+  );
+  const confirmedChildren = rsvpConfirmed.reduce((sum, row) => sum + row.child_count, 0);
+  const declinedGuests = rsvpDeclined.reduce(
+    (sum, row) => sum + Math.max(row.guest_count - row.child_count, 0),
+    0,
+  );
+  const declinedChildren = rsvpDeclined.reduce((sum, row) => sum + row.child_count, 0);
+
+  const presenceByWhatsapp = new Map(
+    dataToPresenceMap(presenceData.guests).map((entry) => [entry.whatsappNormalized, entry]),
+  );
+
+  return {
+    summary: {
+      totalRsvps: rsvpRows.length,
+      confirmedRsvps: rsvpConfirmed.length,
+      declinedRsvps: rsvpDeclined.length,
+      confirmedGuests,
+      confirmedChildren,
+      declinedGuests,
+      declinedChildren,
+    },
+    rsvps: rsvpRows.map((row) => ({
+      id: row.id,
+      guestName: row.guest_name,
+      whatsapp: row.whatsapp,
+      email: row.email,
+      attendance: row.attendance,
+      guestCount: row.guest_count,
+      childCount: row.child_count,
+      countableGuestCount: Math.max(row.guest_count - row.child_count, 0),
+      companionNames: normalizeCompanionNames(row.companion_names),
+      note: row.note,
+      createdAt: row.created_at.toISOString(),
+    })),
+    guestPresence: presenceData,
+    guestList: guestListEntries.map((guest) => {
+      const presence = presenceByWhatsapp.get(normalizeWhatsapp(guest.whatsapp));
+
+      return {
+        id: guest.id,
+        guestName: guest.guest_name,
+        whatsapp: guest.whatsapp,
+        note: guest.note,
+        status: presence?.status ?? "pending",
+        rsvpId: presence?.rsvpId ?? null,
+        email: presence?.email ?? null,
+        guestCount: presence?.guestCount ?? null,
+        childCount: presence?.childCount ?? 0,
+        countableGuestCount: presence?.countableGuestCount ?? null,
+        companionNames: presence?.companionNames ?? [],
+        responseNote: presence?.responseNote ?? null,
+        respondedAt: presence?.respondedAt ?? null,
+        sourceKind: "guest-list" as const,
+        whatsappNormalized: normalizeWhatsapp(guest.whatsapp),
+      };
+    }),
+  };
+}
+
+export async function getAdminGiftsData() {
+  const prisma = getPrisma();
+
+  const [paidOrders, paidAggregate] = await Promise.all([
+    prisma.order.findMany({
+      where: { status: "paid" },
+      orderBy: { paidAt: "desc" },
+      include: { items: true },
+    }),
+    prisma.order.aggregate({
+      where: { status: "paid" },
+      _sum: { paidCents: true },
+      _count: { _all: true },
+    }),
+  ]);
+
+  const paidGiftUnits = paidOrders.reduce(
+    (sum, order) =>
+      sum + order.items.reduce((itemSum, item) => itemSum + item.quantity, 0),
+    0,
+  );
+
+  return {
+    summary: {
+      paidOrders: paidAggregate._count._all,
+      totalReceivedCents: paidAggregate._sum.paidCents ?? 0,
+      totalReceivedLabel: formatPriceCents(paidAggregate._sum.paidCents ?? 0),
+      paidGiftUnits,
+    },
+    paidOrders: paidOrders.map((order) => ({
+      publicId: order.publicId,
+      guestName: order.guestName,
+      guestEmail: order.guestEmail,
+      subtotalCents: order.subtotalCents,
+      subtotalLabel: formatPriceCents(order.subtotalCents),
+      paidCents: order.paidCents,
+      paidLabel: formatPriceCents(order.paidCents),
+      paidAt: order.paidAt?.toISOString() ?? null,
+      paymentMethod: order.paymentMethod,
+      items: order.items.map((item) => ({
+        id: item.id,
+        title: item.titleSnapshot,
+        quantity: item.quantity,
+        lineTotalLabel: formatPriceCents(item.lineTotalCents),
+      })),
+    })),
+  };
+}

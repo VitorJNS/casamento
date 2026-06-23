@@ -13,7 +13,7 @@ export default async function AdminLoginPage() {
   ]);
 
   if (adminAuthenticated) {
-    redirect("/admin/dashboard");
+    redirect("/admin/convidados");
   }
 
   if (cerimonialAuthenticated) {

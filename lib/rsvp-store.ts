@@ -1,3 +1,5 @@
+import { unstable_cache } from "next/cache";
+
 import { getPrisma } from "@/lib/prisma";
 
 export type RsvpConfirmationRow = {
@@ -35,6 +37,9 @@ const globalForPresenceSetup = globalThis as typeof globalThis & {
   ensureGuestListTablePromise?: Promise<void>;
   ensurePresenceTablesPromise?: Promise<void>;
 };
+
+export const RSVP_TAG = "rsvp";
+export const GUEST_LIST_TAG = "guest-list";
 
 export async function ensureRsvpTable() {
   if (globalForPresenceSetup.ensureRsvpTablePromise) {
@@ -135,9 +140,14 @@ export async function ensurePresenceTables() {
 }
 
 export async function listGuestListEntries(options?: { includeInactive?: boolean }) {
+  const includeInactive = options?.includeInactive ?? false;
+
+  return includeInactive ? listAllGuestListEntriesCached() : listActiveGuestListEntriesCached();
+}
+
+async function queryGuestListEntries(includeInactive: boolean) {
   await ensureGuestListTable();
   const prisma = getPrisma();
-  const includeInactive = options?.includeInactive ?? false;
 
   return prisma.$queryRawUnsafe<GuestListEntryRow[]>(
     `
@@ -156,4 +166,16 @@ export async function listGuestListEntries(options?: { includeInactive?: boolean
     `,
   );
 }
+
+const listActiveGuestListEntriesCached = unstable_cache(
+  async () => queryGuestListEntries(false),
+  ["guest-list-active"],
+  { revalidate: 15, tags: [GUEST_LIST_TAG] },
+);
+
+const listAllGuestListEntriesCached = unstable_cache(
+  async () => queryGuestListEntries(true),
+  ["guest-list-all"],
+  { revalidate: 15, tags: [GUEST_LIST_TAG] },
+);
 

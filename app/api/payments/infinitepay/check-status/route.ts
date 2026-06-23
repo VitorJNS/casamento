@@ -1,7 +1,9 @@
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { checkInfinitePayPayment } from "@/lib/infinitepay";
+import { ORDERS_TAG } from "@/lib/orders";
 import { getPrisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -53,6 +55,7 @@ export async function POST(request: Request) {
       include: { items: true },
     });
 
+    revalidateTag(ORDERS_TAG, "max");
     return NextResponse.json({
       publicId: updated.publicId,
       status: updated.status,

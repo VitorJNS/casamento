@@ -3,6 +3,7 @@ import {
   type AdminSupplier,
 } from "@/component/AdminSuppliersManager";
 import { requireAdminAuth } from "@/lib/admin-auth";
+import { toIsoString, toIsoStringOrNull } from "@/lib/date";
 import { listSuppliers } from "@/lib/suppliers-store";
 
 export const dynamic = "force-dynamic";
@@ -20,11 +21,11 @@ function mapSupplier(
     email: supplier.email,
     contractValueCents: supplier.contract_value_cents,
     amountPaidCents: supplier.amount_paid_cents,
-    nextPaymentDue: supplier.next_payment_due?.toISOString() ?? null,
+    nextPaymentDue: toIsoStringOrNull(supplier.next_payment_due),
     note: supplier.note,
     isActive: supplier.is_active,
-    createdAt: supplier.created_at.toISOString(),
-    updatedAt: supplier.updated_at.toISOString(),
+    createdAt: toIsoString(supplier.created_at),
+    updatedAt: toIsoString(supplier.updated_at),
   };
 }
 

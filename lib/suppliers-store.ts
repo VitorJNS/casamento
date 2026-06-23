@@ -1,3 +1,5 @@
+import { unstable_cache } from "next/cache";
+
 import { getPrisma } from "@/lib/prisma";
 
 export type SupplierEntryRow = {
@@ -20,6 +22,8 @@ export type SupplierEntryRow = {
 const globalForSupplierSetup = globalThis as typeof globalThis & {
   ensureSuppliersTablePromise?: Promise<void>;
 };
+
+export const SUPPLIERS_TAG = "suppliers";
 
 export async function ensureSuppliersTable() {
   if (globalForSupplierSetup.ensureSuppliersTablePromise) {
@@ -83,9 +87,14 @@ export async function ensureSuppliersTable() {
 }
 
 export async function listSuppliers(options?: { includeInactive?: boolean }) {
+  const includeInactive = options?.includeInactive ?? false;
+
+  return includeInactive ? listAllSuppliersCached() : listActiveSuppliersCached();
+}
+
+async function querySuppliers(includeInactive: boolean) {
   await ensureSuppliersTable();
   const prisma = getPrisma();
-  const includeInactive = options?.includeInactive ?? false;
 
   return prisma.$queryRawUnsafe<SupplierEntryRow[]>(
     `
@@ -110,3 +119,15 @@ export async function listSuppliers(options?: { includeInactive?: boolean }) {
     `,
   );
 }
+
+const listActiveSuppliersCached = unstable_cache(
+  async () => querySuppliers(false),
+  ["suppliers-active"],
+  { revalidate: 15, tags: [SUPPLIERS_TAG] },
+);
+
+const listAllSuppliersCached = unstable_cache(
+  async () => querySuppliers(true),
+  ["suppliers-all"],
+  { revalidate: 15, tags: [SUPPLIERS_TAG] },
+);

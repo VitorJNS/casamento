@@ -3,6 +3,7 @@
   type CerimonialSupplierView,
 } from "@/component/CerimonialSuppliersBoard";
 import { requireCerimonialAuth } from "@/lib/cerimonial-auth";
+import { toIsoString } from "@/lib/date";
 import { listSuppliers } from "@/lib/suppliers-store";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +20,7 @@ function mapSupplier(
     phone: supplier.phone,
     email: supplier.email,
     note: supplier.note,
-    updatedAt: supplier.updated_at.toISOString(),
+    updatedAt: toIsoString(supplier.updated_at),
   };
 }
 

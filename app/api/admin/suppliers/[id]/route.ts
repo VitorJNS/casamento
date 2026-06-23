@@ -1,8 +1,9 @@
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { getPrisma } from "@/lib/prisma";
-import { ensureSuppliersTable } from "@/lib/suppliers-store";
+import { ensureSuppliersTable, SUPPLIERS_TAG } from "@/lib/suppliers-store";
 
 export const runtime = "nodejs";
 
@@ -59,6 +60,7 @@ export async function DELETE(
       );
     }
 
+    revalidateTag(SUPPLIERS_TAG, "max");
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json(

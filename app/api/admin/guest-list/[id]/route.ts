@@ -1,13 +1,18 @@
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { isAdminAuthenticated } from "@/lib/admin-auth";
+import { toIsoString } from "@/lib/date";
 import { getPrisma } from "@/lib/prisma";
 import {
   ensureGuestListTable,
+  GUEST_LIST_TAG,
   normalizeWhatsapp,
+  RSVP_TAG,
   type GuestListEntryRow,
 } from "@/lib/rsvp-store";
+import { PRESENCE_TAG } from "@/lib/presence-dashboard";
 
 export const runtime = "nodejs";
 
@@ -24,8 +29,8 @@ function mapGuestEntry(row: GuestListEntryRow) {
     whatsapp: row.whatsapp,
     note: row.note,
     isActive: row.is_active,
-    createdAt: row.created_at.toISOString(),
-    updatedAt: row.updated_at.toISOString(),
+    createdAt: toIsoString(row.created_at),
+    updatedAt: toIsoString(row.updated_at),
   };
 }
 
@@ -114,6 +119,9 @@ export async function PATCH(
       );
     }
 
+    revalidateTag(GUEST_LIST_TAG, "max");
+    revalidateTag(RSVP_TAG, "max");
+    revalidateTag(PRESENCE_TAG, "max");
     return NextResponse.json({ guest: mapGuestEntry(updated) });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -184,6 +192,9 @@ export async function DELETE(
       id,
     );
 
+    revalidateTag(GUEST_LIST_TAG, "max");
+    revalidateTag(RSVP_TAG, "max");
+    revalidateTag(PRESENCE_TAG, "max");
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json(

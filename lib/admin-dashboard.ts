@@ -1,4 +1,8 @@
+import { unstable_cache } from "next/cache";
+
 import { formatPriceCents } from "@/lib/currency";
+import { toIsoString, toIsoStringOrNull } from "@/lib/date";
+import { ORDERS_TAG } from "@/lib/orders";
 import { getPresenceDashboardData } from "@/lib/presence-dashboard";
 import { getPrisma } from "@/lib/prisma";
 import {
@@ -117,7 +121,7 @@ export async function getAdminDashboardData() {
       countableGuestCount: Math.max(row.guest_count - row.child_count, 0),
       companionNames: normalizeCompanionNames(row.companion_names),
       note: row.note,
-      createdAt: row.created_at.toISOString(),
+      createdAt: toIsoString(row.created_at),
     })),
     paidOrders: paidOrders.map((order) => ({
       publicId: order.publicId,
@@ -127,7 +131,7 @@ export async function getAdminDashboardData() {
       subtotalLabel: formatPriceCents(order.subtotalCents),
       paidCents: order.paidCents,
       paidLabel: formatPriceCents(order.paidCents),
-      paidAt: order.paidAt?.toISOString() ?? null,
+      paidAt: toIsoStringOrNull(order.paidAt),
       paymentMethod: order.paymentMethod,
       items: order.items.map((item) => ({
         id: item.id,
@@ -229,7 +233,7 @@ export async function getAdminGuestsData() {
       countableGuestCount: Math.max(row.guest_count - row.child_count, 0),
       companionNames: normalizeCompanionNames(row.companion_names),
       note: row.note,
-      createdAt: row.created_at.toISOString(),
+      createdAt: toIsoString(row.created_at),
     })),
     guestPresence: presenceData,
     guestList: guestListEntries.map((guest) => {
@@ -257,6 +261,11 @@ export async function getAdminGuestsData() {
 }
 
 export async function getAdminGiftsData() {
+  return getAdminGiftsDataCached();
+}
+
+const getAdminGiftsDataCached = unstable_cache(
+  async () => {
   const prisma = getPrisma();
 
   const [paidOrders, paidAggregate] = await Promise.all([
@@ -293,7 +302,7 @@ export async function getAdminGiftsData() {
       subtotalLabel: formatPriceCents(order.subtotalCents),
       paidCents: order.paidCents,
       paidLabel: formatPriceCents(order.paidCents),
-      paidAt: order.paidAt?.toISOString() ?? null,
+      paidAt: toIsoStringOrNull(order.paidAt),
       paymentMethod: order.paymentMethod,
       items: order.items.map((item) => ({
         id: item.id,
@@ -303,4 +312,7 @@ export async function getAdminGiftsData() {
       })),
     })),
   };
-}
+  },
+  ["admin-gifts"],
+  { revalidate: 15, tags: [ORDERS_TAG] },
+);

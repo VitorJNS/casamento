@@ -1,7 +1,9 @@
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getOptionalServerEnv } from "@/lib/env";
+import { ORDERS_TAG } from "@/lib/orders";
 import { getPrisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -71,6 +73,7 @@ export async function POST(request: Request) {
       },
     });
 
+    revalidateTag(ORDERS_TAG, "max");
     return NextResponse.json({ received: true });
   } catch (error) {
     if (error instanceof z.ZodError) {

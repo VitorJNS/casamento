@@ -1,4 +1,5 @@
 import { formatPriceCents } from "@/lib/currency";
+import { toIsoString, toIsoStringOrNull } from "@/lib/date";
 
 type OrderStatusValue =
   | "draft"
@@ -31,6 +32,8 @@ type OrderWithItems = {
     lineTotalCents: number;
   }>;
 };
+
+export const ORDERS_TAG = "orders";
 
 export function createPublicOrderId() {
   return `ord_${crypto.randomUUID().replace(/-/g, "").slice(0, 18)}`;
@@ -69,9 +72,9 @@ export function serializeOrder(order: OrderWithItems) {
     paidLabel: formatPriceCents(order.paidCents),
     paymentMethod: order.paymentMethod,
     receiptUrl: order.receiptUrl,
-    paidAt: order.paidAt?.toISOString() ?? null,
-    createdAt: order.createdAt.toISOString(),
-    updatedAt: order.updatedAt.toISOString(),
+    paidAt: toIsoStringOrNull(order.paidAt),
+    createdAt: toIsoString(order.createdAt),
+    updatedAt: toIsoString(order.updatedAt),
     items: order.items.map((item) => ({
       id: item.id,
       giftId: item.giftItemId,

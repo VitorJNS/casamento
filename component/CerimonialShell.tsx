@@ -37,14 +37,14 @@ export function CerimonialShell({
     <main className="relative z-10 min-h-screen bg-[linear-gradient(180deg,rgba(255,255,255,0.35),rgba(255,255,255,0.82))] text-zinc-950">
       <div className="xl:grid xl:min-h-screen xl:grid-cols-[290px_minmax(0,1fr)] xl:items-start">
         <aside className="border-b border-zinc-200/80 bg-white/88 px-5 py-6 backdrop-blur xl:sticky xl:top-0 xl:h-screen xl:self-start xl:overflow-y-auto xl:border-b-0 xl:border-r xl:px-6 xl:py-7">
-          <div className="flex justify-center xl:justify-start">
-            <div className="flex h-28 w-28 items-center justify-center rounded-full bg-[rgb(var(--paper))] shadow-[0_18px_50px_rgba(24,24,27,0.08)]">
+          <div className="flex justify-center ">
+            <div className="flex h-28 w-28 items-center justify-center rounded-full ">
               <Image
-                src="/brand/monograma1.png"
+                src="/brand/monograma.png"
                 alt="Monograma do casamento"
-                width={88}
-                height={88}
-                className="h-20 w-20 object-contain"
+                width={100}
+                height={100}
+                className="h-40 w-40 object-contain"
                 priority
               />
             </div>
@@ -72,7 +72,12 @@ export function CerimonialShell({
 
               if (item.href) {
                 return (
-                  <Link key={item.label} href={item.href} className={className}>
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    prefetch={false}
+                    className={className}
+                  >
                     {content}
                   </Link>
                 );

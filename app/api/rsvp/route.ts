@@ -1,8 +1,10 @@
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { PRESENCE_TAG } from "@/lib/presence-dashboard";
 import { getPrisma } from "@/lib/prisma";
-import { ensureRsvpTable, normalizeWhatsapp } from "@/lib/rsvp-store";
+import { ensureRsvpTable, normalizeWhatsapp, RSVP_TAG } from "@/lib/rsvp-store";
 
 export const runtime = "nodejs";
 
@@ -72,6 +74,8 @@ export async function POST(request: Request) {
       payload.note ?? null,
     );
 
+    revalidateTag(RSVP_TAG, "max");
+    revalidateTag(PRESENCE_TAG, "max");
     return NextResponse.json({
       success: true,
       id,

@@ -1,10 +1,13 @@
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { isAdminAuthenticated } from "@/lib/admin-auth";
+import { toIsoString, toIsoStringOrNull } from "@/lib/date";
 import { getPrisma } from "@/lib/prisma";
 import {
   ensureSuppliersTable,
+  SUPPLIERS_TAG,
   type SupplierEntryRow,
 } from "@/lib/suppliers-store";
 
@@ -48,11 +51,11 @@ function mapSupplier(row: SupplierEntryRow) {
     email: row.email,
     contractValueCents: row.contract_value_cents,
     amountPaidCents: row.amount_paid_cents,
-    nextPaymentDue: row.next_payment_due?.toISOString() ?? null,
+    nextPaymentDue: toIsoStringOrNull(row.next_payment_due),
     note: row.note,
     isActive: row.is_active,
-    createdAt: row.created_at.toISOString(),
-    updatedAt: row.updated_at.toISOString(),
+    createdAt: toIsoString(row.created_at),
+    updatedAt: toIsoString(row.updated_at),
   };
 }
 
@@ -137,6 +140,7 @@ export async function POST(request: Request) {
       id,
     );
 
+    revalidateTag(SUPPLIERS_TAG, "max");
     return NextResponse.json({ supplier: mapSupplier(created) });
   } catch (error) {
     if (error instanceof z.ZodError) {

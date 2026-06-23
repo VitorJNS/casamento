@@ -1,5 +1,7 @@
+import { unstable_cache } from "next/cache";
+
 import { getPrisma } from "@/lib/prisma";
-import { ensurePresenceTables } from "@/lib/rsvp-store";
+import { ensurePresenceTables, GUEST_LIST_TAG, RSVP_TAG } from "@/lib/rsvp-store";
 
 type PresenceRow = {
   guest_id: string;
@@ -37,6 +39,8 @@ export type PresenceGuest = {
   sourceKind: "guest-list" | "rsvp-only";
 };
 
+export const PRESENCE_TAG = "presence-dashboard";
+
 function normalizeCompanionNames(value: unknown) {
   if (!Array.isArray(value)) return [];
   return value.filter((item): item is string => typeof item === "string");
@@ -49,6 +53,11 @@ function getPresenceStatus(attendance: string | null): PresenceStatus {
 }
 
 export async function getPresenceDashboardData() {
+  return getPresenceDashboardDataCached();
+}
+
+const getPresenceDashboardDataCached = unstable_cache(
+  async () => {
   await ensurePresenceTables();
   const prisma = getPrisma();
 
@@ -174,4 +183,7 @@ export async function getPresenceDashboardData() {
     },
     guests,
   };
-}
+  },
+  ["presence-dashboard"],
+  { revalidate: 15, tags: [PRESENCE_TAG, RSVP_TAG, GUEST_LIST_TAG] },
+);

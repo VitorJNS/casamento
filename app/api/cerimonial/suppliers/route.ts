@@ -86,95 +86,17 @@ export async function GET() {
   return NextResponse.json({ suppliers: suppliers.map(mapSupplier) });
 }
 
-export async function POST(request: Request) {
+export async function POST(_request: Request) {
   const authError = await requireCerimonialApiAuth();
   if (authError) return authError;
 
-  try {
-    const payload = supplierSchema.parse(await request.json());
-    await ensureSuppliersTable();
-    const prisma = getPrisma();
-    const id = `supplier_${crypto.randomUUID().replace(/-/g, "")}`;
-
-    await prisma.$executeRawUnsafe(
-      `
-        INSERT INTO cerimonial_suppliers (
-          id,
-          supplier_name,
-          category,
-          supplier_status,
-          contact_name,
-          phone,
-          email,
-          contract_value_cents,
-          amount_paid_cents,
-          next_payment_due,
-          note,
-          updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::date, $11, CURRENT_TIMESTAMP)
-      `,
-      id,
-      payload.supplierName,
-      payload.category,
-      payload.supplierStatus,
-      payload.contactName || null,
-      payload.phone,
-      payload.email || null,
-      payload.contractValueCents ?? null,
-      payload.amountPaidCents,
-      payload.nextPaymentDue || null,
-      payload.note || null,
-    );
-
-    const [created] = await prisma.$queryRawUnsafe<SupplierEntryRow[]>(
-      `
-        SELECT
-          id,
-          supplier_name,
-          category,
-          supplier_status,
-          contact_name,
-          phone,
-          email,
-          contract_value_cents,
-          amount_paid_cents,
-          next_payment_due,
-          note,
-          is_active,
-          created_at,
-          updated_at
-        FROM cerimonial_suppliers
-        WHERE id = $1
-      `,
-      id,
-    );
-
-    return NextResponse.json({ supplier: mapSupplier(created) });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        {
-          error: {
-            code: "INVALID_SUPPLIER",
-            message: getFirstZodMessage(error),
-            details: error.flatten(),
-          },
-        },
-        { status: 400 },
-      );
-    }
-
-    return NextResponse.json(
-      {
-        error: {
-          code: "CREATE_SUPPLIER_FAILED",
-          message:
-            error instanceof Error
-              ? error.message
-              : "Nao foi possivel cadastrar o fornecedor.",
-        },
+  return NextResponse.json(
+    {
+      error: {
+        code: "FORBIDDEN",
+        message: "O cadastro de fornecedores deve ser feito na area dos noivos.",
       },
-      { status: 500 },
-    );
-  }
+    },
+    { status: 403 },
+  );
 }

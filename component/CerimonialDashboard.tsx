@@ -99,89 +99,128 @@ function MetricCard({
 }
 
 function GuestCard({ guest }: { guest: PresenceGuest }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const whatsappMessage =
+    "Ola, tudo bem? Meu nome e Karine, eu sou a Cerimonialista responsavel pelo casamento dos noivos Yasmim e Vitor. Estou entrando em contato para saber se ja confirmaram presenca no evento.";
+  const whatsappHref = `https://wa.me/${guest.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(whatsappMessage)}`;
+
   return (
-    <article className="rounded-[28px] border border-zinc-200 bg-white p-6 shadow-[0_20px_60px_rgba(24,24,27,0.06)]">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h3 className="truncate text-[1.9rem] font-semibold leading-none text-zinc-950">
+    <article className="rounded-[24px] border border-zinc-200 bg-white p-5 shadow-[0_20px_60px_rgba(24,24,27,0.06)]">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <h3 className="truncate text-[1.65rem] font-semibold leading-none text-zinc-950">
             {guest.guestName}
           </h3>
-          <p className="mt-2 break-all text-lg text-zinc-700">{guest.whatsapp}</p>
         </div>
-
-        <span
-          className={`rounded-full border px-4 py-1.5 text-sm font-medium uppercase tracking-[0.08em] ${getStatusClasses(guest.status)}`}
-        >
-          {formatStatus(guest.status)}
-        </span>
+        <div className="flex items-center gap-2">
+          <a
+            href={whatsappHref}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 bg-white text-[rgb(var(--olive))] transition hover:bg-zinc-50"
+            aria-label={`Abrir WhatsApp de ${guest.guestName}`}
+          >
+            <WhatsAppIcon className="h-4 w-4" />
+          </a>
+          <button
+            type="button"
+            onClick={() => setIsExpanded((current) => !current)}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-600 transition hover:bg-zinc-50"
+            aria-label={isExpanded ? "Ocultar detalhes" : "Mostrar detalhes"}
+          >
+            <ChevronIcon
+              className={`h-5 w-5 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+            />
+          </button>
+        </div>
       </div>
 
-      <div className="mt-5 grid gap-4 sm:grid-cols-2">
-        <InfoBox label="Status" value={formatStatus(guest.status)} />
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <InfoBox
           label="Total"
           value={formatPeopleLabel(guest.countableGuestCount, "pessoa", "pessoas")}
         />
-      </div>
-
-      <div className="mt-4">
         <InfoBox
           label="Criancas"
           value={guest.guestCount !== null ? String(guest.childCount) : "Sem resposta"}
         />
+        <InfoBox label="Status" value={formatStatus(guest.status)} tone={guest.status} />
       </div>
 
-      <div className="mt-6 space-y-5">
-        <DetailRow
-          label="Resposta"
-          value={
-            guest.respondedAt
-              ? new Date(guest.respondedAt).toLocaleString("pt-BR")
-              : "Ainda nao respondeu"
-          }
-        />
-        <DetailRow label="Email" value={guest.email || "Nao informado"} breakAll />
+      {isExpanded ? (
+        <div className="mt-4 border-t border-zinc-100 pt-4">
+          <p className="break-all text-sm text-zinc-600">{guest.whatsapp}</p>
 
-        {guest.companionNames.length > 0 ? (
-          <div>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <DetailRow
+              label="Resposta"
+              value={
+                guest.respondedAt
+                  ? new Date(guest.respondedAt).toLocaleString("pt-BR")
+                  : "Ainda nao respondeu"
+              }
+            />
+            <DetailRow label="Email" value={guest.email || "Nao informado"} breakAll />
+          </div>
+
+          <div className="mt-4">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
               Acompanhantes
             </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {guest.companionNames.map((name) => (
-                <span
-                  key={`${guest.id}-${name}`}
-                  className="rounded-full border border-zinc-200 bg-zinc-100 px-3 py-1.5 text-sm text-zinc-700"
-                >
-                  {name}
-                </span>
-              ))}
+            <div className="mt-2 flex flex-wrap gap-2">
+              {guest.companionNames.length > 0 ? (
+                guest.companionNames.map((name) => (
+                  <span
+                    key={`${guest.id}-${name}`}
+                    className="rounded-full border border-zinc-200 bg-zinc-100 px-3 py-1 text-xs text-zinc-700"
+                  >
+                    {name}
+                  </span>
+                ))
+              ) : (
+                <span className="text-sm text-zinc-500">Nenhum acompanhante.</span>
+              )}
             </div>
           </div>
-        ) : null}
 
-        {guest.responseNote || guest.note ? (
-          <div>
+          <div className="mt-4">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
               Observacao
             </p>
-            <p className="mt-2 rounded-[22px] bg-zinc-50 px-4 py-4 text-sm leading-7 text-zinc-700">
-              {guest.responseNote || guest.note}
+            <p className="mt-2 rounded-[18px] bg-zinc-50 px-4 py-3 text-sm leading-6 text-zinc-700">
+              {guest.responseNote || guest.note || "Sem observacoes registradas."}
             </p>
           </div>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
     </article>
   );
 }
 
-function InfoBox({ label, value }: { label: string; value: string }) {
+function InfoBox({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone?: PresenceStatus;
+}) {
+  const valueClassName =
+    tone === "confirmed"
+      ? "text-emerald-700"
+      : tone === "declined"
+        ? "text-rose-600"
+        : tone === "pending"
+          ? "text-amber-700"
+          : "text-zinc-950";
+
   return (
-    <div className="rounded-[20px] bg-zinc-100 px-4 py-4">
+    <div className="rounded-[18px] bg-zinc-100 px-4 py-3">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
         {label}
       </p>
-      <p className="mt-2 text-[1.05rem] font-semibold text-zinc-950">{value}</p>
+      <p className={`mt-1.5 text-base font-semibold ${valueClassName}`}>{value}</p>
     </div>
   );
 }
@@ -200,7 +239,7 @@ function DetailRow({
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
         {label}
       </p>
-      <p className={`mt-2 text-sm leading-7 text-zinc-700 ${breakAll ? "break-all" : ""}`}>
+      <p className={`mt-1.5 text-sm leading-6 text-zinc-700 ${breakAll ? "break-all" : ""}`}>
         {value}
       </p>
     </div>
@@ -419,6 +458,23 @@ function CheckCircleIcon({ className }: { className?: string }) {
     <SvgIcon className={className}>
       <circle cx="12" cy="12" r="9" />
       <path d="m9 12 2 2 4-4" />
+    </SvgIcon>
+  );
+}
+
+function WhatsAppIcon({ className }: { className?: string }) {
+  return (
+    <SvgIcon className={className}>
+      <path d="M20 11.5A8.5 8.5 0 0 1 7.4 19l-3.4 1 1.08-3.2A8.5 8.5 0 1 1 20 11.5Z" />
+      <path d="M9.2 8.8c.2-.45.42-.46.61-.47h.52c.16 0 .42.06.64.53.21.48.73 1.67.79 1.79.07.12.11.26.02.42-.08.16-.13.26-.26.4-.12.14-.26.31-.36.42-.12.12-.24.25-.1.49.14.23.62 1.03 1.34 1.67.92.82 1.69 1.08 1.93 1.2.24.11.38.09.52-.07.14-.16.58-.67.73-.9.15-.23.31-.19.52-.11.21.07 1.35.64 1.58.76.23.11.38.17.43.27.05.09.05.56-.13 1.11-.17.55-1 1.07-1.38 1.13-.35.06-.8.09-1.29-.07-.3-.1-.68-.22-1.18-.43-.95-.41-1.98-1.35-2.72-2.27-.74-.92-1.3-2.05-1.45-2.28-.15-.23-.63-.84-.63-1.6 0-.76.4-1.13.54-1.29Z" />
+    </SvgIcon>
+  );
+}
+
+function ChevronIcon({ className }: { className?: string }) {
+  return (
+    <SvgIcon className={className}>
+      <path d="m6 9 6 6 6-6" />
     </SvgIcon>
   );
 }

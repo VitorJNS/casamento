@@ -1,5 +1,6 @@
 import { unstable_cache } from "next/cache";
 
+import { shouldRunRuntimeDbSetup } from "@/lib/env";
 import { getPrisma } from "@/lib/prisma";
 
 export type SupplierEntryRow = {
@@ -26,6 +27,10 @@ const globalForSupplierSetup = globalThis as typeof globalThis & {
 export const SUPPLIERS_TAG = "suppliers";
 
 export async function ensureSuppliersTable() {
+  if (!shouldRunRuntimeDbSetup()) {
+    return;
+  }
+
   if (globalForSupplierSetup.ensureSuppliersTablePromise) {
     return globalForSupplierSetup.ensureSuppliersTablePromise;
   }

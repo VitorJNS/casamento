@@ -1,5 +1,6 @@
 import { unstable_cache } from "next/cache";
 
+import { shouldRunRuntimeDbSetup } from "@/lib/env";
 import { getPrisma } from "@/lib/prisma";
 
 export type RsvpConfirmationRow = {
@@ -42,6 +43,10 @@ export const RSVP_TAG = "rsvp";
 export const GUEST_LIST_TAG = "guest-list";
 
 export async function ensureRsvpTable() {
+  if (!shouldRunRuntimeDbSetup()) {
+    return;
+  }
+
   if (globalForPresenceSetup.ensureRsvpTablePromise) {
     return globalForPresenceSetup.ensureRsvpTablePromise;
   }
@@ -97,6 +102,10 @@ export async function ensureRsvpTable() {
 }
 
 export async function ensureGuestListTable() {
+  if (!shouldRunRuntimeDbSetup()) {
+    return;
+  }
+
   if (globalForPresenceSetup.ensureGuestListTablePromise) {
     return globalForPresenceSetup.ensureGuestListTablePromise;
   }
@@ -127,6 +136,10 @@ export async function ensureGuestListTable() {
 }
 
 export async function ensurePresenceTables() {
+  if (!shouldRunRuntimeDbSetup()) {
+    return;
+  }
+
   if (globalForPresenceSetup.ensurePresenceTablesPromise) {
     return globalForPresenceSetup.ensurePresenceTablesPromise;
   }

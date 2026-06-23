@@ -28,6 +28,7 @@ Create your local env file with values like:
 
 ```env
 DATABASE_URL="postgresql://USER:PASSWORD@HOST/DB?sslmode=require"
+ENABLE_RUNTIME_DB_SETUP="true"
 INFINITEPAY_HANDLE="sua_infinite_tag"
 INFINITEPAY_API_BASE_URL="https://api.checkout.infinitepay.io"
 INFINITEPAY_WEBHOOK_SECRET="token-opcional-para-proteger-o-webhook"
@@ -41,6 +42,7 @@ CERIMONIAL_SESSION_SECRET="um-segredo-longo-para-cookie-da-cerimonial"
 Notes:
 
 - `DATABASE_URL`: Neon Postgres connection string
+- `ENABLE_RUNTIME_DB_SETUP`: optional; when `true`, runs automatic `CREATE/ALTER TABLE` safety setup during requests. Leave unset or `false` in production on Vercel for better performance after the tables already exist.
 - `INFINITEPAY_HANDLE`: your InfinitePay handle/tag
 - `INFINITEPAY_API_BASE_URL`: keep `https://api.checkout.infinitepay.io`
 - `INFINITEPAY_WEBHOOK_SECRET`: optional protection token checked by the webhook route

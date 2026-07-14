@@ -7,6 +7,7 @@ import { toIsoString } from "@/lib/date";
 import { getPrisma } from "@/lib/prisma";
 import {
   ensureGuestListTable,
+  getGuestListColumnAvailability,
   GUEST_LIST_TAG,
   listGuestListEntries,
   normalizeWhatsapp,
@@ -20,6 +21,10 @@ export const runtime = "nodejs";
 const guestSchema = z.object({
   guestName: z.string().trim().min(2).max(140),
   whatsapp: z.string().trim().min(8).max(40),
+  secondaryWhatsapp: z.string().trim().min(8).max(40).optional().or(z.literal("")),
+  email: z.string().trim().email().max(160).optional().or(z.literal("")),
+  adultNames: z.array(z.string().trim().min(2).max(140)).min(1).max(10).default([]),
+  childCount: z.number().int().min(0).max(12).default(0),
   note: z.string().trim().max(600).optional(),
 });
 
@@ -28,6 +33,12 @@ function mapGuestEntry(row: GuestListEntryRow) {
     id: row.id,
     guestName: row.guest_name,
     whatsapp: row.whatsapp,
+    secondaryWhatsapp: row.secondary_whatsapp,
+    email: row.email,
+    adultNames: Array.isArray(row.adult_names)
+      ? row.adult_names.filter((item): item is string => typeof item === "string")
+      : [],
+    childCount: row.child_count,
     note: row.note,
     isActive: row.is_active,
     createdAt: toIsoString(row.created_at),
@@ -68,25 +79,62 @@ export async function POST(request: Request) {
   try {
     const payload = guestSchema.parse(await request.json());
     await ensureGuestListTable();
+    const columns = await getGuestListColumnAvailability();
     const prisma = getPrisma();
     const id = `guest_${crypto.randomUUID().replace(/-/g, "")}`;
+
+    const insertColumns: string[] = [];
+    const insertValues: unknown[] = [];
+
+    const pushValue = (column: string, value: unknown, options?: { jsonb?: boolean }) => {
+      insertColumns.push(column);
+      const parameterIndex = insertValues.push(value);
+      return options?.jsonb ? `$${parameterIndex}::jsonb` : `$${parameterIndex}`;
+    };
+
+    const placeholders = [
+      pushValue("id", id),
+      pushValue("guest_name", payload.guestName),
+      pushValue("whatsapp", payload.whatsapp),
+      pushValue("whatsapp_normalized", normalizeWhatsapp(payload.whatsapp)),
+    ];
+
+    if (columns.secondaryWhatsapp) {
+      placeholders.push(pushValue("secondary_whatsapp", payload.secondaryWhatsapp || null));
+    }
+
+    if (columns.secondaryWhatsappNormalized) {
+      placeholders.push(
+        pushValue(
+          "secondary_whatsapp_normalized",
+          payload.secondaryWhatsapp ? normalizeWhatsapp(payload.secondaryWhatsapp) : null,
+        ),
+      );
+    }
+
+    if (columns.email) {
+      placeholders.push(pushValue("email", payload.email || null));
+    }
+
+    if (columns.adultNames) {
+      placeholders.push(pushValue("adult_names", JSON.stringify(payload.adultNames), { jsonb: true }));
+    }
+
+    if (columns.childCount) {
+      placeholders.push(pushValue("child_count", payload.childCount));
+    }
+
+    placeholders.push(pushValue("note", payload.note ?? null));
+    insertColumns.push("updated_at");
+    placeholders.push("CURRENT_TIMESTAMP");
 
     await prisma.$executeRawUnsafe(
       `
         INSERT INTO guest_list_entries (
-          id,
-          guest_name,
-          whatsapp,
-          whatsapp_normalized,
-          note,
-          updated_at
-        ) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
+          ${insertColumns.join(", ")}
+        ) VALUES (${placeholders.join(", ")})
       `,
-      id,
-      payload.guestName,
-      payload.whatsapp,
-      normalizeWhatsapp(payload.whatsapp),
-      payload.note ?? null,
+      ...insertValues,
     );
 
     const [created] = await prisma.$queryRawUnsafe<GuestListEntryRow[]>(
@@ -96,7 +144,17 @@ export async function POST(request: Request) {
           guest_name,
           whatsapp,
           whatsapp_normalized,
+          ${columns.secondaryWhatsapp ? "secondary_whatsapp" : "NULL AS secondary_whatsapp"},
+          ${
+            columns.secondaryWhatsappNormalized
+              ? "secondary_whatsapp_normalized"
+              : "NULL AS secondary_whatsapp_normalized"
+          },
+          ${columns.email ? "email" : "NULL AS email"},
+          ${columns.adultNames ? "adult_names" : "'[]'::jsonb AS adult_names"},
+          ${columns.childCount ? "child_count" : "0 AS child_count"},
           note,
+          ${columns.companionNames ? "companion_names" : "'[]'::jsonb AS companion_names"},
           is_active,
           created_at,
           updated_at

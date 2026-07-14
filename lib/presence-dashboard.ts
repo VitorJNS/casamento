@@ -1,14 +1,21 @@
 import { unstable_cache } from "next/cache";
 
 import { getPrisma } from "@/lib/prisma";
-import { ensurePresenceTables, GUEST_LIST_TAG, RSVP_TAG } from "@/lib/rsvp-store";
+import {
+  ensurePresenceTables,
+  getGuestListColumnAvailability,
+  GUEST_LIST_TAG,
+  RSVP_TAG,
+} from "@/lib/rsvp-store";
 
 type PresenceRow = {
   guest_id: string;
   guest_name: string;
   guest_whatsapp: string;
+  guest_secondary_whatsapp: string | null;
   guest_whatsapp_normalized: string;
   guest_note: string | null;
+  guest_adult_names: unknown;
   rsvp_id: string | null;
   response_email: string | null;
   attendance: string | null;
@@ -25,8 +32,10 @@ export type PresenceGuest = {
   id: string;
   guestName: string;
   whatsapp: string;
+  secondaryWhatsapp: string | null;
   whatsappNormalized: string;
   note: string | null;
+  adultNames: string[];
   status: PresenceStatus;
   rsvpId: string | null;
   email: string | null;
@@ -60,6 +69,7 @@ const getPresenceDashboardDataCached = unstable_cache(
   async () => {
   await ensurePresenceTables();
   const prisma = getPrisma();
+  const guestListColumns = await getGuestListColumnAvailability();
 
   const rows = await prisma.$queryRawUnsafe<PresenceRow[]>(`
     WITH latest_rsvps AS (
@@ -84,8 +94,14 @@ const getPresenceDashboardDataCached = unstable_cache(
         guest.id AS guest_id,
         guest.guest_name,
         guest.whatsapp AS guest_whatsapp,
+        ${
+          guestListColumns.secondaryWhatsapp
+            ? "guest.secondary_whatsapp"
+            : "NULL"
+        } AS guest_secondary_whatsapp,
         guest.whatsapp_normalized AS guest_whatsapp_normalized,
         guest.note AS guest_note,
+        ${guestListColumns.adultNames ? "guest.adult_names" : "'[]'::jsonb"} AS guest_adult_names,
         latest.id AS rsvp_id,
         latest.email AS response_email,
         latest.attendance,
@@ -96,8 +112,18 @@ const getPresenceDashboardDataCached = unstable_cache(
         latest.created_at AS response_created_at,
         'guest-list' AS source_kind
       FROM guest_list_entries guest
-      LEFT JOIN latest_rsvps latest
-        ON latest.whatsapp_normalized = guest.whatsapp_normalized
+      LEFT JOIN LATERAL (
+        SELECT *
+        FROM latest_rsvps latest
+        WHERE latest.whatsapp_normalized = guest.whatsapp_normalized
+          ${
+            guestListColumns.secondaryWhatsappNormalized
+              ? "OR latest.whatsapp_normalized = guest.secondary_whatsapp_normalized"
+              : ""
+          }
+        ORDER BY latest.created_at DESC
+        LIMIT 1
+      ) latest ON TRUE
       WHERE guest.is_active = TRUE
 
       UNION ALL
@@ -106,8 +132,10 @@ const getPresenceDashboardDataCached = unstable_cache(
         latest.id AS guest_id,
         latest.guest_name,
         latest.whatsapp AS guest_whatsapp,
+        NULL AS guest_secondary_whatsapp,
         latest.whatsapp_normalized AS guest_whatsapp_normalized,
         NULL AS guest_note,
+        latest.companion_names AS guest_adult_names,
         latest.id AS rsvp_id,
         latest.email AS response_email,
         latest.attendance,
@@ -119,7 +147,14 @@ const getPresenceDashboardDataCached = unstable_cache(
         'rsvp-only' AS source_kind
       FROM latest_rsvps latest
       LEFT JOIN guest_list_entries guest
-        ON guest.whatsapp_normalized = latest.whatsapp_normalized
+        ON (
+          guest.whatsapp_normalized = latest.whatsapp_normalized
+          ${
+            guestListColumns.secondaryWhatsappNormalized
+              ? "OR guest.secondary_whatsapp_normalized = latest.whatsapp_normalized"
+              : ""
+          }
+        )
         AND guest.is_active = TRUE
       WHERE guest.id IS NULL
     )
@@ -140,8 +175,10 @@ const getPresenceDashboardDataCached = unstable_cache(
       id: row.guest_id,
       guestName: row.guest_name,
       whatsapp: row.guest_whatsapp,
+      secondaryWhatsapp: row.guest_secondary_whatsapp,
       whatsappNormalized: row.guest_whatsapp_normalized,
       note: row.guest_note,
+      adultNames: normalizeCompanionNames(row.guest_adult_names),
       status,
       rsvpId: row.rsvp_id,
       email: row.response_email,
@@ -168,18 +205,28 @@ const getPresenceDashboardDataCached = unstable_cache(
     (sum, guest) => sum + (guest.countableGuestCount ?? 0),
     0,
   );
-  const declinedChildren = declined.reduce((sum, guest) => sum + guest.childCount, 0);
+  const pendingCountableGuests = pending.reduce(
+    (sum, guest) => sum + (guest.countableGuestCount ?? 0),
+    0,
+  );
+  const pendingChildren = pending.reduce((sum, guest) => sum + guest.childCount, 0);
+  const totalRegisteredGuests = guests.filter((guest) => guest.sourceKind === "guest-list").length;
+  const pendingRegisteredGuests = pending.filter(
+    (guest) => guest.sourceKind === "guest-list",
+  ).length;
+  const hasRegisteredGuestList = totalRegisteredGuests > 0;
 
   return {
     summary: {
-      totalGuests: guests.length,
+      totalGuests: hasRegisteredGuestList ? totalRegisteredGuests : guests.length,
       confirmedGuests: confirmed.length,
       declinedGuests: declined.length,
-      pendingGuests: pending.length,
+      pendingGuests: hasRegisteredGuestList ? pendingRegisteredGuests : 0,
       confirmedCountableGuests,
       confirmedChildren,
       declinedCountableGuests,
-      declinedChildren,
+      pendingCountableGuests,
+      pendingChildren,
     },
     guests,
   };

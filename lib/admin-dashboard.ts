@@ -29,6 +29,11 @@ function normalizeCompanionNames(value: unknown) {
   return value.filter((item): item is string => typeof item === "string");
 }
 
+function getBaseGuestCount(adultNames: string[], childCount: number) {
+  const adultCount = adultNames.length > 0 ? adultNames.length : 1;
+  return adultCount + childCount;
+}
+
 export async function getAdminDashboardData() {
   const prisma = getPrisma();
   await ensureRsvpTable();
@@ -143,19 +148,25 @@ export async function getAdminDashboardData() {
     guestPresence: presenceData,
     guestList: guestListEntries.map((guest) => {
       const presence = presenceByWhatsapp.get(normalizeWhatsapp(guest.whatsapp));
+      const baseAdultNames = normalizeCompanionNames(guest.adult_names);
+      const baseChildCount = guest.child_count;
+      const baseGuestCount = getBaseGuestCount(baseAdultNames, baseChildCount);
 
       return {
         id: guest.id,
         guestName: guest.guest_name,
         whatsapp: guest.whatsapp,
+        secondaryWhatsapp: guest.secondary_whatsapp,
         note: guest.note,
         status: presence?.status ?? "pending",
         rsvpId: presence?.rsvpId ?? null,
-        email: presence?.email ?? null,
-        guestCount: presence?.guestCount ?? null,
-        childCount: presence?.childCount ?? 0,
-        countableGuestCount: presence?.countableGuestCount ?? null,
+        email: presence?.email ?? guest.email ?? null,
+        guestCount: presence?.guestCount ?? baseGuestCount,
+        childCount: presence?.childCount ?? baseChildCount,
+        countableGuestCount:
+          presence?.countableGuestCount ?? Math.max(baseGuestCount - baseChildCount, 0),
         companionNames: presence?.companionNames ?? [],
+        adultNames: presence?.adultNames ?? baseAdultNames,
         responseNote: presence?.responseNote ?? null,
         respondedAt: presence?.respondedAt ?? null,
         sourceKind: "guest-list" as const,
@@ -238,19 +249,25 @@ export async function getAdminGuestsData() {
     guestPresence: presenceData,
     guestList: guestListEntries.map((guest) => {
       const presence = presenceByWhatsapp.get(normalizeWhatsapp(guest.whatsapp));
+      const baseAdultNames = normalizeCompanionNames(guest.adult_names);
+      const baseChildCount = guest.child_count;
+      const baseGuestCount = getBaseGuestCount(baseAdultNames, baseChildCount);
 
       return {
         id: guest.id,
         guestName: guest.guest_name,
         whatsapp: guest.whatsapp,
+        secondaryWhatsapp: guest.secondary_whatsapp,
         note: guest.note,
         status: presence?.status ?? "pending",
         rsvpId: presence?.rsvpId ?? null,
-        email: presence?.email ?? null,
-        guestCount: presence?.guestCount ?? null,
-        childCount: presence?.childCount ?? 0,
-        countableGuestCount: presence?.countableGuestCount ?? null,
+        email: presence?.email ?? guest.email ?? null,
+        guestCount: presence?.guestCount ?? baseGuestCount,
+        childCount: presence?.childCount ?? baseChildCount,
+        countableGuestCount:
+          presence?.countableGuestCount ?? Math.max(baseGuestCount - baseChildCount, 0),
         companionNames: presence?.companionNames ?? [],
+        adultNames: presence?.adultNames ?? baseAdultNames,
         responseNote: presence?.responseNote ?? null,
         respondedAt: presence?.respondedAt ?? null,
         sourceKind: "guest-list" as const,

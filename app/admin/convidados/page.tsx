@@ -25,14 +25,14 @@ export default async function AdminGuestsPage() {
           Lista de Convidados
         </h1>
         <p className="mt-2 max-w-3xl text-xl text-zinc-700">
-          Acompanhem as respostas do RSVP e mantenham a lista-base de convidados sempre atualizada.
+          Cadastrem os grupos convidados e acompanhem as respostas enviadas pelo formulario de confirmacao de presenca.
         </p>
       </div>
 
       <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard
-          label="RSVPs confirmados"
-          value={String(data.summary.confirmedRsvps)}
+          label="Pessoas confirmadas"
+          value={String(data.summary.confirmedGuests + data.summary.confirmedChildren)}
           helper={`${data.summary.confirmedGuests} pessoas contaveis${
             data.summary.confirmedChildren > 0
               ? ` + ${data.summary.confirmedChildren} criancas`
@@ -40,23 +40,36 @@ export default async function AdminGuestsPage() {
           }`}
         />
         <MetricCard
-          label="RSVPs recusados"
-          value={String(data.summary.declinedRsvps)}
-          helper={`${data.summary.declinedGuests} pessoas contaveis${
+          label="Pessoas recusadas"
+          value={String(data.summary.declinedGuests)}
+          helper={`${data.summary.declinedRsvps} resposta${
+            data.summary.declinedRsvps === 1 ? "" : "s"
+          } negativa${data.summary.declinedRsvps === 1 ? "" : "s"} registrada${
             data.summary.declinedChildren > 0
-              ? ` + ${data.summary.declinedChildren} criancas`
+              ? `s e ${data.summary.declinedChildren} criancas recusadas`
               : ""
           }`}
         />
         <MetricCard
-          label="Pendentes"
-          value={String(data.guestPresence.summary.pendingGuests)}
-          helper="Convidados que ainda nao responderam."
+          label="Pessoas pendentes"
+          value={String(
+            data.guestPresence.summary.pendingCountableGuests +
+              data.guestPresence.summary.pendingChildren,
+          )}
+          helper={
+            data.guestPresence.summary.pendingGuests > 0
+              ? `${data.guestPresence.summary.pendingCountableGuests} pessoas contaveis${
+                  data.guestPresence.summary.pendingChildren > 0
+                    ? ` + ${data.guestPresence.summary.pendingChildren} criancas`
+                    : ""
+                }`
+              : "Sem lista manual, nao ha como inferir pendentes."
+          }
         />
         <MetricCard
-          label="Total na lista"
-          value={String(data.guestList.length)}
-          helper="Base ativa de convidados."
+          label="Total de respostas"
+          value={String(data.summary.totalRsvps)}
+          helper="Confirmacoes e recusas registradas."
         />
       </div>
 
@@ -115,6 +128,7 @@ export default async function AdminGuestsPage() {
       <div className="mt-6">
         <GuestListManager initialGuests={data.guestList} />
       </div>
+
     </AdminShell>
   );
 }

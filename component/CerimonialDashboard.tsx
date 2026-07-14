@@ -16,7 +16,6 @@ type CerimonialDashboardProps = {
     confirmedCountableGuests: number;
     confirmedChildren: number;
     declinedCountableGuests: number;
-    declinedChildren: number;
   };
 };
 
@@ -49,9 +48,11 @@ function matchesSearch(guest: PresenceGuest, term: string) {
   const haystack = [
     guest.guestName,
     guest.whatsapp,
+    guest.secondaryWhatsapp,
     guest.email,
     guest.note,
     guest.responseNote,
+    ...guest.adultNames,
     ...guest.companionNames,
   ]
     .filter(Boolean)
@@ -150,6 +151,9 @@ function GuestCard({ guest }: { guest: PresenceGuest }) {
       {isExpanded ? (
         <div className="mt-4 border-t border-zinc-100 pt-4">
           <p className="break-all text-sm text-zinc-600">{guest.whatsapp}</p>
+          {guest.secondaryWhatsapp ? (
+            <p className="break-all text-sm text-zinc-500">{guest.secondaryWhatsapp}</p>
+          ) : null}
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <DetailRow
@@ -161,6 +165,26 @@ function GuestCard({ guest }: { guest: PresenceGuest }) {
               }
             />
             <DetailRow label="Email" value={guest.email || "Nao informado"} breakAll />
+          </div>
+
+          <div className="mt-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
+              Adultos do convite
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {guest.adultNames.length > 0 ? (
+                guest.adultNames.map((name) => (
+                  <span
+                    key={`${guest.id}-adult-${name}`}
+                    className="rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs text-zinc-700"
+                  >
+                    {name}
+                  </span>
+                ))
+              ) : (
+                <span className="text-sm text-zinc-500">Adultos nao informados.</span>
+              )}
+            </div>
           </div>
 
           <div className="mt-4">
@@ -308,17 +332,21 @@ export function CerimonialDashboard({ guests, summary }: CerimonialDashboardProp
         <MetricCard label="Total de convidados" value={summary.totalGuests} />
         <MetricCard
           label="Ja confirmaram"
-          value={summary.confirmedGuests}
-          helper={`${summary.confirmedCountableGuests} pessoas contaveis${
-            summary.confirmedChildren > 0 ? ` + ${summary.confirmedChildren} criancas` : ""
-          }`}
+          value={summary.confirmedCountableGuests + summary.confirmedChildren}
+          helper={
+            summary.confirmedChildren > 0
+              ? `${summary.confirmedCountableGuests} pessoas contaveis + ${summary.confirmedChildren} criancas`
+              : `${summary.confirmedCountableGuests} pessoas contaveis`
+          }
         />
         <MetricCard
           label="Nao comparecem"
-          value={summary.declinedGuests}
-          helper={`${summary.declinedCountableGuests} pessoas contaveis${
-            summary.declinedChildren > 0 ? ` + ${summary.declinedChildren} criancas` : ""
-          }`}
+          value={summary.declinedCountableGuests}
+          helper={
+            summary.declinedGuests === 1
+              ? "1 resposta negativa registrada."
+              : `${summary.declinedGuests} respostas negativas registradas.`
+          }
         />
         <MetricCard label="Faltam responder" value={summary.pendingGuests} />
       </div>

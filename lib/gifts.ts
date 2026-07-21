@@ -34,6 +34,7 @@ type GiftRecord = {
 
 const globalForGiftSeed = globalThis as typeof globalThis & {
   ensureGiftCatalogSeededPromise?: Promise<void>;
+  ensureGiftCatalogSeededSignature?: string;
 };
 
 function getStaticGiftSeeds(): StaticGiftSeed[] {
@@ -77,13 +78,29 @@ export async function ensureGiftCatalogSeeded() {
     return;
   }
 
-  if (globalForGiftSeed.ensureGiftCatalogSeededPromise) {
+  const seeds = getStaticGiftSeeds();
+  const seedSignature = JSON.stringify(
+    seeds.map((gift) => [
+      gift.slug,
+      gift.title,
+      gift.description,
+      gift.category,
+      gift.priceCents,
+      gift.imageSrc,
+      gift.displayOrder,
+    ]),
+  );
+
+  if (
+    globalForGiftSeed.ensureGiftCatalogSeededPromise &&
+    globalForGiftSeed.ensureGiftCatalogSeededSignature === seedSignature
+  ) {
     return globalForGiftSeed.ensureGiftCatalogSeededPromise;
   }
 
+  globalForGiftSeed.ensureGiftCatalogSeededSignature = seedSignature;
   globalForGiftSeed.ensureGiftCatalogSeededPromise = (async () => {
     const prisma = getPrisma();
-    const seeds = getStaticGiftSeeds();
     const activeSeedSlugs = seeds.map((gift) => gift.slug);
 
     await prisma.giftItem.updateMany({
@@ -124,7 +141,11 @@ export async function ensureGiftCatalogSeeded() {
         }),
       ),
     );
-  })();
+  })().catch((error) => {
+    globalForGiftSeed.ensureGiftCatalogSeededPromise = undefined;
+    globalForGiftSeed.ensureGiftCatalogSeededSignature = undefined;
+    throw error;
+  });
 
   return globalForGiftSeed.ensureGiftCatalogSeededPromise;
 }

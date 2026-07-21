@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -79,12 +78,12 @@ export function CerimonialLoginForm() {
           {isSubmitting ? "Entrando..." : "Acessar painel"}
         </button>
 
-        <Link
-          href="/#inicio"
+        <a
+          href="/"
           className="inline-flex rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-50 hover:text-zinc-900 max-sm:w-full max-sm:justify-center"
         >
           Voltar para o site
-        </Link>
+        </a>
       </div>
     </form>
   );

@@ -17,7 +17,7 @@ export function Hero({
   heroPhotoAlt = "Foto do casal",
 }: HeroProps) {
   return (
-    <div className="relative flex h-full min-h-[44rem] w-full flex-col justify-start overflow-hidden rounded-3xl border border-zinc-200 bg-white/70 px-8 pb-8 pt-4 text-center shadow-sm backdrop-blur sm:min-h-[50rem] sm:justify-center sm:p-10">
+    <div className="relative flex min-h-[calc(100svh-7.75rem)] w-full flex-col justify-center overflow-hidden rounded-3xl border border-zinc-200 bg-white/70 px-5 py-[clamp(1.25rem,3svh,2.5rem)] text-center shadow-sm backdrop-blur sm:px-8 lg:min-h-[calc(100svh-8.25rem)] lg:px-10">
       <div
         className="pointer-events-none absolute -top-24 left-1/2 h-56 w-56 -translate-x-1/2 rounded-full blur-3xl"
         style={{ backgroundColor: "rgb(var(--lavender) / 0.25)" }}
@@ -25,7 +25,7 @@ export function Hero({
 
       <div className="pointer-events-none absolute inset-2 rounded-3xl border border-white/40" />
 
-      <div className="relative mx-auto mb-8 aspect-[3/4] w-full max-w-[225px] sm:max-w-[297px]">
+      <div className="relative mx-auto mb-[clamp(1rem,2.2svh,2rem)] aspect-[3/4] w-[min(68vw,clamp(11rem,31svh,17.25rem))] lg:w-[clamp(12rem,32svh,18rem)]">
         <Image
           src="/ornaments/topo-decoracao.png"
           alt=""
@@ -82,13 +82,15 @@ export function Hero({
         {dateText}
       </p>
 
-      <h1 className="display-font mt-3 text-4xl font-semibold leading-tight sm:text-6xl">
+      <h1 className="display-font mt-[clamp(0.5rem,1.2svh,1rem)] text-4xl font-semibold leading-tight sm:text-5xl lg:text-6xl">
         {coupleName}
       </h1>
 
-      <p className="mx-auto mt-4 max-w-prose text-zinc-700">{subtitle}</p>
+      {subtitle ? (
+        <p className="mx-auto mt-3 max-w-prose text-zinc-700">{subtitle}</p>
+      ) : null}
 
-      <div className="mt-6 sm:mt-10">
+      <div className="mt-[clamp(1rem,2.4svh,2rem)]">
         <Countdown targetISO="2027-06-20T16:00:00-03:00" />
       </div>
     </div>

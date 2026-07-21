@@ -37,17 +37,17 @@ export function Countdown({ targetISO, label = "Depois de tantos capítulos junt
   const finished = diff === 0;
 
   return (
-    <div className="mt-6">
+    <div>
         {!finished ? (
         <>
             <p
-            className="text-sm tracking-[0.18em] uppercase"
+            className="text-xs tracking-[0.16em] uppercase sm:text-sm sm:tracking-[0.18em]"
             style={{ color: "rgb(var(--olive))" }}
             >
             {label}
             </p>
 
-            <div className="mt-4 grid grid-cols-4 gap-2">
+            <div className="mt-[clamp(0.75rem,1.8svh,1.25rem)] grid grid-cols-4 gap-2">
             <TimeBox value={days} label="Dias" />
             <TimeBox value={hours} label="Horas" />
             <TimeBox value={minutes} label="Min" />
@@ -79,11 +79,11 @@ export function Countdown({ targetISO, label = "Depois de tantos capítulos junt
 
 function TimeBox({ value, label }: { value: string | number; label: string }) {
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white/70 backdrop-blur px-4 py-4 text-center shadow-sm transition hover:-translate-y-0.5">
-      <div className="display-font text-2xl font-semibold leading-none tabular-nums">
+    <div className="rounded-2xl border border-zinc-200 bg-white/70 px-3 py-3 text-center shadow-sm backdrop-blur transition hover:-translate-y-0.5 sm:px-4 sm:py-3.5">
+      <div className="display-font text-xl font-semibold leading-none tabular-nums sm:text-2xl">
         {value}
       </div>
-      <div className="mt-2 text-xs text-zinc-600">{label}</div>
+      <div className="mt-1.5 text-[11px] text-zinc-600 sm:mt-2 sm:text-xs">{label}</div>
     </div>
   );
 }

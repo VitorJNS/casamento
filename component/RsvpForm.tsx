@@ -1,64 +1,126 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 type AttendanceStatus = "confirmed" | "declined";
 
-type FormState = {
+type InviteGuest = {
+  id: string;
   guestName: string;
+  familyLabel: string | null;
+  isChild: boolean;
   whatsapp: string;
-  email: string;
-  attendance: AttendanceStatus;
-  guestCount: string;
-  childCount: string;
-  companionNames: string[];
-  note: string;
+  latestAttendance?: AttendanceStatus | null;
 };
 
-const initialState: FormState = {
+type GuestSelection = {
+  guestId: string;
+  guestName: string;
+  status: AttendanceStatus;
+};
+
+type LookupState = {
+  whatsapp: string;
+  familyLabel: string | null;
+  guests: InviteGuest[];
+};
+
+const initialContactState = {
   guestName: "",
   whatsapp: "",
   email: "",
-  attendance: "confirmed",
-  guestCount: "1",
-  childCount: "0",
-  companionNames: [],
   note: "",
 };
 
 export function RsvpForm() {
-  const [formState, setFormState] = useState<FormState>(initialState);
+  const [contactState, setContactState] = useState(initialContactState);
+  const [lookupState, setLookupState] = useState<LookupState | null>(null);
+  const [guestSelections, setGuestSelections] = useState<GuestSelection[]>([]);
+  const [isLookingUp, setIsLookingUp] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const guestCount = Number(formState.guestCount);
-  const childCount = Number(formState.childCount);
-  const companionSlots =
-    formState.attendance === "confirmed" ? Math.max(guestCount - 1, 0) : 0;
-  const adultCompanionSlots =
-    formState.attendance === "confirmed"
-      ? Math.max(guestCount - childCount - 1, 0)
-      : 0;
+  const answeredCount = useMemo(
+    () => guestSelections.length,
+    [guestSelections],
+  );
 
-  function syncCompanionNames(nextCount: number) {
-    setFormState((current) => {
-      const nextLength =
-        current.attendance === "confirmed" ? Math.max(nextCount - 1, 0) : 0;
-      const nextNames = current.companionNames.slice(0, nextLength);
-      const nextChildCount = Math.min(Number(current.childCount), nextCount);
+  async function handleLookup() {
+    setIsLookingUp(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
 
-      while (nextNames.length < nextLength) {
-        nextNames.push("");
+    try {
+      const response = await fetch(
+        `/api/rsvp?whatsapp=${encodeURIComponent(contactState.whatsapp)}`,
+        {
+          method: "GET",
+          cache: "no-store",
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data?.error?.message ?? "Nao foi possivel localizar convidados com esse WhatsApp.",
+        );
       }
 
-      return {
-        ...current,
-        guestCount: String(nextCount),
-        childCount: String(nextChildCount),
-        companionNames: nextNames,
-      };
-    });
+      const latestResponses =
+        data.latestResponses && typeof data.latestResponses === "object"
+          ? (data.latestResponses as Record<string, AttendanceStatus>)
+          : {};
+      const guests = Array.isArray(data.guests)
+        ? (data.guests as InviteGuest[]).map((guest) => ({
+            ...guest,
+            latestAttendance: latestResponses[guest.id] ?? null,
+          }))
+        : [];
+
+      setLookupState({
+        whatsapp: data.whatsapp,
+        familyLabel: data.familyLabel ?? null,
+        guests,
+      });
+      setGuestSelections(
+        guests.map((guest) => ({
+          guestId: guest.id,
+          guestName: guest.guestName,
+          status: guest.latestAttendance === "declined" ? "declined" : "confirmed",
+        })),
+      );
+    } catch (error) {
+      setLookupState(null);
+      setGuestSelections([]);
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel localizar convidados com esse WhatsApp.",
+      );
+    } finally {
+      setIsLookingUp(false);
+    }
+  }
+
+  function updateSelection(guestId: string, status: AttendanceStatus) {
+    setGuestSelections((current) =>
+      current.map((guest) => (guest.guestId === guestId ? { ...guest, status } : guest)),
+    );
+  }
+
+  function applyStatusToAll(status: AttendanceStatus) {
+    setGuestSelections((current) =>
+      current.map((guest) => {
+        const inviteGuest = lookupState?.guests.find((item) => item.id === guest.guestId);
+        if (inviteGuest?.latestAttendance) {
+          return guest;
+        }
+
+        return { ...guest, status };
+      }),
+    );
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -68,23 +130,29 @@ export function RsvpForm() {
     setSuccessMessage(null);
 
     try {
+      const answeredGuests = guestSelections
+        .filter((guest) => {
+          const inviteGuest = lookupState?.guests.find((item) => item.id === guest.guestId);
+          return !inviteGuest?.latestAttendance;
+        })
+        .map((guest) => ({
+          guestId: guest.guestId,
+          attendance: guest.status,
+        }));
+
+      if (answeredGuests.length === 0) {
+        throw new Error("Todos os nomes deste convite ja possuem resposta registrada.");
+      }
+
       const response = await fetch("/api/rsvp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          guestName: formState.guestName,
-          whatsapp: formState.whatsapp,
-          email: formState.email || undefined,
-          attendance: formState.attendance,
-          guestCount: Number(formState.guestCount),
-          childCount: Number(formState.childCount),
-          companionNames:
-            formState.attendance === "confirmed"
-              ? formState.companionNames
-                  .map((name) => name.trim())
-                  .filter(Boolean)
-              : [],
-          note: formState.note || undefined,
+          guestName: contactState.guestName,
+          whatsapp: contactState.whatsapp,
+          email: contactState.email || undefined,
+          note: contactState.note || undefined,
+          guests: answeredGuests,
         }),
       });
 
@@ -96,12 +164,10 @@ export function RsvpForm() {
         );
       }
 
-      setSuccessMessage(
-        formState.attendance === "confirmed"
-          ? "Presenca confirmada com sucesso. Vamos ficar muito felizes em celebrar com voce."
-          : "Resposta registrada. Obrigado por nos avisar com carinho.",
-      );
-      setFormState(initialState);
+      setSuccessMessage("Resposta registrada com sucesso. Obrigado por confirmar sua presenca.");
+      setContactState(initialContactState);
+      setLookupState(null);
+      setGuestSelections([]);
     } catch (error) {
       setErrorMessage(
         error instanceof Error
@@ -121,18 +187,18 @@ export function RsvpForm() {
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block sm:col-span-2">
           <span className="mb-1.5 block text-sm font-medium text-zinc-700">
-            Nome completo
+            Seu nome
           </span>
           <input
-            value={formState.guestName}
+            value={contactState.guestName}
             onChange={(event) =>
-              setFormState((current) => ({
+              setContactState((current) => ({
                 ...current,
                 guestName: event.target.value,
               }))
             }
             className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28]"
-            placeholder="Seu nome e sobrenome"
+            placeholder="Quem esta respondendo"
           />
         </label>
 
@@ -141,15 +207,15 @@ export function RsvpForm() {
             WhatsApp
           </span>
           <input
-            value={formState.whatsapp}
+            value={contactState.whatsapp}
             onChange={(event) =>
-              setFormState((current) => ({
+              setContactState((current) => ({
                 ...current,
                 whatsapp: event.target.value,
               }))
             }
             className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28]"
-            placeholder="(11) 99999-9999"
+            placeholder="Digite seu WhatsApp para localizar sua familia ou grupo"
           />
         </label>
 
@@ -159,123 +225,139 @@ export function RsvpForm() {
           </span>
           <input
             type="email"
-            value={formState.email}
+            value={contactState.email}
             onChange={(event) =>
-              setFormState((current) => ({
+              setContactState((current) => ({
                 ...current,
                 email: event.target.value,
               }))
             }
             className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28]"
-            placeholder="voce@email.com"
+            placeholder="Opcional"
           />
         </label>
 
-        <label className="block">
-          <span className="mb-1.5 block text-sm font-medium text-zinc-700">
-            Resposta
-          </span>
-          <select
-            value={formState.attendance}
-            onChange={(event) =>
-              setFormState((current) => ({
-                ...current,
-                attendance: event.target.value as AttendanceStatus,
-                companionNames:
-                  event.target.value === "confirmed"
-                    ? current.companionNames
-                    : [],
-              }))
-            }
-            className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28]"
+        <div className="sm:col-span-2">
+          <button
+            type="button"
+            onClick={handleLookup}
+            disabled={isLookingUp || !contactState.whatsapp.trim()}
+            className="rounded-full border border-zinc-300 px-5 py-3 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <option value="confirmed">Sim, estarei presente</option>
-            <option value="declined">Nao poderei comparecer</option>
-          </select>
-        </label>
+            {isLookingUp ? "Buscando convidados..." : "Buscar meus nomes"}
+          </button>
+        </div>
 
-        <label className="block">
-          <span className="mb-1.5 block text-sm font-medium text-zinc-700">
-            Total de pessoas
-          </span>
-          <select
-            value={formState.guestCount}
-            onChange={(event) => syncCompanionNames(Number(event.target.value))}
-            className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28]"
-          >
-            {Array.from({ length: 6 }, (_, index) => (
-              <option key={index + 1} value={String(index + 1)}>
-                {index + 1}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="block">
-          <span className="mb-1.5 block text-sm font-medium text-zinc-700">
-            Crianças até 8 anos
-          </span>
-          <select
-            value={formState.childCount}
-            onChange={(event) =>
-              setFormState((current) => ({
-                ...current,
-                childCount: event.target.value,
-              }))
-            }
-            className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28]"
-          >
-            {Array.from({ length: guestCount + 1 }, (_, index) => (
-              <option key={index} value={String(index)}>
-                {index}
-              </option>
-            ))}
-          </select>
-          <span className="mt-1.5 block text-xs leading-5 text-zinc-500">
-            As crianças já devem estar incluídas no total de pessoas acima.
-          </span>
-        </label>
-
-        {companionSlots > 0 ? (
+        {lookupState ? (
           <div className="sm:col-span-2">
             <div className="rounded-[24px] border border-zinc-200 bg-[rgb(var(--paper))] p-4">
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500">
-                Nomes dos acompanhantes
-              </p>
-              <p className="mt-1 text-sm leading-6 text-zinc-600">
-                Preencha os nomes das outras pessoas que irão com você,
-                incluindo crianças quando houver.
-              </p>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500">
+                    Confirmacao por grupo
+                  </p>
+                  <p className="mt-1 text-sm leading-6 text-zinc-600">
+                    {lookupState.familyLabel
+                      ? `${lookupState.familyLabel}: escolha quem vai comparecer ou quem nao podera ir neste grupo.`
+                      : "Escolha abaixo quem voce deseja confirmar ou recusar neste convite."}
+                  </p>
+                </div>
 
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                {Array.from({ length: companionSlots }, (_, index) => (
-                  <label key={index} className="block">
-                    <span className="mb-1.5 block text-sm font-medium text-zinc-700">
-                      {index < adultCompanionSlots
-                        ? `Acompanhante ${index + 1}`
-                        : `Criança ${index - adultCompanionSlots + 1}`}
-                    </span>
-                    <input
-                      value={formState.companionNames[index] ?? ""}
-                      onChange={(event) =>
-                        setFormState((current) => {
-                          const nextNames = [...current.companionNames];
-                          nextNames[index] = event.target.value;
-                          return {
-                            ...current,
-                            companionNames: nextNames,
-                          };
-                        })
-                      }
-                      className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28]"
-                      placeholder={
-                        index < adultCompanionSlots
-                          ? `Nome do acompanhante ${index + 1}`
-                          : `Nome da criança ${index - adultCompanionSlots + 1}`
-                      }
-                    />
-                  </label>
-                ))}
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => applyStatusToAll("confirmed")}
+                    className="rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700"
+                  >
+                    Todos irao
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => applyStatusToAll("declined")}
+                    className="rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-medium text-rose-700"
+                  >
+                    Ninguem ira
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-3">
+                {lookupState.guests.map((guest) => {
+                  const selection =
+                    guestSelections.find((item) => item.guestId === guest.id)?.status ??
+                    "confirmed";
+                  const isLocked = Boolean(guest.latestAttendance);
+
+                  return (
+                    <div
+                      key={guest.id}
+                      className="rounded-2xl border border-zinc-200 bg-white px-4 py-4"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <p className="text-base font-semibold text-zinc-900">
+                            {guest.guestName}
+                          </p>
+                          <p className="text-sm text-zinc-500">
+                            {guest.isChild ? "Crianca" : "Adulto"}
+                          </p>
+                          {guest.latestAttendance ? (
+                            <p className="mt-1 text-sm text-amber-700">
+                              Ja respondeu: {guest.latestAttendance === "confirmed" ? "Irei" : "Nao irei"}
+                            </p>
+                          ) : null}
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={() => updateSelection(guest.id, "confirmed")}
+                            disabled={isLocked}
+                            className={`rounded-full px-4 py-2 text-sm font-medium ${
+                              selection === "confirmed"
+                                ? "bg-emerald-600 text-white"
+                                : "border border-emerald-200 bg-emerald-50 text-emerald-700"
+                            } disabled:cursor-not-allowed disabled:opacity-50`}
+                          >
+                            Irei
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => updateSelection(guest.id, "declined")}
+                            disabled={isLocked}
+                            className={`rounded-full px-4 py-2 text-sm font-medium ${
+                              selection === "declined"
+                                ? "bg-rose-600 text-white"
+                                : "border border-rose-200 bg-rose-50 text-rose-700"
+                            } disabled:cursor-not-allowed disabled:opacity-50`}
+                          >
+                            Nao irei
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <p className="mt-4 text-sm text-zinc-600">
+                {answeredCount} nome{answeredCount === 1 ? "" : "s"} pronto
+                {answeredCount === 1 ? "" : "s"} para confirmar.
+              </p>
+              {lookupState.guests.some((guest) => guest.latestAttendance) ? (
+                <p className="mt-2 text-sm text-amber-700">
+                  Nomes com resposta anterior ficam bloqueados para evitar confirmacao duplicada.
+                </p>
+              ) : null}
+
+              <div className="mt-5 flex flex-wrap gap-3">
+                <button
+                  type="submit"
+                  disabled={isSubmitting || !lookupState}
+                  className="btn-primary rounded-full px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isSubmitting ? "Enviando confirmacao..." : "Salvar resposta"}
+                </button>
               </div>
             </div>
           </div>
@@ -286,9 +368,9 @@ export function RsvpForm() {
             Recado para os noivos
           </span>
           <textarea
-            value={formState.note}
+            value={contactState.note}
             onChange={(event) =>
-              setFormState((current) => ({
+              setContactState((current) => ({
                 ...current,
                 note: event.target.value,
               }))
@@ -314,11 +396,11 @@ export function RsvpForm() {
 
           <div className="rounded-2xl border border-[rgb(var(--lavender))/0.4] bg-white/90 px-4 py-4 text-sm text-zinc-700">
             <p className="font-semibold text-zinc-900">
-              Se quiser, aproveite para visitar nossa lista de presentes ✨
+              Se quiser, aproveite para visitar nossa lista de presentes.
             </p>
             <p className="mt-1 leading-6">
               Ela foi preparada com muito carinho para quem desejar participar da
-              construção do nosso novo lar.
+              construcao do nosso novo lar.
             </p>
 
             <div className="mt-3">
@@ -332,16 +414,6 @@ export function RsvpForm() {
           </div>
         </div>
       ) : null}
-
-      <div className="mt-5 flex flex-wrap gap-3">
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="btn-primary rounded-full px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {isSubmitting ? "Enviando confirmacao..." : "Confirmar presenca"}
-        </button>
-      </div>
     </form>
   );
 }

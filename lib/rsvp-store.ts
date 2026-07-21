@@ -13,6 +13,7 @@ export type RsvpConfirmationRow = {
   guest_count: number;
   child_count: number;
   companion_names: unknown;
+  guest_responses: unknown;
   note: string | null;
   created_at: Date;
   updated_at: Date;
@@ -29,6 +30,8 @@ export type GuestListEntryRow = {
   adult_names: unknown;
   child_count: number;
   companion_names: unknown;
+  family_label: string | null;
+  is_child: boolean;
   note: string | null;
   is_active: boolean;
   created_at: Date;
@@ -41,6 +44,7 @@ export function normalizeWhatsapp(value: string) {
 
 const globalForPresenceSetup = globalThis as typeof globalThis & {
   ensureRsvpTablePromise?: Promise<void>;
+  ensureRsvpTableShapePromise?: Promise<void>;
   ensureGuestListTablePromise?: Promise<void>;
   ensureGuestListTableShapePromise?: Promise<void>;
   ensurePresenceTablesPromise?: Promise<void>;
@@ -57,6 +61,8 @@ type GuestListColumnAvailability = {
   adultNames: boolean;
   childCount: boolean;
   companionNames: boolean;
+  familyLabel: boolean;
+  isChild: boolean;
 };
 
 type ColumnRow = {
@@ -64,62 +70,71 @@ type ColumnRow = {
 };
 
 export async function ensureRsvpTable() {
-  if (!shouldRunRuntimeDbSetup()) {
-    return;
+  if (shouldRunRuntimeDbSetup()) {
+    if (!globalForPresenceSetup.ensureRsvpTablePromise) {
+      globalForPresenceSetup.ensureRsvpTablePromise = (async () => {
+        const prisma = getPrisma();
+
+        await prisma.$executeRawUnsafe(`
+          CREATE TABLE IF NOT EXISTS rsvp_confirmations (
+            id TEXT PRIMARY KEY,
+            guest_name TEXT NOT NULL,
+            whatsapp TEXT NOT NULL,
+            whatsapp_normalized TEXT,
+            email TEXT,
+            attendance TEXT NOT NULL,
+            guest_count INTEGER NOT NULL,
+            child_count INTEGER NOT NULL DEFAULT 0,
+            companion_names JSONB NOT NULL DEFAULT '[]'::jsonb,
+            note TEXT,
+            created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+          );
+        `);
+      })();
+    }
+
+    await globalForPresenceSetup.ensureRsvpTablePromise;
   }
 
-  if (globalForPresenceSetup.ensureRsvpTablePromise) {
-    return globalForPresenceSetup.ensureRsvpTablePromise;
+  if (!globalForPresenceSetup.ensureRsvpTableShapePromise) {
+    globalForPresenceSetup.ensureRsvpTableShapePromise = (async () => {
+      const prisma = getPrisma();
+
+      await prisma.$executeRawUnsafe(`
+        ALTER TABLE rsvp_confirmations
+        ADD COLUMN IF NOT EXISTS companion_names JSONB NOT NULL DEFAULT '[]'::jsonb;
+      `);
+
+      await prisma.$executeRawUnsafe(`
+        ALTER TABLE rsvp_confirmations
+        ADD COLUMN IF NOT EXISTS child_count INTEGER NOT NULL DEFAULT 0;
+      `);
+
+      await prisma.$executeRawUnsafe(`
+        ALTER TABLE rsvp_confirmations
+        ADD COLUMN IF NOT EXISTS whatsapp_normalized TEXT;
+      `);
+
+      await prisma.$executeRawUnsafe(`
+        ALTER TABLE rsvp_confirmations
+        ADD COLUMN IF NOT EXISTS guest_responses JSONB NOT NULL DEFAULT '[]'::jsonb;
+      `);
+
+      await prisma.$executeRawUnsafe(`
+        UPDATE rsvp_confirmations
+        SET whatsapp_normalized = regexp_replace(COALESCE(whatsapp, ''), '\\D', '', 'g')
+        WHERE whatsapp_normalized IS NULL OR whatsapp_normalized = '';
+      `);
+
+      await prisma.$executeRawUnsafe(`
+        CREATE INDEX IF NOT EXISTS idx_rsvp_confirmations_whatsapp_normalized
+        ON rsvp_confirmations (whatsapp_normalized);
+      `);
+    })();
   }
 
-  globalForPresenceSetup.ensureRsvpTablePromise = (async () => {
-    const prisma = getPrisma();
-
-    await prisma.$executeRawUnsafe(`
-      CREATE TABLE IF NOT EXISTS rsvp_confirmations (
-        id TEXT PRIMARY KEY,
-        guest_name TEXT NOT NULL,
-        whatsapp TEXT NOT NULL,
-        whatsapp_normalized TEXT,
-        email TEXT,
-        attendance TEXT NOT NULL,
-        guest_count INTEGER NOT NULL,
-        child_count INTEGER NOT NULL DEFAULT 0,
-        companion_names JSONB NOT NULL DEFAULT '[]'::jsonb,
-        note TEXT,
-        created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
-
-    await prisma.$executeRawUnsafe(`
-      ALTER TABLE rsvp_confirmations
-      ADD COLUMN IF NOT EXISTS companion_names JSONB NOT NULL DEFAULT '[]'::jsonb;
-    `);
-
-    await prisma.$executeRawUnsafe(`
-      ALTER TABLE rsvp_confirmations
-      ADD COLUMN IF NOT EXISTS child_count INTEGER NOT NULL DEFAULT 0;
-    `);
-
-    await prisma.$executeRawUnsafe(`
-      ALTER TABLE rsvp_confirmations
-      ADD COLUMN IF NOT EXISTS whatsapp_normalized TEXT;
-    `);
-
-    await prisma.$executeRawUnsafe(`
-      UPDATE rsvp_confirmations
-      SET whatsapp_normalized = regexp_replace(COALESCE(whatsapp, ''), '\\D', '', 'g')
-      WHERE whatsapp_normalized IS NULL OR whatsapp_normalized = '';
-    `);
-
-    await prisma.$executeRawUnsafe(`
-      CREATE INDEX IF NOT EXISTS idx_rsvp_confirmations_whatsapp_normalized
-      ON rsvp_confirmations (whatsapp_normalized);
-    `);
-  })();
-
-  return globalForPresenceSetup.ensureRsvpTablePromise;
+  return globalForPresenceSetup.ensureRsvpTableShapePromise;
 }
 
 export async function ensureGuestListTable() {
@@ -148,7 +163,7 @@ export async function ensureGuestListTable() {
         `);
 
         await prisma.$executeRawUnsafe(`
-          CREATE UNIQUE INDEX IF NOT EXISTS guest_list_entries_whatsapp_normalized_key
+          CREATE INDEX IF NOT EXISTS idx_guest_list_entries_whatsapp_normalized
           ON guest_list_entries (whatsapp_normalized);
         `);
       })();
@@ -192,6 +207,38 @@ export async function ensureGuestListTable() {
       `);
 
       await prisma.$executeRawUnsafe(`
+        ALTER TABLE guest_list_entries
+        ADD COLUMN IF NOT EXISTS family_label TEXT;
+      `);
+
+      await prisma.$executeRawUnsafe(`
+        ALTER TABLE guest_list_entries
+        ADD COLUMN IF NOT EXISTS is_child BOOLEAN NOT NULL DEFAULT FALSE;
+      `);
+
+      await prisma.$executeRawUnsafe(`
+        ALTER TABLE guest_list_entries
+        DROP CONSTRAINT IF EXISTS guest_list_entries_whatsapp_normalized_key;
+      `);
+
+      await prisma.$executeRawUnsafe(`
+        ALTER TABLE guest_list_entries
+        DROP CONSTRAINT IF EXISTS guest_list_entries_whatsapp_normalized_unique;
+      `);
+
+      await prisma.$executeRawUnsafe(`
+        DROP INDEX IF EXISTS guest_list_entries_whatsapp_normalized_key;
+      `);
+
+      await prisma.$executeRawUnsafe(`
+        DROP INDEX IF EXISTS guest_list_entries_whatsapp_normalized_unique;
+      `);
+
+      await prisma.$executeRawUnsafe(`
+        DROP INDEX IF EXISTS idx_guest_list_entries_whatsapp_normalized_unique;
+      `);
+
+      await prisma.$executeRawUnsafe(`
         UPDATE guest_list_entries
         SET secondary_whatsapp_normalized = regexp_replace(COALESCE(secondary_whatsapp, ''), '\\D', '', 'g')
         WHERE secondary_whatsapp IS NOT NULL
@@ -231,6 +278,8 @@ export async function getGuestListColumnAvailability() {
       adultNames: columnNames.has("adult_names"),
       childCount: columnNames.has("child_count"),
       companionNames: columnNames.has("companion_names"),
+      familyLabel: columnNames.has("family_label"),
+      isChild: columnNames.has("is_child"),
     } satisfies GuestListColumnAvailability;
   })();
 
@@ -278,6 +327,8 @@ async function queryGuestListEntries(includeInactive: boolean) {
         ${columns.adultNames ? "adult_names" : "'[]'::jsonb AS adult_names"},
         ${columns.childCount ? "child_count" : "0 AS child_count"},
         ${columns.companionNames ? "companion_names" : "'[]'::jsonb AS companion_names"},
+        ${columns.familyLabel ? "family_label" : "NULL AS family_label"},
+        ${columns.isChild ? "is_child" : "FALSE AS is_child"},
         note,
         is_active,
         created_at,

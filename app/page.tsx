@@ -4,7 +4,6 @@ import { Footer } from "@/component/Footer";
 import { Hero } from "@/component/Hero";
 import { LinkCard } from "@/component/LinkCard";
 import { LocationCard } from "@/component/LocationCard";
-import { PhotoGallery } from "@/component/PhotoGallery";
 import { RsvpForm } from "@/component/RsvpForm";
 import { Section } from "@/component/Section";
 import { SectionDivider } from "@/component/SectionDivider";
@@ -22,7 +21,6 @@ export default async function Home() {
     { id: "home", label: "HOME" },
     { id: "bem-vindos", label: "BEM VINDOS" },
     { id: "o-casal", label: "O CASAL" },
-    { id: "pre-wedding", label: "PRE-WEDDING" },
     { id: "dress-code", label: "DRESS CODE" },
     { id: "cerimonia", label: "CERIMONIA" },
     { id: "jantar", label: "JANTAR" },
@@ -61,12 +59,6 @@ export default async function Home() {
         rightPortrait={siteContent.storyPortraitRight}
         timelineImage={siteContent.storyTimelineImage}
       />
-      <SectionDivider />
-
-      <Section id="pre-wedding" title="Pre-wedding">
-        <p className="mb-4">Alguns registros desse momento especial.</p>
-        <PhotoGallery photos={siteContent.preWeddingPhotos} />
-      </Section>
       <SectionDivider />
 
       <Section id="dress-code" title={siteContent.dressCodeTitle}>

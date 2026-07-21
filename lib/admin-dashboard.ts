@@ -20,8 +20,15 @@ type RsvpRow = {
   guest_count: number;
   child_count: number;
   companion_names: unknown;
+  guest_responses: unknown;
   note: string | null;
   created_at: Date;
+};
+
+type RsvpGuestResponse = {
+  guestId: string;
+  guestName: string;
+  attendance: "confirmed" | "declined";
 };
 
 function normalizeCompanionNames(value: unknown) {
@@ -29,9 +36,21 @@ function normalizeCompanionNames(value: unknown) {
   return value.filter((item): item is string => typeof item === "string");
 }
 
-function getBaseGuestCount(adultNames: string[], childCount: number) {
-  const adultCount = adultNames.length > 0 ? adultNames.length : 1;
-  return adultCount + childCount;
+function normalizeGuestResponses(value: unknown) {
+  if (!Array.isArray(value)) return [];
+
+  return value.filter((item): item is RsvpGuestResponse => {
+    if (!item || typeof item !== "object") return false;
+
+    return (
+      "guestId" in item &&
+      typeof item.guestId === "string" &&
+      "guestName" in item &&
+      typeof item.guestName === "string" &&
+      "attendance" in item &&
+      (item.attendance === "confirmed" || item.attendance === "declined")
+    );
+  });
 }
 
 export async function getAdminDashboardData() {
@@ -63,6 +82,7 @@ export async function getAdminDashboardData() {
         guest_count,
         child_count,
         companion_names,
+        guest_responses,
         note,
         created_at
       FROM rsvp_confirmations
@@ -79,26 +99,12 @@ export async function getAdminDashboardData() {
 
   const rsvpConfirmed = rsvpRows.filter((row) => row.attendance === "confirmed");
   const rsvpDeclined = rsvpRows.filter((row) => row.attendance === "declined");
-  const confirmedGuests = rsvpConfirmed.reduce(
-    (sum, row) => sum + Math.max(row.guest_count - row.child_count, 0),
-    0,
-  );
-  const confirmedChildren = rsvpConfirmed.reduce(
-    (sum, row) => sum + row.child_count,
-    0,
-  );
-  const declinedGuests = rsvpDeclined.reduce(
-    (sum, row) => sum + Math.max(row.guest_count - row.child_count, 0),
-    0,
-  );
-  const declinedChildren = rsvpDeclined.reduce(
-    (sum, row) => sum + row.child_count,
-    0,
-  );
+  const confirmedGuests = presenceData.summary.confirmedCountableGuests;
+  const confirmedChildren = presenceData.summary.confirmedChildren;
+  const declinedGuests = presenceData.summary.declinedCountableGuests;
+  const declinedChildren = presenceData.summary.declinedChildren;
   const guestListEntries = await listGuestListEntries({ includeInactive: false });
-  const presenceByWhatsapp = new Map(
-    dataToPresenceMap(presenceData.guests).map((entry) => [entry.whatsappNormalized, entry]),
-  );
+  const presenceById = new Map(dataToPresenceMap(presenceData.guests).map((entry) => [entry.id, entry]));
 
   return {
     summary: {
@@ -125,6 +131,7 @@ export async function getAdminDashboardData() {
       childCount: row.child_count,
       countableGuestCount: Math.max(row.guest_count - row.child_count, 0),
       companionNames: normalizeCompanionNames(row.companion_names),
+      guestResponses: normalizeGuestResponses(row.guest_responses),
       note: row.note,
       createdAt: toIsoString(row.created_at),
     })),
@@ -147,10 +154,7 @@ export async function getAdminDashboardData() {
     })),
     guestPresence: presenceData,
     guestList: guestListEntries.map((guest) => {
-      const presence = presenceByWhatsapp.get(normalizeWhatsapp(guest.whatsapp));
-      const baseAdultNames = normalizeCompanionNames(guest.adult_names);
-      const baseChildCount = guest.child_count;
-      const baseGuestCount = getBaseGuestCount(baseAdultNames, baseChildCount);
+      const presence = presenceById.get(guest.id);
 
       return {
         id: guest.id,
@@ -158,15 +162,17 @@ export async function getAdminDashboardData() {
         whatsapp: guest.whatsapp,
         secondaryWhatsapp: guest.secondary_whatsapp,
         note: guest.note,
+        familyLabel: guest.family_label,
+        isChild: guest.is_child,
         status: presence?.status ?? "pending",
         rsvpId: presence?.rsvpId ?? null,
         email: presence?.email ?? guest.email ?? null,
-        guestCount: presence?.guestCount ?? baseGuestCount,
-        childCount: presence?.childCount ?? baseChildCount,
-        countableGuestCount:
-          presence?.countableGuestCount ?? Math.max(baseGuestCount - baseChildCount, 0),
+        guestCount: presence?.guestCount ?? null,
+        childCount: presence?.childCount ?? 0,
+        countableGuestCount: presence?.countableGuestCount ?? null,
         companionNames: presence?.companionNames ?? [],
-        adultNames: presence?.adultNames ?? baseAdultNames,
+        adultNames: presence?.adultNames ?? [],
+        householdMembers: presence?.householdMembers ?? [],
         responseNote: presence?.responseNote ?? null,
         respondedAt: presence?.respondedAt ?? null,
         sourceKind: "guest-list" as const,
@@ -197,6 +203,7 @@ export async function getAdminGuestsData() {
         guest_count,
         child_count,
         companion_names,
+        guest_responses,
         note,
         created_at
       FROM rsvp_confirmations
@@ -208,20 +215,12 @@ export async function getAdminGuestsData() {
 
   const rsvpConfirmed = rsvpRows.filter((row) => row.attendance === "confirmed");
   const rsvpDeclined = rsvpRows.filter((row) => row.attendance === "declined");
-  const confirmedGuests = rsvpConfirmed.reduce(
-    (sum, row) => sum + Math.max(row.guest_count - row.child_count, 0),
-    0,
-  );
-  const confirmedChildren = rsvpConfirmed.reduce((sum, row) => sum + row.child_count, 0);
-  const declinedGuests = rsvpDeclined.reduce(
-    (sum, row) => sum + Math.max(row.guest_count - row.child_count, 0),
-    0,
-  );
-  const declinedChildren = rsvpDeclined.reduce((sum, row) => sum + row.child_count, 0);
+  const confirmedGuests = presenceData.summary.confirmedCountableGuests;
+  const confirmedChildren = presenceData.summary.confirmedChildren;
+  const declinedGuests = presenceData.summary.declinedCountableGuests;
+  const declinedChildren = presenceData.summary.declinedChildren;
 
-  const presenceByWhatsapp = new Map(
-    dataToPresenceMap(presenceData.guests).map((entry) => [entry.whatsappNormalized, entry]),
-  );
+  const presenceById = new Map(dataToPresenceMap(presenceData.guests).map((entry) => [entry.id, entry]));
 
   return {
     summary: {
@@ -243,15 +242,13 @@ export async function getAdminGuestsData() {
       childCount: row.child_count,
       countableGuestCount: Math.max(row.guest_count - row.child_count, 0),
       companionNames: normalizeCompanionNames(row.companion_names),
+      guestResponses: normalizeGuestResponses(row.guest_responses),
       note: row.note,
       createdAt: toIsoString(row.created_at),
     })),
     guestPresence: presenceData,
     guestList: guestListEntries.map((guest) => {
-      const presence = presenceByWhatsapp.get(normalizeWhatsapp(guest.whatsapp));
-      const baseAdultNames = normalizeCompanionNames(guest.adult_names);
-      const baseChildCount = guest.child_count;
-      const baseGuestCount = getBaseGuestCount(baseAdultNames, baseChildCount);
+      const presence = presenceById.get(guest.id);
 
       return {
         id: guest.id,
@@ -259,15 +256,17 @@ export async function getAdminGuestsData() {
         whatsapp: guest.whatsapp,
         secondaryWhatsapp: guest.secondary_whatsapp,
         note: guest.note,
+        familyLabel: guest.family_label,
+        isChild: guest.is_child,
         status: presence?.status ?? "pending",
         rsvpId: presence?.rsvpId ?? null,
         email: presence?.email ?? guest.email ?? null,
-        guestCount: presence?.guestCount ?? baseGuestCount,
-        childCount: presence?.childCount ?? baseChildCount,
-        countableGuestCount:
-          presence?.countableGuestCount ?? Math.max(baseGuestCount - baseChildCount, 0),
+        guestCount: presence?.guestCount ?? null,
+        childCount: presence?.childCount ?? 0,
+        countableGuestCount: presence?.countableGuestCount ?? null,
         companionNames: presence?.companionNames ?? [],
-        adultNames: presence?.adultNames ?? baseAdultNames,
+        adultNames: presence?.adultNames ?? [],
+        householdMembers: presence?.householdMembers ?? [],
         responseNote: presence?.responseNote ?? null,
         respondedAt: presence?.respondedAt ?? null,
         sourceKind: "guest-list" as const,

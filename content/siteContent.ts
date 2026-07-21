@@ -57,7 +57,7 @@ Sugerimos evitar:
   - Tênis esportivos
 
 Cores especiais 🌿
-Nossos padrinhos usarão tons de verde oliva, nossas madrinhas estarão em lavanda, e o branco será reservado para a noiva.
+Nossos padrinhos usarão tons de chumbo, nossas madrinhas estarão em lavanda, e o branco será reservado para a noiva.
 Pedimos, com carinho, que evitem essas tonalidades para que cada um tenha seu destaque especial neste dia tão importante.`,
 
   ceremonyTitle: "Cerimonia",

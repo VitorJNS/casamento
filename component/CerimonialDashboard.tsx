@@ -169,7 +169,7 @@ function GuestCard({ guest }: { guest: PresenceGuest }) {
 
           <div className="mt-4">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
-              Adultos do convite
+              Pessoas do mesmo grupo
             </p>
             <div className="mt-2 flex flex-wrap gap-2">
               {guest.adultNames.length > 0 ? (
@@ -182,28 +182,19 @@ function GuestCard({ guest }: { guest: PresenceGuest }) {
                   </span>
                 ))
               ) : (
-                <span className="text-sm text-zinc-500">Adultos nao informados.</span>
+                <span className="text-sm text-zinc-500">Nenhum outro nome vinculado.</span>
               )}
             </div>
           </div>
 
           <div className="mt-4">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
-              Acompanhantes
+              Tipo de cadastro
             </p>
             <div className="mt-2 flex flex-wrap gap-2">
-              {guest.companionNames.length > 0 ? (
-                guest.companionNames.map((name) => (
-                  <span
-                    key={`${guest.id}-${name}`}
-                    className="rounded-full border border-zinc-200 bg-zinc-100 px-3 py-1 text-xs text-zinc-700"
-                  >
-                    {name}
-                  </span>
-                ))
-              ) : (
-                <span className="text-sm text-zinc-500">Nenhum acompanhante.</span>
-              )}
+              <span className="rounded-full border border-zinc-200 bg-zinc-100 px-3 py-1 text-xs text-zinc-700">
+                {guest.isChild ? "Crianca" : "Adulto"}
+              </span>
             </div>
           </div>
 
@@ -335,8 +326,8 @@ export function CerimonialDashboard({ guests, summary }: CerimonialDashboardProp
           value={summary.confirmedCountableGuests + summary.confirmedChildren}
           helper={
             summary.confirmedChildren > 0
-              ? `${summary.confirmedCountableGuests} pessoas contaveis + ${summary.confirmedChildren} criancas`
-              : `${summary.confirmedCountableGuests} pessoas contaveis`
+              ? `${summary.confirmedCountableGuests} adultos + ${summary.confirmedChildren} criancas`
+              : `${summary.confirmedCountableGuests} adultos`
           }
         />
         <MetricCard

@@ -7,21 +7,19 @@ import type { PresenceGuest } from "@/lib/presence-dashboard";
 type DraftState = {
   guestName: string;
   whatsapp: string;
-  secondaryWhatsapp: string;
   email: string;
-  adultNamesText: string;
-  childCount: string;
+  familyLabel: string;
   note: string;
+  isChild: boolean;
 };
 
 const emptyDraft: DraftState = {
   guestName: "",
   whatsapp: "",
-  secondaryWhatsapp: "",
   email: "",
-  adultNamesText: "",
-  childCount: "",
+  familyLabel: "",
   note: "",
+  isChild: false,
 };
 
 function getStatusLabel(status: PresenceGuest["status"]) {
@@ -42,59 +40,10 @@ function getStatusClasses(status: PresenceGuest["status"]) {
   return "border-amber-200 bg-amber-50 text-amber-700";
 }
 
-function parseLines(value: string) {
-  return value
-    .split(/\r?\n|,/)
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
-
-function formatLines(names: string[]) {
-  return names.join("\n");
-}
-
-function getPartySizeLabel(guest: PresenceGuest) {
-  if (!guest.guestCount) return "Sem resposta";
-  return `${guest.guestCount} ${guest.guestCount === 1 ? "pessoa" : "pessoas"}`;
-}
-
-type GuestApiResponse = {
-  id: string;
-  guestName: string;
-  whatsapp: string;
-  secondaryWhatsapp: string | null;
-  email: string | null;
-  adultNames: string[];
-  childCount: number;
-  note: string | null;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-};
-
-function mapApiGuestToPresenceGuest(guest: GuestApiResponse): PresenceGuest {
-  const adultNames = Array.isArray(guest.adultNames) ? guest.adultNames : [];
-  const childCount = guest.childCount ?? 0;
-
-  return {
-    id: guest.id,
-    guestName: guest.guestName,
-    whatsapp: guest.whatsapp,
-    secondaryWhatsapp: guest.secondaryWhatsapp ?? null,
-    whatsappNormalized: guest.whatsapp.replace(/\D/g, ""),
-    note: guest.note ?? null,
-    adultNames,
-    status: "pending",
-    rsvpId: null,
-    email: guest.email ?? null,
-    guestCount: adultNames.length + childCount,
-    childCount,
-    countableGuestCount: adultNames.length,
-    companionNames: [],
-    responseNote: null,
-    respondedAt: null,
-    sourceKind: "guest-list",
-  };
+function getFamilyLabel(guest: PresenceGuest) {
+  if (guest.familyLabel) return guest.familyLabel;
+  if (guest.householdMembers.length <= 1) return "Sem grupo vinculado";
+  return `${guest.householdMembers.length} pessoas no mesmo grupo`;
 }
 
 export function GuestListManager({
@@ -102,13 +51,14 @@ export function GuestListManager({
 }: {
   initialGuests: PresenceGuest[];
 }) {
-  const [guests, setGuests] = useState(initialGuests);
+  const [guests] = useState(initialGuests);
   const [draft, setDraft] = useState<DraftState>(emptyDraft);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingDraft, setEditingDraft] = useState<DraftState>(emptyDraft);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   const pendingCount = useMemo(
     () => guests.filter((guest) => guest.status === "pending").length,
     [guests],
@@ -130,11 +80,10 @@ export function GuestListManager({
     setEditingDraft({
       guestName: guest.guestName,
       whatsapp: guest.whatsapp,
-      secondaryWhatsapp: guest.secondaryWhatsapp ?? "",
       email: guest.email ?? "",
-      adultNamesText: formatLines(guest.adultNames),
-      childCount: String(guest.childCount ?? 0),
+      familyLabel: guest.familyLabel ?? "",
       note: guest.note ?? "",
+      isChild: guest.isChild,
     });
     setErrorMessage(null);
   }
@@ -144,27 +93,8 @@ export function GuestListManager({
     setEditingDraft(emptyDraft);
   }
 
-  async function reloadGuests() {
-    const response = await fetch("/api/admin/guest-list", {
-      method: "GET",
-      cache: "no-store",
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data?.error?.message ?? "Nao foi possivel atualizar a lista.");
-    }
-
-    const nextGuests = Array.isArray(data.guests)
-      ? data.guests
-          .map((guest: GuestApiResponse) => mapApiGuestToPresenceGuest(guest))
-          .sort((a: PresenceGuest, b: PresenceGuest) =>
-            a.guestName.localeCompare(b.guestName, "pt-BR"),
-          )
-      : [];
-
-    setGuests(nextGuests);
+  function refreshPage() {
+    window.location.reload();
   }
 
   async function handleCreate(event: React.FormEvent<HTMLFormElement>) {
@@ -176,15 +106,7 @@ export function GuestListManager({
       const response = await fetch("/api/admin/guest-list", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          guestName: draft.guestName,
-          whatsapp: draft.whatsapp,
-          secondaryWhatsapp: draft.secondaryWhatsapp,
-          email: draft.email,
-          adultNames: parseLines(draft.adultNamesText),
-          childCount: Number(draft.childCount || "0"),
-          note: draft.note,
-        }),
+        body: JSON.stringify(draft),
       });
 
       const data = await response.json();
@@ -193,8 +115,7 @@ export function GuestListManager({
         throw new Error(data?.error?.message ?? "Nao foi possivel cadastrar o convidado.");
       }
 
-      await reloadGuests();
-      closeCreateModal();
+      refreshPage();
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "Nao foi possivel cadastrar o convidado.",
@@ -212,15 +133,7 @@ export function GuestListManager({
       const response = await fetch(`/api/admin/guest-list/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          guestName: editingDraft.guestName,
-          whatsapp: editingDraft.whatsapp,
-          secondaryWhatsapp: editingDraft.secondaryWhatsapp,
-          email: editingDraft.email,
-          adultNames: parseLines(editingDraft.adultNamesText),
-          childCount: Number(editingDraft.childCount || "0"),
-          note: editingDraft.note,
-        }),
+        body: JSON.stringify(editingDraft),
       });
 
       const data = await response.json();
@@ -229,8 +142,7 @@ export function GuestListManager({
         throw new Error(data?.error?.message ?? "Nao foi possivel atualizar o convidado.");
       }
 
-      await reloadGuests();
-      cancelEdit();
+      refreshPage();
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "Nao foi possivel atualizar o convidado.",
@@ -255,7 +167,7 @@ export function GuestListManager({
         throw new Error(data?.error?.message ?? "Nao foi possivel desativar o convidado.");
       }
 
-      await reloadGuests();
+      refreshPage();
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "Nao foi possivel desativar o convidado.",
@@ -273,7 +185,8 @@ export function GuestListManager({
             Lista-base de convidados
           </p>
           <p className="mt-1 text-sm text-zinc-600">
-            Cadastre aqui cada grupo ou familia com adultos do convite, contatos e criancas previstas.
+            Cadastre cada convidado individualmente. Use o mesmo nome de familia ou grupo
+            para quem deve aparecer junto na confirmacao publica.
           </p>
         </div>
 
@@ -314,27 +227,23 @@ export function GuestListManager({
                 {isEditing ? (
                   <div className="grid gap-3 md:grid-cols-2">
                     <Field
+                      label="Nome"
                       value={editingDraft.guestName}
                       onChange={(value) =>
                         setEditingDraft((current) => ({ ...current, guestName: value }))
                       }
-                      placeholder="Nome do grupo ou convite"
+                      placeholder="Nome do convidado"
                     />
                     <Field
+                      label="WhatsApp"
                       value={editingDraft.whatsapp}
                       onChange={(value) =>
                         setEditingDraft((current) => ({ ...current, whatsapp: value }))
                       }
-                      placeholder="WhatsApp principal"
+                      placeholder="WhatsApp individual do convidado"
                     />
                     <Field
-                      value={editingDraft.secondaryWhatsapp}
-                      onChange={(value) =>
-                        setEditingDraft((current) => ({ ...current, secondaryWhatsapp: value }))
-                      }
-                      placeholder="WhatsApp secundario"
-                    />
-                    <Field
+                      label="Email"
                       value={editingDraft.email}
                       onChange={(value) =>
                         setEditingDraft((current) => ({ ...current, email: value }))
@@ -343,27 +252,13 @@ export function GuestListManager({
                       type="email"
                     />
                     <Field
-                      label="Criancas"
-                      value={editingDraft.childCount}
+                      label="Familia ou grupo"
+                      value={editingDraft.familyLabel}
                       onChange={(value) =>
-                        setEditingDraft((current) => ({ ...current, childCount: value }))
+                        setEditingDraft((current) => ({ ...current, familyLabel: value }))
                       }
-                      placeholder="0"
-                      type="number"
+                      placeholder="Ex.: Familia Silva"
                     />
-                    <div className="md:col-span-2">
-                      <textarea
-                        value={editingDraft.adultNamesText}
-                        onChange={(event) =>
-                          setEditingDraft((current) => ({
-                            ...current,
-                            adultNamesText: event.target.value,
-                          }))
-                        }
-                        placeholder="Adultos do convite (um por linha ou separados por virgula)"
-                        className="min-h-28 w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28]"
-                      />
-                    </div>
                     <div className="md:col-span-2">
                       <textarea
                         value={editingDraft.note}
@@ -374,6 +269,19 @@ export function GuestListManager({
                         className="min-h-24 w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28]"
                       />
                     </div>
+                    <label className="flex items-center gap-3 text-sm text-zinc-700 md:col-span-2">
+                      <input
+                        type="checkbox"
+                        checked={editingDraft.isChild}
+                        onChange={(event) =>
+                          setEditingDraft((current) => ({
+                            ...current,
+                            isChild: event.target.checked,
+                          }))
+                        }
+                      />
+                      Marcar como crianca
+                    </label>
                     <div className="flex gap-2 md:col-span-2">
                       <button
                         type="button"
@@ -398,9 +306,7 @@ export function GuestListManager({
                       <div>
                         <h3 className="text-lg font-semibold text-zinc-900">{guest.guestName}</h3>
                         <p className="mt-1 text-sm text-zinc-600">{guest.whatsapp}</p>
-                        {guest.secondaryWhatsapp ? (
-                          <p className="mt-1 text-sm text-zinc-500">{guest.secondaryWhatsapp}</p>
-                        ) : null}
+                        <p className="mt-1 text-sm text-zinc-500">{getFamilyLabel(guest)}</p>
                       </div>
 
                       <div className="flex flex-wrap items-center gap-2">
@@ -433,44 +339,44 @@ export function GuestListManager({
                         {getStatusLabel(guest.status)}
                       </p>
                       <p className="text-sm text-zinc-700">
+                        <span className="font-medium text-zinc-900">Tipo:</span>{" "}
+                        {guest.isChild ? "Crianca" : "Adulto"}
+                      </p>
+                      <p className="text-sm text-zinc-700">
                         <span className="font-medium text-zinc-900">Email:</span>{" "}
                         {guest.email || "Nao informado"}
                       </p>
                       <p className="text-sm text-zinc-700">
-                        <span className="font-medium text-zinc-900">Adultos do grupo:</span>{" "}
-                        {guest.adultNames.length > 0 ? guest.adultNames.length : 1}
-                      </p>
-                      <p className="text-sm text-zinc-700">
-                        <span className="font-medium text-zinc-900">Total previsto:</span>{" "}
-                        {getPartySizeLabel(guest)}
+                        <span className="font-medium text-zinc-900">Resposta:</span>{" "}
+                        {guest.respondedAt
+                          ? new Date(guest.respondedAt).toLocaleString("pt-BR")
+                          : "Ainda nao respondeu"}
                       </p>
                     </div>
 
-                    <p className="mt-3 text-sm text-zinc-700">
-                      <span className="font-medium text-zinc-900">Resposta:</span>{" "}
-                      {guest.respondedAt
-                        ? new Date(guest.respondedAt).toLocaleString("pt-BR")
-                        : "Ainda nao respondeu"}
-                    </p>
-
-                    {guest.adultNames.length > 0 ? (
-                      <ul className="mt-4 flex flex-wrap gap-2">
-                        {guest.adultNames.map((name) => (
-                          <li
-                            key={`${guest.id}-${name}`}
-                            className="rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-sm text-zinc-700"
-                          >
-                            {name}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="mt-4 text-sm text-zinc-500">Sem adultos cadastrados.</p>
-                    )}
+                    {guest.householdMembers.length > 1 ? (
+                      <div className="mt-4">
+                        <p className="text-sm font-medium text-zinc-900">Mesmo grupo:</p>
+                        <ul className="mt-2 flex flex-wrap gap-2">
+                          {guest.householdMembers.map((name) => (
+                            <li
+                              key={`${guest.id}-${name}`}
+                              className={`rounded-full border px-3 py-1.5 text-sm ${
+                                name === guest.guestName
+                                  ? "border-[rgb(var(--olive))] bg-white text-zinc-900"
+                                  : "border-zinc-200 bg-white text-zinc-700"
+                              }`}
+                            >
+                              {name}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
 
                     <p className="mt-4 text-sm text-zinc-700">
                       <span className="font-medium text-zinc-900">Obs:</span>{" "}
-                      {guest.note || "Nenhuma"}
+                      {guest.responseNote || guest.note || "Nenhuma"}
                     </p>
                   </>
                 )}
@@ -486,10 +392,11 @@ export function GuestListManager({
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <h2 className="text-[2rem] font-semibold tracking-[-0.04em] text-zinc-950">
-                  Adicionar grupo
+                  Adicionar convidado
                 </h2>
                 <p className="mt-2 text-sm leading-7 text-zinc-600">
-                  Cadastre os adultos do convite e ate dois contatos para que qualquer um deles possa responder.
+                  Cadastre uma pessoa por vez e repita o mesmo nome de familia ou grupo
+                  para quem deve aparecer junto no RSVP.
                 </p>
               </div>
 
@@ -504,48 +411,30 @@ export function GuestListManager({
 
             <form onSubmit={handleCreate} className="mt-6 grid gap-4 md:grid-cols-2">
               <Field
+                label="Nome"
                 value={draft.guestName}
                 onChange={(value) => setDraft((current) => ({ ...current, guestName: value }))}
-                placeholder="Nome do grupo ou convite"
+                placeholder="Nome do convidado"
               />
               <Field
+                label="WhatsApp"
                 value={draft.whatsapp}
                 onChange={(value) => setDraft((current) => ({ ...current, whatsapp: value }))}
-                placeholder="WhatsApp principal"
+                placeholder="WhatsApp individual do convidado"
               />
               <Field
-                value={draft.secondaryWhatsapp}
-                onChange={(value) =>
-                  setDraft((current) => ({ ...current, secondaryWhatsapp: value }))
-                }
-                placeholder="WhatsApp secundario"
-              />
-              <Field
+                label="Email"
                 value={draft.email}
                 onChange={(value) => setDraft((current) => ({ ...current, email: value }))}
                 placeholder="Email"
                 type="email"
               />
               <Field
-                label="Criancas"
-                value={draft.childCount}
-                onChange={(value) => setDraft((current) => ({ ...current, childCount: value }))}
-                placeholder="0"
-                type="number"
+                label="Familia ou grupo"
+                value={draft.familyLabel}
+                onChange={(value) => setDraft((current) => ({ ...current, familyLabel: value }))}
+                placeholder="Ex.: Familia Silva"
               />
-              <div className="md:col-span-2">
-                <textarea
-                  value={draft.adultNamesText}
-                  onChange={(event) =>
-                    setDraft((current) => ({
-                      ...current,
-                      adultNamesText: event.target.value,
-                    }))
-                  }
-                  placeholder="Adultos do convite (um por linha ou separados por virgula)"
-                  className="min-h-28 w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28]"
-                />
-              </div>
               <div className="md:col-span-2">
                 <textarea
                   value={draft.note}
@@ -556,6 +445,19 @@ export function GuestListManager({
                   className="min-h-24 w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28]"
                 />
               </div>
+              <label className="flex items-center gap-3 text-sm text-zinc-700 md:col-span-2">
+                <input
+                  type="checkbox"
+                  checked={draft.isChild}
+                  onChange={(event) =>
+                    setDraft((current) => ({
+                      ...current,
+                      isChild: event.target.checked,
+                    }))
+                  }
+                />
+                Marcar como crianca
+              </label>
 
               {errorMessage ? (
                 <p className="rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 md:col-span-2">
@@ -594,7 +496,7 @@ function Field({
   placeholder,
   type = "text",
 }: {
-  label?: string;
+  label: string;
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
@@ -602,12 +504,11 @@ function Field({
 }) {
   return (
     <label className="flex flex-col gap-2 text-sm text-zinc-700">
-      {label ? <span className="font-medium">{label}</span> : null}
+      <span className="font-medium">{label}</span>
       <input
         type={type}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        min={type === "number" ? "0" : undefined}
         className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28]"
         placeholder={placeholder}
       />

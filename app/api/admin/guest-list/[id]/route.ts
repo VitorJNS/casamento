@@ -1,5 +1,6 @@
 import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
 import { isAdminAuthenticated } from "@/lib/admin-auth";
@@ -20,10 +21,9 @@ export const runtime = "nodejs";
 const updateGuestSchema = z.object({
   guestName: z.string().trim().min(2).max(140),
   whatsapp: z.string().trim().min(8).max(40),
-  secondaryWhatsapp: z.string().trim().min(8).max(40).optional().or(z.literal("")),
   email: z.string().trim().email().max(160).optional().or(z.literal("")),
-  adultNames: z.array(z.string().trim().min(2).max(140)).min(1).max(10).default([]),
-  childCount: z.number().int().min(0).max(12).default(0),
+  familyLabel: z.string().trim().max(120).optional().or(z.literal("")),
+  isChild: z.boolean().optional().default(false),
   note: z.string().trim().max(600).optional(),
 });
 
@@ -34,15 +34,37 @@ function mapGuestEntry(row: GuestListEntryRow) {
     whatsapp: row.whatsapp,
     secondaryWhatsapp: row.secondary_whatsapp,
     email: row.email,
-    adultNames: Array.isArray(row.adult_names)
-      ? row.adult_names.filter((item): item is string => typeof item === "string")
-      : [],
-    childCount: row.child_count,
+    familyLabel: row.family_label,
+    isChild: row.is_child,
     note: row.note,
     isActive: row.is_active,
     createdAt: toIsoString(row.created_at),
     updatedAt: toIsoString(row.updated_at),
   };
+}
+
+function isDuplicateWhatsappError(error: unknown) {
+  if (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === "P2010"
+  ) {
+    const metaMessage =
+      typeof error.meta?.message === "string" ? error.meta.message : "";
+    const metaCode = typeof error.meta?.code === "string" ? error.meta.code : "";
+
+    return (
+      metaCode === "23505" ||
+      metaMessage.includes("23505") ||
+      metaMessage.includes("whatsapp_normalized") ||
+      metaMessage.includes("already exists")
+    );
+  }
+
+  if (error && typeof error === "object" && "code" in error) {
+    return error.code === "23505";
+  }
+
+  return false;
 }
 
 async function requireAdminApiAuth() {
@@ -82,6 +104,8 @@ async function loadGuest(id: string) {
         ${columns.email ? "email" : "NULL AS email"},
         ${columns.adultNames ? "adult_names" : "'[]'::jsonb AS adult_names"},
         ${columns.childCount ? "child_count" : "0 AS child_count"},
+        ${columns.familyLabel ? "family_label" : "NULL AS family_label"},
+        ${columns.isChild ? "is_child" : "FALSE AS is_child"},
         note,
         ${columns.companionNames ? "companion_names" : "'[]'::jsonb AS companion_names"},
         is_active,
@@ -124,14 +148,11 @@ export async function PATCH(
     pushSet("whatsapp_normalized", normalizeWhatsapp(payload.whatsapp));
 
     if (columns.secondaryWhatsapp) {
-      pushSet("secondary_whatsapp", payload.secondaryWhatsapp || null);
+      pushSet("secondary_whatsapp", null);
     }
 
     if (columns.secondaryWhatsappNormalized) {
-      pushSet(
-        "secondary_whatsapp_normalized",
-        payload.secondaryWhatsapp ? normalizeWhatsapp(payload.secondaryWhatsapp) : null,
-      );
+      pushSet("secondary_whatsapp_normalized", null);
     }
 
     if (columns.email) {
@@ -139,11 +160,23 @@ export async function PATCH(
     }
 
     if (columns.adultNames) {
-      pushSet("adult_names", JSON.stringify(payload.adultNames), { jsonb: true });
+      pushSet("adult_names", JSON.stringify([payload.guestName]), { jsonb: true });
     }
 
     if (columns.childCount) {
-      pushSet("child_count", payload.childCount);
+      pushSet("child_count", 0);
+    }
+
+    if (columns.companionNames) {
+      pushSet("companion_names", JSON.stringify([]), { jsonb: true });
+    }
+
+    if (columns.familyLabel) {
+      pushSet("family_label", payload.familyLabel || null);
+    }
+
+    if (columns.isChild) {
+      pushSet("is_child", payload.isChild ?? false);
     }
 
     pushSet("note", payload.note ?? null);
@@ -191,17 +224,13 @@ export async function PATCH(
       );
     }
 
-    if (
-      error &&
-      typeof error === "object" &&
-      "code" in error &&
-      error.code === "23505"
-    ) {
+    if (isDuplicateWhatsappError(error)) {
       return NextResponse.json(
         {
           error: {
             code: "DUPLICATE_WHATSAPP",
-            message: "Ja existe um convidado com este WhatsApp.",
+            message:
+              "Ja existe um convidado com este WhatsApp. Se eles devem responder juntos, edite o cadastro existente ou use outro numero para este convidado.",
           },
         },
         { status: 409 },

@@ -25,7 +25,8 @@ export default async function AdminGuestsPage() {
           Lista de Convidados
         </h1>
         <p className="mt-2 max-w-3xl text-xl text-zinc-700">
-          Cadastrem os grupos convidados e acompanhem as respostas enviadas pelo formulario de confirmacao de presenca.
+          Cadastrem cada pessoa individualmente, organizem por familia ou grupo e acompanhem
+          as respostas enviadas pelo formulario de confirmacao de presenca.
         </p>
       </div>
 
@@ -33,7 +34,7 @@ export default async function AdminGuestsPage() {
         <MetricCard
           label="Pessoas confirmadas"
           value={String(data.summary.confirmedGuests + data.summary.confirmedChildren)}
-          helper={`${data.summary.confirmedGuests} pessoas contaveis${
+          helper={`${data.summary.confirmedGuests} adultos${
             data.summary.confirmedChildren > 0
               ? ` + ${data.summary.confirmedChildren} criancas`
               : ""
@@ -41,7 +42,7 @@ export default async function AdminGuestsPage() {
         />
         <MetricCard
           label="Pessoas recusadas"
-          value={String(data.summary.declinedGuests)}
+          value={String(data.summary.declinedGuests + data.summary.declinedChildren)}
           helper={`${data.summary.declinedRsvps} resposta${
             data.summary.declinedRsvps === 1 ? "" : "s"
           } negativa${data.summary.declinedRsvps === 1 ? "" : "s"} registrada${
@@ -58,12 +59,12 @@ export default async function AdminGuestsPage() {
           )}
           helper={
             data.guestPresence.summary.pendingGuests > 0
-              ? `${data.guestPresence.summary.pendingCountableGuests} pessoas contaveis${
+              ? `${data.guestPresence.summary.pendingCountableGuests} adultos${
                   data.guestPresence.summary.pendingChildren > 0
                     ? ` + ${data.guestPresence.summary.pendingChildren} criancas`
                     : ""
                 }`
-              : "Sem lista manual, nao ha como inferir pendentes."
+              : "Sem convidados pendentes no momento."
           }
         />
         <MetricCard
@@ -100,8 +101,9 @@ export default async function AdminGuestsPage() {
                       {rsvp.guestName}
                     </h2>
                     <p className="mt-1 text-sm text-zinc-600">
-                      {formatAttendance(rsvp.attendance)} • {rsvp.countableGuestCount} pessoas contaveis
-                      {rsvp.childCount > 0 ? ` + ${rsvp.childCount} criancas` : ""}
+                      {formatAttendance(rsvp.attendance)} • {rsvp.guestResponses.length} nome
+                      {rsvp.guestResponses.length === 1 ? "" : "s"} respondido
+                      {rsvp.guestResponses.length === 1 ? "" : "s"}
                     </p>
                   </div>
                   <p className="text-xs text-zinc-500">
@@ -119,6 +121,23 @@ export default async function AdminGuestsPage() {
                     {rsvp.email || "Nao informado"}
                   </p>
                 </div>
+
+                {rsvp.guestResponses.length > 0 ? (
+                  <ul className="mt-4 flex flex-wrap gap-2">
+                    {rsvp.guestResponses.map((guestResponse) => (
+                      <li
+                        key={`${rsvp.id}-${guestResponse.guestId}`}
+                        className={`rounded-full border px-3 py-1.5 text-sm ${
+                          guestResponse.attendance === "confirmed"
+                            ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                            : "border-rose-200 bg-rose-50 text-rose-700"
+                        }`}
+                      >
+                        {guestResponse.guestName}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
               </article>
             ))
           )}
@@ -128,7 +147,6 @@ export default async function AdminGuestsPage() {
       <div className="mt-6">
         <GuestListManager initialGuests={data.guestList} />
       </div>
-
     </AdminShell>
   );
 }

@@ -35,6 +35,10 @@ yarn-error.log*
 .env.local
 .env.example
 
+# local database maintenance scripts
+scripts/*reset*.sql
+scripts/drop-guest-whatsapp-unique.sql
+
 # vercel
 .vercel
 

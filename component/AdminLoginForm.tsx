@@ -19,7 +19,7 @@ export function AdminLoginForm() {
   const submitLabel = isAdminRole ? "Acessar painel dos noivos" : "Acessar painel da cerimonialista";
   const endpoint = isAdminRole ? "/api/admin/login" : "/api/cerimonial/login";
   const fallbackDestination = isAdminRole
-    ? "/admin/dashboard"
+    ? "/admin/convidados"
     : "/cerimonial/dashboard";
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -40,8 +40,7 @@ export function AdminLoginForm() {
         throw new Error(data?.error?.message ?? "Nao foi possivel entrar.");
       }
 
-      router.push(data?.destination ?? fallbackDestination);
-      router.refresh();
+      router.replace(data?.destination ?? fallbackDestination);
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "Nao foi possivel entrar.",
@@ -54,7 +53,7 @@ export function AdminLoginForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="mx-auto w-full max-w-md rounded-[28px] border border-zinc-200 bg-white/92 p-6 shadow-sm backdrop-blur"
+      className="mx-auto w-full max-w-md rounded-[28px] border border-zinc-200 bg-white/92 p-5 shadow-sm backdrop-blur sm:p-6"
     >
       <div className="rounded-full border border-zinc-200 bg-[rgb(var(--paper))] p-1">
         <div className="grid grid-cols-2 gap-1">
@@ -91,15 +90,15 @@ export function AdminLoginForm() {
         </div>
       </div>
 
-      <p className="mt-5 text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500">
+      <p className="mt-4 text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500 sm:mt-5">
         {title}
       </p>
-      <h1 className="mt-2 text-3xl font-semibold text-zinc-900">Entrar</h1>
-      <p className="mt-2 text-sm leading-6 text-zinc-600">
+      <h1 className="mt-1.5 text-2xl font-semibold text-zinc-900 sm:mt-2 sm:text-3xl">Entrar</h1>
+      <p className="mt-2 text-sm leading-5 text-zinc-600 sm:leading-6">
         {description}
       </p>
 
-      <label className="mt-5 block">
+      <label className="mt-4 block sm:mt-5">
         <span className="mb-1.5 block text-sm font-medium text-zinc-700">
           Senha
         </span>
@@ -118,18 +117,18 @@ export function AdminLoginForm() {
         </p>
       ) : null}
 
-      <div className="mt-5 flex flex-wrap gap-3">
+      <div className="mt-4 flex flex-wrap gap-3 sm:mt-5">
         <button
           type="submit"
           disabled={isSubmitting}
-          className="btn-primary rounded-full px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60"
+          className="btn-primary rounded-full px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60 max-sm:w-full"
         >
           {isSubmitting ? "Entrando..." : submitLabel}
         </button>
 
         <Link
           href="/#inicio"
-          className="inline-flex rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-50 hover:text-zinc-900"
+          className="inline-flex rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-50 hover:text-zinc-900 max-sm:w-full max-sm:justify-center"
         >
           Voltar para o site
         </Link>

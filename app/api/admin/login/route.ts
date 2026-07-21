@@ -28,7 +28,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json({
         success: true,
-        destination: "/admin/dashboard",
+        destination: "/admin/convidados",
         role: "admin",
       });
     }

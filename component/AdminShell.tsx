@@ -33,23 +33,23 @@ export function AdminShell({
   const pathname = usePathname();
 
   return (
-    <main className="relative z-10 min-h-screen bg-[linear-gradient(180deg,rgba(255,255,255,0.35),rgba(255,255,255,0.82))] text-zinc-950">
-      <div className="xl:grid xl:min-h-screen xl:grid-cols-[290px_minmax(0,1fr)] xl:items-start">
-        <aside className="border-b border-zinc-200/80 bg-white/88 px-5 py-6 backdrop-blur xl:sticky xl:top-0 xl:h-screen xl:self-start xl:border-b-0 xl:border-r xl:px-6 xl:py-7">
-          <div className="flex justify-center">
-            <div className="flex h-28 w-28 items-center justify-center rounded-full ">
+    <main className="relative z-10 min-h-dvh bg-[linear-gradient(180deg,rgba(255,255,255,0.35),rgba(255,255,255,0.82))] text-zinc-950">
+      <div className="xl:grid xl:min-h-dvh xl:grid-cols-[290px_minmax(0,1fr)] xl:items-start">
+        <aside className="border-b border-zinc-200/80 bg-white/88 px-5 py-5 backdrop-blur xl:sticky xl:top-0 xl:flex xl:h-dvh xl:flex-col xl:overflow-hidden xl:border-b-0 xl:border-r xl:px-6 xl:py-6">
+          <div className="flex shrink-0 justify-center">
+            <div className="flex h-24 w-24 items-center justify-center rounded-full xl:h-28 xl:w-28">
               <Image
                 src="/brand/monograma.png"
                 alt="Monograma do casamento"
                 width={100}
                 height={100}
-                className="h-40 w-40 object-contain"
+                className="h-36 w-36 object-contain xl:h-40 xl:w-40"
                 priority
               />
             </div>
           </div>
 
-          <nav className="mt-8 flex gap-3 overflow-x-auto pb-1 xl:mt-14 xl:block xl:space-y-3 xl:overflow-visible">
+          <nav className="mt-6 flex gap-3 overflow-x-auto pb-1 xl:mt-10 xl:block xl:min-h-0 xl:flex-1 xl:space-y-3 xl:overflow-visible">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
 
@@ -73,8 +73,8 @@ export function AdminShell({
             })}
           </nav>
 
-          <div className="mt-8 space-y-3 xl:mt-auto xl:flex xl:min-h-[62vh] xl:flex-col xl:justify-end">
-            <AdminLogoutButton className="flex w-full items-center gap-3 rounded-[18px] border border-transparent px-5 py-4 text-left text-base font-medium text-zinc-700 hover:bg-white/80 disabled:cursor-not-allowed disabled:opacity-60">
+          <div className="mt-5 shrink-0 space-y-3 border-t border-zinc-200/70 pt-4 xl:mt-6">
+            <AdminLogoutButton className="flex w-full items-center gap-3 rounded-[18px] border border-zinc-200/80 bg-white/60 px-5 py-3.5 text-left text-base font-medium text-zinc-700 shadow-sm transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60">
               <LogoutIcon className="h-5 w-5" />
               <span>Sair</span>
             </AdminLogoutButton>

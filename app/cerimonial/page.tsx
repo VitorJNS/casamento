@@ -13,8 +13,8 @@ export default async function CerimonialLoginPage() {
   }
 
   return (
-    <main className="relative z-10 mx-auto min-h-screen max-w-6xl px-6 py-10">
-      <div className="flex min-h-[70vh] items-center justify-center">
+    <main className="relative z-10 mx-auto flex min-h-dvh max-w-6xl items-center justify-center px-4 py-4 sm:px-6 sm:py-8">
+      <div className="w-full">
         <CerimonialLoginForm />
       </div>
     </main>

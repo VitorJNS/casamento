@@ -10,6 +10,8 @@ const optionalEnvSchema = z.object({
     .default("https://api.checkout.infinitepay.io"),
   INFINITEPAY_WEBHOOK_SECRET: z.string().min(1).optional(),
   NEXT_PUBLIC_SITE_URL: z.string().url().optional(),
+  RESEND_API_KEY: z.string().min(1).optional(),
+  EMAIL_FROM: z.string().min(1).optional(),
 });
 
 export function getOptionalServerEnv() {
@@ -20,6 +22,8 @@ export function getOptionalServerEnv() {
     INFINITEPAY_API_BASE_URL: process.env.INFINITEPAY_API_BASE_URL,
     INFINITEPAY_WEBHOOK_SECRET: process.env.INFINITEPAY_WEBHOOK_SECRET,
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
+    EMAIL_FROM: process.env.EMAIL_FROM,
   });
 }
 

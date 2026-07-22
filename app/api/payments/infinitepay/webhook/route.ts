@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getOptionalServerEnv } from "@/lib/env";
+import { buildGiftPaidEmail, sendGiftStatusEmail } from "@/lib/gift-email";
 import { ORDERS_TAG } from "@/lib/orders";
 import { getPrisma } from "@/lib/prisma";
 
@@ -60,7 +61,7 @@ export async function POST(request: Request) {
       throw error;
     }
 
-    await prisma.order.update({
+    const updatedOrder = await prisma.order.update({
       where: { id: order.id },
       data: {
         status: "paid",
@@ -71,7 +72,29 @@ export async function POST(request: Request) {
         receiptUrl: payload.receipt_url ?? order.receiptUrl,
         paidAt: new Date(),
       },
+      include: { items: true },
     });
+
+    try {
+      await sendGiftStatusEmail(
+        buildGiftPaidEmail({
+          publicId: updatedOrder.publicId,
+          guestName: updatedOrder.guestName,
+          guestEmail: updatedOrder.guestEmail,
+          subtotalCents: updatedOrder.subtotalCents,
+          paidCents: updatedOrder.paidCents,
+          paymentMethod: updatedOrder.paymentMethod,
+          receiptUrl: updatedOrder.receiptUrl,
+          items: updatedOrder.items.map((item) => ({
+            title: item.titleSnapshot,
+            quantity: item.quantity,
+            lineTotalCents: item.lineTotalCents,
+          })),
+        }),
+      );
+    } catch (emailError) {
+      console.error("Nao foi possivel enviar email de confirmacao do presente.", emailError);
+    }
 
     revalidateTag(ORDERS_TAG, "max");
     return NextResponse.json({ received: true });

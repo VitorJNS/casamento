@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { PRESENCE_TAG } from "@/lib/presence-dashboard";
 import { getPrisma } from "@/lib/prisma";
+import { sendRsvpConfirmationEmail } from "@/lib/rsvp-email";
 import {
   ensureGuestListTable,
   ensureRsvpTable,
@@ -284,6 +285,22 @@ export async function POST(request: Request) {
       JSON.stringify(normalizedGuestResponses),
       payload.note ?? null,
     );
+
+    if (payload.email) {
+      try {
+        await sendRsvpConfirmationEmail({
+          respondentName: payload.guestName,
+          email: payload.email,
+          familyLabel: invitedGuests.find((guest) => guest.family_label)?.family_label ?? null,
+          responses: normalizedGuestResponses.map((guest) => ({
+            guestName: guest.guestName,
+            attendance: guest.attendance,
+          })),
+        });
+      } catch (emailError) {
+        console.error("Nao foi possivel enviar email de confirmacao de presenca.", emailError);
+      }
+    }
 
     revalidateTag(RSVP_TAG, "max");
     revalidateTag(PRESENCE_TAG, "max");

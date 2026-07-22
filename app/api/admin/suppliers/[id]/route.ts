@@ -6,6 +6,7 @@ import { getPrisma } from "@/lib/prisma";
 import { ensureSuppliersTable, SUPPLIERS_TAG } from "@/lib/suppliers-store";
 
 export const runtime = "nodejs";
+export const preferredRegion = "gru1";
 
 async function requireAdminApiAuth() {
   const authenticated = await isAdminAuthenticated();

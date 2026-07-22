@@ -15,6 +15,7 @@ type GuestListEntryRow,
 } from "@/lib/rsvp-store";
 
 export const runtime = "nodejs";
+export const preferredRegion = "gru1";
 
 const guestResponseSchema = z.object({
   guestId: z.string().trim().min(1),

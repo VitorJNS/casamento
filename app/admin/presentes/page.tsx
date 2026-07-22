@@ -3,6 +3,8 @@ import { AdminPaidOrdersList } from "@/component/AdminPaidOrdersList";
 import { requireAdminAuth } from "@/lib/admin-auth";
 import * as adminDashboard from "@/lib/admin-dashboard";
 
+export const preferredRegion = "gru1";
+
 export default async function AdminGiftsPage() {
   await requireAdminAuth();
   const getGiftsData = (

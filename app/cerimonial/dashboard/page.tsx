@@ -3,6 +3,7 @@ import { requireCerimonialAuth } from "@/lib/cerimonial-auth";
 import { getPresenceDashboardData } from "@/lib/presence-dashboard";
 
 export const dynamic = "force-dynamic";
+export const preferredRegion = "gru1";
 
 export default async function CerimonialDashboardPage() {
   await requireCerimonialAuth();

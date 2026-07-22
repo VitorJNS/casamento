@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { startTransition, useState } from "react";
 
 export function AdminLoginForm() {
   const router = useRouter();
@@ -39,12 +39,15 @@ export function AdminLoginForm() {
         throw new Error(data?.error?.message ?? "Nao foi possivel entrar.");
       }
 
-      router.replace(data?.destination ?? fallbackDestination);
+      const destination = data?.destination ?? fallbackDestination;
+      router.prefetch(destination);
+      startTransition(() => {
+        router.replace(destination);
+      });
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "Nao foi possivel entrar.",
       );
-    } finally {
       setIsSubmitting(false);
     }
   }

@@ -21,7 +21,6 @@ export const runtime = "nodejs";
 const updateGuestSchema = z.object({
   guestName: z.string().trim().min(2).max(140),
   whatsapp: z.string().trim().min(8).max(40),
-  email: z.string().trim().email().max(160).optional().or(z.literal("")),
   familyLabel: z.string().trim().max(120).optional().or(z.literal("")),
   isChild: z.boolean().optional().default(false),
   note: z.string().trim().max(600).optional(),
@@ -156,7 +155,7 @@ export async function PATCH(
     }
 
     if (columns.email) {
-      pushSet("email", payload.email || null);
+      pushSet("email", null);
     }
 
     if (columns.adultNames) {
@@ -206,9 +205,9 @@ export async function PATCH(
       );
     }
 
-    revalidateTag(GUEST_LIST_TAG, "max");
-    revalidateTag(RSVP_TAG, "max");
-    revalidateTag(PRESENCE_TAG, "max");
+    revalidateTag(GUEST_LIST_TAG, { expire: 0 });
+    revalidateTag(RSVP_TAG, { expire: 0 });
+    revalidateTag(PRESENCE_TAG, { expire: 0 });
     return NextResponse.json({ guest: mapGuestEntry(updated) });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -275,9 +274,9 @@ export async function DELETE(
       id,
     );
 
-    revalidateTag(GUEST_LIST_TAG, "max");
-    revalidateTag(RSVP_TAG, "max");
-    revalidateTag(PRESENCE_TAG, "max");
+    revalidateTag(GUEST_LIST_TAG, { expire: 0 });
+    revalidateTag(RSVP_TAG, { expire: 0 });
+    revalidateTag(PRESENCE_TAG, { expire: 0 });
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json(

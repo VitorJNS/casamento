@@ -24,7 +24,7 @@ const guestResponseSchema = z.object({
 const rsvpSchema = z.object({
   guestName: z.string().trim().min(2).max(140),
   whatsapp: z.string().trim().min(8).max(40),
-  email: z.string().trim().email().max(160).optional(),
+  email: z.string().trim().email().max(160),
   note: z.string().trim().max(600).optional(),
   guests: z.array(guestResponseSchema).min(1).max(20),
 });
@@ -286,24 +286,22 @@ export async function POST(request: Request) {
       payload.note ?? null,
     );
 
-    if (payload.email) {
-      try {
-        await sendRsvpConfirmationEmail({
-          respondentName: payload.guestName,
-          email: payload.email,
-          familyLabel: invitedGuests.find((guest) => guest.family_label)?.family_label ?? null,
-          responses: normalizedGuestResponses.map((guest) => ({
-            guestName: guest.guestName,
-            attendance: guest.attendance,
-          })),
-        });
-      } catch (emailError) {
-        console.error("Nao foi possivel enviar email de confirmacao de presenca.", emailError);
-      }
+    try {
+      await sendRsvpConfirmationEmail({
+        respondentName: payload.guestName,
+        email: payload.email,
+        familyLabel: invitedGuests.find((guest) => guest.family_label)?.family_label ?? null,
+        responses: normalizedGuestResponses.map((guest) => ({
+          guestName: guest.guestName,
+          attendance: guest.attendance,
+        })),
+      });
+    } catch (emailError) {
+      console.error("Nao foi possivel enviar email de confirmacao de presenca.", emailError);
     }
 
-    revalidateTag(RSVP_TAG, "max");
-    revalidateTag(PRESENCE_TAG, "max");
+    revalidateTag(RSVP_TAG, { expire: 0 });
+    revalidateTag(PRESENCE_TAG, { expire: 0 });
     return NextResponse.json({
       success: true,
       id,

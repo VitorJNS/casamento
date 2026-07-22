@@ -102,6 +102,17 @@ const getPresenceDashboardDataCached = unstable_cache(
         WHERE guest_id IS NOT NULL AND guest_id <> ''
         ORDER BY guest_id, response_created_at DESC
       ),
+      response_households AS (
+        SELECT
+          latest.rsvp_id,
+          jsonb_agg(guest.guest_name ORDER BY guest.guest_name) AS response_members
+        FROM latest_guest_responses latest
+        JOIN guest_list_entries guest
+          ON guest.id = latest.guest_id
+        WHERE latest.rsvp_id IS NOT NULL
+          AND guest.is_active = TRUE
+        GROUP BY latest.rsvp_id
+      ),
       households AS (
         SELECT
           CASE
@@ -136,10 +147,22 @@ const getPresenceDashboardDataCached = unstable_cache(
         latest.attendance,
         latest.response_note,
         latest.response_created_at,
-        households.household_members
+        CASE
+          WHEN ${
+            guestListColumns.familyLabel
+              ? "guest.family_label IS NOT NULL AND btrim(guest.family_label) <> ''"
+              : "FALSE"
+          }
+            THEN households.household_members
+          WHEN response_households.response_members IS NOT NULL
+            THEN response_households.response_members
+          ELSE households.household_members
+        END AS household_members
       FROM guest_list_entries guest
       LEFT JOIN latest_guest_responses latest
         ON latest.guest_id = guest.id
+      LEFT JOIN response_households
+        ON response_households.rsvp_id = latest.rsvp_id
       LEFT JOIN households
         ON households.group_key = CASE
           WHEN ${

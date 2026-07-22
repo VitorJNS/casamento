@@ -22,7 +22,6 @@ export const runtime = "nodejs";
 const guestSchema = z.object({
   guestName: z.string().trim().min(2).max(140),
   whatsapp: z.string().trim().min(8).max(40),
-  email: z.string().trim().email().max(160).optional().or(z.literal("")),
   familyLabel: z.string().trim().max(120).optional().or(z.literal("")),
   isChild: z.boolean().optional().default(false),
   note: z.string().trim().max(600).optional(),
@@ -130,7 +129,7 @@ export async function POST(request: Request) {
     }
 
     if (columns.email) {
-      placeholders.push(pushValue("email", payload.email || null));
+      placeholders.push(pushValue("email", null));
     }
 
     if (columns.adultNames) {
@@ -195,9 +194,9 @@ export async function POST(request: Request) {
       id,
     );
 
-    revalidateTag(GUEST_LIST_TAG, "max");
-    revalidateTag(RSVP_TAG, "max");
-    revalidateTag(PRESENCE_TAG, "max");
+    revalidateTag(GUEST_LIST_TAG, { expire: 0 });
+    revalidateTag(RSVP_TAG, { expire: 0 });
+    revalidateTag(PRESENCE_TAG, { expire: 0 });
     return NextResponse.json({ guest: mapGuestEntry(created) });
   } catch (error) {
     if (error instanceof z.ZodError) {

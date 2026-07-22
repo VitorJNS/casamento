@@ -3,12 +3,14 @@ import { unstable_cache } from "next/cache";
 import { formatPriceCents } from "@/lib/currency";
 import { toIsoString, toIsoStringOrNull } from "@/lib/date";
 import { ORDERS_TAG } from "@/lib/orders";
-import { getPresenceDashboardData } from "@/lib/presence-dashboard";
+import { getPresenceDashboardData, PRESENCE_TAG } from "@/lib/presence-dashboard";
 import { getPrisma } from "@/lib/prisma";
 import {
   ensureRsvpTable,
+  GUEST_LIST_TAG,
   listGuestListEntries,
   normalizeWhatsapp,
+  RSVP_TAG,
 } from "@/lib/rsvp-store";
 
 type RsvpRow = {
@@ -117,8 +119,15 @@ export async function getAdminDashboardData() {
       declinedChildren,
       totalOrders: orders.length,
       paidOrders: paidAggregate._count._all,
-      totalReceivedCents: paidAggregate._sum.paidCents ?? 0,
-      totalReceivedLabel: formatPriceCents(paidAggregate._sum.paidCents ?? 0),
+      totalReceivedCents: paidAggregate._sum.subtotalCents ?? 0,
+      totalReceivedLabel: formatPriceCents(paidAggregate._sum.subtotalCents ?? 0),
+      totalCheckoutPaidCents: paidAggregate._sum.paidCents ?? 0,
+      totalCheckoutPaidLabel: formatPriceCents(paidAggregate._sum.paidCents ?? 0),
+      totalCheckoutDifferenceCents:
+        (paidAggregate._sum.paidCents ?? 0) - (paidAggregate._sum.subtotalCents ?? 0),
+      totalCheckoutDifferenceLabel: formatPriceCents(
+        (paidAggregate._sum.paidCents ?? 0) - (paidAggregate._sum.subtotalCents ?? 0),
+      ),
       paidGiftUnits,
     },
     rsvps: rsvpRows.map((row) => ({
@@ -143,6 +152,8 @@ export async function getAdminDashboardData() {
       subtotalLabel: formatPriceCents(order.subtotalCents),
       paidCents: order.paidCents,
       paidLabel: formatPriceCents(order.paidCents),
+      checkoutDifferenceCents: order.paidCents - order.subtotalCents,
+      checkoutDifferenceLabel: formatPriceCents(order.paidCents - order.subtotalCents),
       paidAt: toIsoStringOrNull(order.paidAt),
       paymentMethod: order.paymentMethod,
       items: order.items.map((item) => ({
@@ -189,6 +200,11 @@ function dataToPresenceMap(
 }
 
 export async function getAdminGuestsData() {
+  return getAdminGuestsDataCached();
+}
+
+const getAdminGuestsDataCached = unstable_cache(
+  async () => {
   const prisma = getPrisma();
   await ensureRsvpTable();
 
@@ -274,7 +290,10 @@ export async function getAdminGuestsData() {
       };
     }),
   };
-}
+  },
+  ["admin-guests"],
+  { revalidate: 15, tags: [RSVP_TAG, GUEST_LIST_TAG, PRESENCE_TAG] },
+);
 
 export async function getAdminGiftsData() {
   return getAdminGiftsDataCached();
@@ -292,7 +311,7 @@ const getAdminGiftsDataCached = unstable_cache(
     }),
     prisma.order.aggregate({
       where: { status: "paid" },
-      _sum: { paidCents: true },
+      _sum: { paidCents: true, subtotalCents: true },
       _count: { _all: true },
     }),
   ]);
@@ -306,8 +325,15 @@ const getAdminGiftsDataCached = unstable_cache(
   return {
     summary: {
       paidOrders: paidAggregate._count._all,
-      totalReceivedCents: paidAggregate._sum.paidCents ?? 0,
-      totalReceivedLabel: formatPriceCents(paidAggregate._sum.paidCents ?? 0),
+      totalReceivedCents: paidAggregate._sum.subtotalCents ?? 0,
+      totalReceivedLabel: formatPriceCents(paidAggregate._sum.subtotalCents ?? 0),
+      totalCheckoutPaidCents: paidAggregate._sum.paidCents ?? 0,
+      totalCheckoutPaidLabel: formatPriceCents(paidAggregate._sum.paidCents ?? 0),
+      totalCheckoutDifferenceCents:
+        (paidAggregate._sum.paidCents ?? 0) - (paidAggregate._sum.subtotalCents ?? 0),
+      totalCheckoutDifferenceLabel: formatPriceCents(
+        (paidAggregate._sum.paidCents ?? 0) - (paidAggregate._sum.subtotalCents ?? 0),
+      ),
       paidGiftUnits,
     },
     paidOrders: paidOrders.map((order) => ({
@@ -318,6 +344,8 @@ const getAdminGiftsDataCached = unstable_cache(
       subtotalLabel: formatPriceCents(order.subtotalCents),
       paidCents: order.paidCents,
       paidLabel: formatPriceCents(order.paidCents),
+      checkoutDifferenceCents: order.paidCents - order.subtotalCents,
+      checkoutDifferenceLabel: formatPriceCents(order.paidCents - order.subtotalCents),
       paidAt: toIsoStringOrNull(order.paidAt),
       paymentMethod: order.paymentMethod,
       items: order.items.map((item) => ({

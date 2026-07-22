@@ -1,13 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
+import { ListPagination } from "@/component/ListPagination";
 import type { PresenceGuest } from "@/lib/presence-dashboard";
 
 type DraftState = {
   guestName: string;
   whatsapp: string;
-  email: string;
   familyLabel: string;
   note: string;
   isChild: boolean;
@@ -16,11 +16,12 @@ type DraftState = {
 const emptyDraft: DraftState = {
   guestName: "",
   whatsapp: "",
-  email: "",
   familyLabel: "",
   note: "",
   isChild: false,
 };
+
+const GUESTS_PER_PAGE = 10;
 
 function getStatusLabel(status: PresenceGuest["status"]) {
   if (status === "confirmed") return "Confirmado";
@@ -58,11 +59,23 @@ export function GuestListManager({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
 
   const pendingCount = useMemo(
     () => guests.filter((guest) => guest.status === "pending").length,
     [guests],
   );
+  const totalPages = Math.max(1, Math.ceil(guests.length / GUESTS_PER_PAGE));
+  const visibleGuests = useMemo(() => {
+    const start = (page - 1) * GUESTS_PER_PAGE;
+    return guests.slice(start, start + GUESTS_PER_PAGE);
+  }, [guests, page]);
+  const startItem = guests.length === 0 ? 0 : (page - 1) * GUESTS_PER_PAGE + 1;
+  const endItem = Math.min(page * GUESTS_PER_PAGE, guests.length);
+
+  useEffect(() => {
+    setPage((current) => Math.min(current, totalPages));
+  }, [totalPages]);
 
   function openCreateModal() {
     setDraft(emptyDraft);
@@ -80,7 +93,6 @@ export function GuestListManager({
     setEditingDraft({
       guestName: guest.guestName,
       whatsapp: guest.whatsapp,
-      email: guest.email ?? "",
       familyLabel: guest.familyLabel ?? "",
       note: guest.note ?? "",
       isChild: guest.isChild,
@@ -210,19 +222,19 @@ export function GuestListManager({
         </p>
       ) : null}
 
-      <div className="mt-5 max-h-[42rem] space-y-4 overflow-y-auto pr-2">
+      <div className="mt-5 grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
         {guests.length === 0 ? (
-          <p className="rounded-2xl border border-dashed border-zinc-300 bg-[rgb(var(--paper))] px-4 py-5 text-sm text-zinc-600">
+          <p className="rounded-2xl border border-dashed border-zinc-300 bg-[rgb(var(--paper))] px-4 py-5 text-sm text-zinc-600 lg:col-span-2 2xl:col-span-3">
             Nenhum convidado cadastrado ainda.
           </p>
         ) : (
-          guests.map((guest) => {
+          visibleGuests.map((guest) => {
             const isEditing = editingId === guest.id;
 
             return (
               <article
                 key={guest.id}
-                className="rounded-[22px] border border-zinc-200 bg-[rgb(var(--paper))] p-4"
+                className="flex min-h-[14.5rem] flex-col rounded-[18px] border border-zinc-200 bg-[rgb(var(--paper))] p-3"
               >
                 {isEditing ? (
                   <div className="grid gap-3 md:grid-cols-2">
@@ -241,15 +253,6 @@ export function GuestListManager({
                         setEditingDraft((current) => ({ ...current, whatsapp: value }))
                       }
                       placeholder="WhatsApp individual do convidado"
-                    />
-                    <Field
-                      label="Email"
-                      value={editingDraft.email}
-                      onChange={(value) =>
-                        setEditingDraft((current) => ({ ...current, email: value }))
-                      }
-                      placeholder="Email"
-                      type="email"
                     />
                     <Field
                       label="Familia ou grupo"
@@ -302,23 +305,23 @@ export function GuestListManager({
                   </div>
                 ) : (
                   <>
-                    <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
                       <div>
-                        <h3 className="text-lg font-semibold text-zinc-900">{guest.guestName}</h3>
-                        <p className="mt-1 text-sm text-zinc-600">{guest.whatsapp}</p>
-                        <p className="mt-1 text-sm text-zinc-500">{getFamilyLabel(guest)}</p>
+                        <h3 className="text-base font-semibold text-zinc-900">{guest.guestName}</h3>
+                        <p className="mt-0.5 text-xs text-zinc-600">{guest.whatsapp}</p>
+                        <p className="mt-0.5 text-xs text-zinc-500">{getFamilyLabel(guest)}</p>
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-1.5">
                         <span
-                          className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] ${getStatusClasses(guest.status)}`}
+                          className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] ${getStatusClasses(guest.status)}`}
                         >
                           {getStatusLabel(guest.status)}
                         </span>
                         <button
                           type="button"
                           onClick={() => startEdit(guest)}
-                          className="rounded-full border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50"
+                          className="rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-700 transition hover:bg-zinc-50"
                         >
                           Editar
                         </button>
@@ -326,27 +329,23 @@ export function GuestListManager({
                           type="button"
                           onClick={() => handleDeactivate(guest.id)}
                           disabled={isSaving}
-                          className="rounded-full border border-zinc-300 px-3 py-1.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60"
+                          className="rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-700 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           Desativar
                         </button>
                       </div>
                     </div>
 
-                    <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                      <p className="text-sm text-zinc-700">
+                    <div className="mt-3 grid gap-1.5 text-xs text-zinc-700 sm:grid-cols-2">
+                      <p>
                         <span className="font-medium text-zinc-900">Status:</span>{" "}
                         {getStatusLabel(guest.status)}
                       </p>
-                      <p className="text-sm text-zinc-700">
+                      <p>
                         <span className="font-medium text-zinc-900">Tipo:</span>{" "}
                         {guest.isChild ? "Crianca" : "Adulto"}
                       </p>
-                      <p className="text-sm text-zinc-700">
-                        <span className="font-medium text-zinc-900">Email:</span>{" "}
-                        {guest.email || "Nao informado"}
-                      </p>
-                      <p className="text-sm text-zinc-700">
+                      <p>
                         <span className="font-medium text-zinc-900">Resposta:</span>{" "}
                         {guest.respondedAt
                           ? new Date(guest.respondedAt).toLocaleString("pt-BR")
@@ -354,14 +353,14 @@ export function GuestListManager({
                       </p>
                     </div>
 
-                    {guest.householdMembers.length > 1 ? (
-                      <div className="mt-4">
-                        <p className="text-sm font-medium text-zinc-900">Mesmo grupo:</p>
-                        <ul className="mt-2 flex flex-wrap gap-2">
+                    <div className="mt-3 min-h-[3.75rem]">
+                      <p className="text-xs font-medium text-zinc-900">Mesmo grupo:</p>
+                      {guest.householdMembers.length > 1 ? (
+                        <ul className="mt-2 flex flex-wrap gap-1.5">
                           {guest.householdMembers.map((name) => (
                             <li
                               key={`${guest.id}-${name}`}
-                              className={`rounded-full border px-3 py-1.5 text-sm ${
+                              className={`rounded-full border px-2.5 py-1 text-xs ${
                                 name === guest.guestName
                                   ? "border-[rgb(var(--olive))] bg-white text-zinc-900"
                                   : "border-zinc-200 bg-white text-zinc-700"
@@ -371,10 +370,12 @@ export function GuestListManager({
                             </li>
                           ))}
                         </ul>
-                      </div>
-                    ) : null}
+                      ) : (
+                        <p className="mt-2 text-xs text-zinc-500">Sem grupo vinculado</p>
+                      )}
+                    </div>
 
-                    <p className="mt-4 text-sm text-zinc-700">
+                    <p className="mt-auto pt-3 line-clamp-2 text-xs text-zinc-700">
                       <span className="font-medium text-zinc-900">Obs:</span>{" "}
                       {guest.responseNote || guest.note || "Nenhuma"}
                     </p>
@@ -385,6 +386,17 @@ export function GuestListManager({
           })
         )}
       </div>
+
+      <ListPagination
+        page={page}
+        totalPages={totalPages}
+        totalItems={guests.length}
+        startItem={startItem}
+        endItem={endItem}
+        itemLabel="convidados"
+        onPrevious={() => setPage((current) => Math.max(1, current - 1))}
+        onNext={() => setPage((current) => Math.min(totalPages, current + 1))}
+      />
 
       {isModalOpen ? (
         <div className="fixed inset-0 z-[140] flex items-center justify-center bg-black/35 p-4 backdrop-blur-sm">
@@ -421,13 +433,6 @@ export function GuestListManager({
                 value={draft.whatsapp}
                 onChange={(value) => setDraft((current) => ({ ...current, whatsapp: value }))}
                 placeholder="WhatsApp individual do convidado"
-              />
-              <Field
-                label="Email"
-                value={draft.email}
-                onChange={(value) => setDraft((current) => ({ ...current, email: value }))}
-                placeholder="Email"
-                type="email"
               />
               <Field
                 label="Familia ou grupo"

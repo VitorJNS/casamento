@@ -60,7 +60,7 @@ export async function DELETE(
       );
     }
 
-    revalidateTag(SUPPLIERS_TAG, "max");
+    revalidateTag(SUPPLIERS_TAG, { expire: 0 });
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json(
@@ -68,9 +68,7 @@ export async function DELETE(
         error: {
           code: "DELETE_SUPPLIER_FAILED",
           message:
-            error instanceof Error
-              ? error.message
-              : "Nao foi possivel excluir o fornecedor.",
+            "Nao foi possivel excluir o fornecedor agora. Atualize a pagina e tente novamente.",
         },
       },
       { status: 500 },

@@ -75,7 +75,6 @@ export function CerimonialShell({
                   <Link
                     key={item.label}
                     href={item.href}
-                    prefetch={false}
                     className={className}
                   >
                     {content}

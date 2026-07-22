@@ -35,7 +35,7 @@ export function AdminShell({
   return (
     <main className="relative z-10 min-h-dvh bg-[linear-gradient(180deg,rgba(255,255,255,0.35),rgba(255,255,255,0.82))] text-zinc-950">
       <div className="xl:grid xl:min-h-dvh xl:grid-cols-[290px_minmax(0,1fr)] xl:items-start">
-        <aside className="border-b border-zinc-200/80 bg-white/88 px-5 py-5 backdrop-blur xl:sticky xl:top-0 xl:flex xl:h-dvh xl:flex-col xl:overflow-hidden xl:border-b-0 xl:border-r xl:px-6 xl:py-6">
+        <aside className="hidden border-r border-zinc-200/80 bg-white/88 px-6 py-6 backdrop-blur xl:sticky xl:top-0 xl:flex xl:h-dvh xl:flex-col xl:overflow-hidden">
           <div className="flex shrink-0 justify-center">
             <div className="flex h-24 w-24 items-center justify-center rounded-full xl:h-28 xl:w-28">
               <Image
@@ -81,9 +81,28 @@ export function AdminShell({
         </aside>
 
         <div className="min-w-0">
-          <header className="border-b border-zinc-200/80 bg-white/74 px-5 py-5 backdrop-blur xl:px-10">
+          <header className="sticky top-0 z-30 border-b border-zinc-200/80 bg-white/88 px-5 py-3 backdrop-blur xl:static xl:bg-white/74 xl:px-10 xl:py-5">
             <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-              <div>
+              <div className="flex items-center justify-between gap-3 xl:hidden">
+                <div className="flex items-center gap-3 xl:block">
+                  <Image
+                    src="/brand/monograma.png"
+                    alt="Monograma do casamento"
+                    width={44}
+                    height={44}
+                    className="h-11 w-11 object-contain xl:hidden"
+                    priority
+                  />
+                  <p className="text-lg font-semibold tracking-[-0.03em] text-[rgb(var(--lavender))] xl:text-[2rem]">
+                    {title}
+                  </p>
+                </div>
+                <AdminLogoutButton className="rounded-full border border-zinc-200/80 bg-white px-4 py-2 text-sm font-semibold text-zinc-700 shadow-sm transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60 xl:hidden">
+                  Sair
+                </AdminLogoutButton>
+              </div>
+
+              <div className="hidden xl:block">
                 <p className="text-[2rem] font-semibold tracking-[-0.03em] text-[rgb(var(--lavender))]">
                   {title}
                 </p>
@@ -95,11 +114,39 @@ export function AdminShell({
             </div>
           </header>
 
-          <section className="px-5 py-8 xl:px-10 xl:py-10">{children}</section>
+          <section className="px-5 pb-28 pt-8 xl:px-10 xl:py-10">{children}</section>
         </div>
       </div>
+
+      <nav className="fixed inset-x-3 bottom-3 z-40 rounded-[24px] border border-zinc-200/90 bg-white/94 p-2 shadow-[0_18px_50px_rgba(24,24,27,0.16)] backdrop-blur xl:hidden">
+        <div className="grid grid-cols-3 gap-1">
+          {navItems.map((item) => {
+            const isActive = pathname === item.href;
+
+            return (
+              <Link
+                key={item.label}
+                href={item.href}
+                className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-[18px] px-2 text-[11px] font-semibold transition ${
+                  isActive
+                    ? "bg-[rgb(var(--olive)/0.18)] text-zinc-950"
+                    : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900"
+                }`}
+              >
+                <item.icon className="h-5 w-5" />
+                <span className="leading-none">{getMobileNavLabel(item.label)}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
     </main>
   );
+}
+
+function getMobileNavLabel(label: string) {
+  if (label === "Lista de Convidados") return "Convidados";
+  return label;
 }
 
 function SvgIcon({

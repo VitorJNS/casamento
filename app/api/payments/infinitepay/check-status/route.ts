@@ -55,7 +55,7 @@ export async function POST(request: Request) {
       include: { items: true },
     });
 
-    revalidateTag(ORDERS_TAG, "max");
+    revalidateTag(ORDERS_TAG, { expire: 0 });
     return NextResponse.json({
       publicId: updated.publicId,
       status: updated.status,

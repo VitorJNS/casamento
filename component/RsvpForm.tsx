@@ -150,7 +150,7 @@ export function RsvpForm() {
         body: JSON.stringify({
           guestName: contactState.guestName,
           whatsapp: contactState.whatsapp,
-          email: contactState.email || undefined,
+          email: contactState.email,
           note: contactState.note || undefined,
           guests: answeredGuests,
         }),
@@ -221,10 +221,11 @@ export function RsvpForm() {
 
         <label className="block">
           <span className="mb-1.5 block text-sm font-medium text-zinc-700">
-            Email
+            Email para receber a confirmacao
           </span>
           <input
             type="email"
+            required
             value={contactState.email}
             onChange={(event) =>
               setContactState((current) => ({
@@ -233,7 +234,7 @@ export function RsvpForm() {
               }))
             }
             className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28]"
-            placeholder="Opcional"
+            placeholder="Digite o email para receber o comprovante"
           />
         </label>
 

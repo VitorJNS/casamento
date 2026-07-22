@@ -67,13 +67,6 @@ export function AdminSuppliersManager({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [page, setPage] = useState(1);
 
-  const categories = useMemo(() => {
-    const values = Array.from(
-      new Set(suppliers.map((supplier) => supplier.category.trim()).filter(Boolean)),
-    );
-    return values.sort((a, b) => a.localeCompare(b, "pt-BR"));
-  }, [suppliers]);
-
   const quickStats = [
     {
       label: "Total de fornecedores",
@@ -215,19 +208,7 @@ export function AdminSuppliersManager({
   }
 
   return (
-    <AdminShell
-      title="Area dos Noivos"
-      topRight={
-        <button
-          type="button"
-          onClick={openModal}
-          className="btn-primary rounded-full px-5 py-3 text-sm font-semibold"
-        >
-          <PlusUserIcon className="h-4 w-4" />
-          Adicionar fornecedor
-        </button>
-      }
-    >
+    <AdminShell title="Area dos Noivos">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-[2.8rem] font-semibold tracking-[-0.05em] text-zinc-950">
@@ -255,20 +236,27 @@ export function AdminSuppliersManager({
         ))}
       </div>
 
-      {categories.length > 0 ? (
-        <div className="mt-6 flex flex-wrap gap-2">
-          {categories.map((category) => (
-            <span
-              key={category}
-              className="rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-sm text-zinc-700"
-            >
-              {category}
-            </span>
-          ))}
+      <div className="mt-8 flex flex-col gap-3 rounded-[24px] border border-zinc-200 bg-white/74 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-zinc-500">
+            Fornecedores cadastrados
+          </p>
+          <p className="mt-1 text-sm text-zinc-600">
+            Adicione novos parceiros e acompanhe contratos, contatos e pagamentos.
+          </p>
         </div>
-      ) : null}
 
-      <div className="mt-8 grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
+        <button
+          type="button"
+          onClick={openModal}
+          className="btn-primary justify-center rounded-full px-5 py-3 text-sm font-semibold max-sm:w-full"
+        >
+          <PlusUserIcon className="h-4 w-4" />
+          Adicionar fornecedor
+        </button>
+      </div>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
         {visibleSuppliers.map((supplier) => (
           <SupplierCard
             key={supplier.id}
@@ -293,31 +281,21 @@ export function AdminSuppliersManager({
       />
 
       {isModalOpen ? (
-        <div className="fixed inset-0 z-[140] flex items-center justify-center bg-black/35 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-2xl rounded-[32px] border border-zinc-200 bg-white p-6 shadow-[0_30px_80px_rgba(24,24,27,0.18)]">
+        <div className="fixed inset-0 z-[140] flex items-center justify-center bg-black/35 p-3 backdrop-blur-sm sm:p-4">
+          <div className="max-h-[calc(100dvh-1.5rem)] w-full max-w-2xl overflow-y-auto rounded-[24px] border border-zinc-200 bg-white p-4 shadow-[0_30px_80px_rgba(24,24,27,0.18)] sm:max-h-[calc(100dvh-2rem)] sm:rounded-[32px] sm:p-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <h2 className="text-[2rem] font-semibold tracking-[-0.04em] text-zinc-950">
+                <h2 className="text-2xl font-semibold tracking-[-0.04em] text-zinc-950 sm:text-[2rem]">
                   Adicionar fornecedor
                 </h2>
-                <p className="mt-2 text-sm leading-7 text-zinc-600">
+                <p className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 sm:leading-7">
                   Cadastre o parceiro com dados de contato, contrato e pagamentos.
                 </p>
               </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setIsModalOpen(false);
-                  setErrorMessage(null);
-                }}
-                className="rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50"
-              >
-                Fechar
-              </button>
             </div>
 
-            <form onSubmit={handleCreate} className="mt-6 grid gap-4 md:grid-cols-2">
+            <form onSubmit={handleCreate} className="mt-4 grid gap-3 md:grid-cols-2">
               <Field
                 value={draft.supplierName}
                 onChange={(value) => setDraft((current) => ({ ...current, supplierName: value }))}
@@ -329,23 +307,12 @@ export function AdminSuppliersManager({
                 placeholder="Categoria"
               />
 
-              <label className="flex flex-col gap-2 text-sm text-zinc-700">
-                <span className="font-medium">Status</span>
-                <select
-                  value={draft.supplierStatus}
-                  onChange={(event) =>
-                    setDraft((current) => ({
-                      ...current,
-                      supplierStatus: event.target.value as AdminSupplier["supplierStatus"],
-                    }))
-                  }
-                  className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28]"
-                >
-                  <option value="contratado">Contratado</option>
-                  <option value="pendente">Pendente</option>
-                  <option value="negociacao">Em negociacao</option>
-                </select>
-              </label>
+              <StatusSelector
+                value={draft.supplierStatus}
+                onChange={(value) =>
+                  setDraft((current) => ({ ...current, supplierStatus: value }))
+                }
+              />
               <Field
                 value={draft.contactName}
                 onChange={(value) => setDraft((current) => ({ ...current, contactName: value }))}
@@ -378,7 +345,7 @@ export function AdminSuppliersManager({
               <Field
                 value={draft.nextPaymentDue}
                 onChange={(value) => setDraft((current) => ({ ...current, nextPaymentDue: value }))}
-                placeholder="Proximo pagamento"
+                placeholder="Data de fechamento do contrato"
                 type="date"
               />
               <div className="md:col-span-2">
@@ -388,7 +355,7 @@ export function AdminSuppliersManager({
                     setDraft((current) => ({ ...current, note: event.target.value }))
                   }
                   placeholder="Observacoes importantes"
-                  className="min-h-32 w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28]"
+                  className="min-h-24 w-full rounded-2xl border border-zinc-300 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28] sm:min-h-32 sm:py-3"
                 />
               </div>
 
@@ -398,11 +365,11 @@ export function AdminSuppliersManager({
                 </p>
               ) : null}
 
-              <div className="flex flex-wrap gap-3 md:col-span-2">
+              <div className="sticky bottom-0 -mx-4 -mb-4 flex flex-wrap gap-3 border-t border-zinc-100 bg-white/95 px-4 py-3 backdrop-blur md:col-span-2 sm:static sm:m-0 sm:border-t-0 sm:bg-transparent sm:p-0">
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="btn-primary rounded-full px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60"
+                  className="btn-primary rounded-full px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60 max-sm:flex-1"
                 >
                   {isSaving ? "Salvando..." : "Salvar fornecedor"}
                 </button>
@@ -412,9 +379,9 @@ export function AdminSuppliersManager({
                     setIsModalOpen(false);
                     setErrorMessage(null);
                   }}
-                  className="rounded-full border border-zinc-300 px-4 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50"
+                  className="rounded-full border border-zinc-300 px-4 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 max-sm:flex-1"
                 >
-                  Cancelar
+                  Fechar
                 </button>
               </div>
             </form>
@@ -661,8 +628,51 @@ function Field({
       step={step}
       min={min}
       inputMode={inputMode}
-      className={`w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28] ${className ?? ""}`}
+      className={`w-full rounded-2xl border border-zinc-300 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28] sm:py-3 ${className ?? ""}`}
     />
+  );
+}
+
+function StatusSelector({
+  value,
+  onChange,
+}: {
+  value: AdminSupplier["supplierStatus"];
+  onChange: (value: AdminSupplier["supplierStatus"]) => void;
+}) {
+  const options: Array<{
+    value: AdminSupplier["supplierStatus"];
+    label: string;
+  }> = [
+    { value: "contratado", label: "Contratado" },
+    { value: "pendente", label: "Pendente" },
+    { value: "negociacao", label: "Negociacao" },
+  ];
+
+  return (
+    <div className="flex flex-col gap-2 text-sm text-zinc-700">
+      <span className="font-medium">Status</span>
+      <div className="grid grid-cols-3 gap-1 rounded-2xl border border-zinc-200 bg-zinc-100 p-1">
+        {options.map((option) => {
+          const isSelected = value === option.value;
+
+          return (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => onChange(option.value)}
+              className={`rounded-xl px-2 py-2 text-xs font-semibold transition sm:text-sm ${
+                isSelected
+                  ? "bg-white text-[rgb(var(--olive))] shadow-sm"
+                  : "text-zinc-600 hover:bg-white/70 hover:text-zinc-900"
+              }`}
+            >
+              {option.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -698,9 +708,9 @@ function getNextPaymentLabel(supplier: AdminSupplier) {
     return "Finalizado";
   }
   if (supplier.nextPaymentDue) {
-    return `Proximo: ${new Date(supplier.nextPaymentDue).toLocaleDateString("pt-BR")}`;
+    return `Fechado em: ${new Date(supplier.nextPaymentDue).toLocaleDateString("pt-BR")}`;
   }
-  return "Sem data";
+  return "Sem data de contrato";
 }
 
 function toCentsOrNull(value: string) {

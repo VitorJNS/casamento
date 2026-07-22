@@ -96,7 +96,7 @@ export async function POST(request: Request) {
       console.error("Nao foi possivel enviar email de confirmacao do presente.", emailError);
     }
 
-    revalidateTag(ORDERS_TAG, "max");
+    revalidateTag(ORDERS_TAG, { expire: 0 });
     return NextResponse.json({ received: true });
   } catch (error) {
     if (error instanceof z.ZodError) {

@@ -47,7 +47,11 @@ const supplierSchema = z
       .or(z.literal("")),
     contractValueCents: z.number().int().min(0).nullable().optional(),
     amountPaidCents: z.number().int().min(0).default(0),
-    nextPaymentDue: z.string().date().optional().or(z.literal("")),
+    nextPaymentDue: z
+      .string()
+      .date("Data de fechamento do contrato: informe uma data valida.")
+      .optional()
+      .or(z.literal("")),
     note: z
       .string()
       .trim()
@@ -168,7 +172,7 @@ export async function POST(request: Request) {
       id,
     );
 
-    revalidateTag(SUPPLIERS_TAG, "max");
+    revalidateTag(SUPPLIERS_TAG, { expire: 0 });
     return NextResponse.json({ supplier: mapSupplier(created) });
   } catch (error) {
     if (error instanceof z.ZodError) {

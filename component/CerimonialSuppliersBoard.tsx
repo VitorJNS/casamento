@@ -1,9 +1,10 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { CerimonialShell } from "@/component/CerimonialShell";
+import { ListPagination } from "@/component/ListPagination";
 
 export type CerimonialSupplierView = {
   id: string;
@@ -17,12 +18,15 @@ export type CerimonialSupplierView = {
   updatedAt: string;
 };
 
+const SUPPLIERS_PER_PAGE = 10;
+
 export function CerimonialSuppliersBoard({
   initialSuppliers,
 }: {
   initialSuppliers: CerimonialSupplierView[];
 }) {
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
   const normalizedSearch = search.trim().toLowerCase();
 
   const suppliers = useMemo(() => {
@@ -53,6 +57,21 @@ export function CerimonialSuppliersBoard({
       ).size,
     [initialSuppliers],
   );
+  const totalPages = Math.max(1, Math.ceil(suppliers.length / SUPPLIERS_PER_PAGE));
+  const visibleSuppliers = useMemo(() => {
+    const start = (page - 1) * SUPPLIERS_PER_PAGE;
+    return suppliers.slice(start, start + SUPPLIERS_PER_PAGE);
+  }, [page, suppliers]);
+  const startItem = suppliers.length === 0 ? 0 : (page - 1) * SUPPLIERS_PER_PAGE + 1;
+  const endItem = Math.min(page * SUPPLIERS_PER_PAGE, suppliers.length);
+
+  useEffect(() => {
+    setPage(1);
+  }, [normalizedSearch]);
+
+  useEffect(() => {
+    setPage((current) => Math.min(current, totalPages));
+  }, [totalPages]);
 
   return (
     <CerimonialShell
@@ -95,15 +114,26 @@ export function CerimonialSuppliersBoard({
         </p>
       ) : null}
 
-      <div className="mt-8 grid gap-5 lg:grid-cols-2 2xl:grid-cols-3">
+      <div className="mt-8 grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
         {suppliers.length === 0 ? (
           <EmptyState />
         ) : (
-          suppliers.map((supplier) => (
+          visibleSuppliers.map((supplier) => (
             <SupplierCard key={supplier.id} supplier={supplier} />
           ))
         )}
       </div>
+
+      <ListPagination
+        page={page}
+        totalPages={totalPages}
+        totalItems={suppliers.length}
+        startItem={startItem}
+        endItem={endItem}
+        itemLabel="fornecedores"
+        onPrevious={() => setPage((current) => Math.max(1, current - 1))}
+        onNext={() => setPage((current) => Math.min(totalPages, current + 1))}
+      />
     </CerimonialShell>
   );
 }
@@ -170,13 +200,13 @@ function SupplierCard({ supplier }: { supplier: CerimonialSupplierView }) {
   const emailHref = supplier.email ? `mailto:${supplier.email}` : null;
 
   return (
-    <article className="rounded-[24px] border border-zinc-200 bg-white p-5 shadow-[0_16px_45px_rgba(24,24,27,0.06)]">
+    <article className="rounded-[18px] border border-zinc-200 bg-white p-4 shadow-[0_10px_28px_rgba(24,24,27,0.05)]">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h2 className="truncate text-2xl font-semibold text-zinc-950">
+          <h2 className="truncate text-lg font-semibold text-zinc-950">
             {supplier.supplierName}
           </h2>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
             <Badge tone="olive">{supplier.category}</Badge>
             <Badge tone={getStatusTone(supplier.supplierStatus)}>
               {getStatusLabel(supplier.supplierStatus)}
@@ -184,12 +214,12 @@ function SupplierCard({ supplier }: { supplier: CerimonialSupplierView }) {
           </div>
         </div>
 
-        <p className="text-sm text-zinc-500">
+        <p className="text-xs text-zinc-500">
           {new Date(supplier.updatedAt).toLocaleDateString("pt-BR")}
         </p>
       </div>
 
-      <div className="mt-5 grid gap-4 sm:grid-cols-2">
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
         <InfoBox label="Responsavel" value={supplier.contactName || "Nao informado"} />
         <InfoBox label="WhatsApp" value={supplier.phone} />
         <InfoBox label="Email" value={supplier.email || "Nao informado"} breakAll />
@@ -199,18 +229,18 @@ function SupplierCard({ supplier }: { supplier: CerimonialSupplierView }) {
         />
       </div>
 
-      <div className="mt-5 flex flex-wrap gap-4 text-sm text-zinc-600">
+      <div className="mt-3 flex flex-wrap gap-3 text-xs text-zinc-600">
         <ActionLink href={whatsappHref} label="WhatsApp">
-          <PhoneIcon className="h-4 w-4" />
+          <PhoneIcon className="h-3.5 w-3.5" />
         </ActionLink>
         {emailHref ? (
           <ActionLink href={emailHref} label="Email">
-            <MailIcon className="h-4 w-4" />
+            <MailIcon className="h-3.5 w-3.5" />
           </ActionLink>
         ) : null}
       </div>
 
-      <div className="mt-5 rounded-[18px] bg-zinc-50 px-4 py-4 text-sm leading-6 text-zinc-700">
+      <div className="mt-3 line-clamp-2 rounded-[14px] bg-zinc-50 px-3 py-2 text-xs leading-5 text-zinc-700">
         {supplier.note || "Sem observacoes registradas ate o momento."}
       </div>
     </article>
@@ -227,11 +257,11 @@ function InfoBox({
   breakAll?: boolean;
 }) {
   return (
-    <div className="rounded-[18px] bg-zinc-100 px-4 py-4">
+    <div className="rounded-[14px] bg-zinc-100 px-3 py-2.5">
       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
         {label}
       </p>
-      <p className={`mt-2 text-sm font-medium text-zinc-900 ${breakAll ? "break-all" : ""}`}>
+      <p className={`mt-1 text-xs font-medium text-zinc-900 ${breakAll ? "break-all" : ""}`}>
         {value}
       </p>
     </div>
@@ -277,7 +307,7 @@ function Badge({
           : "border-[rgb(var(--lavender)/0.25)] bg-[rgb(var(--lavender)/0.10)] text-[rgb(var(--olive))]";
 
   return (
-    <span className={`rounded-full border px-3 py-1 text-[11px] font-medium uppercase tracking-[0.08em] ${className}`}>
+    <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.08em] ${className}`}>
       {children}
     </span>
   );

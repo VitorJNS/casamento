@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { startTransition, useState } from "react";
 
 export function CerimonialLoginForm() {
   const router = useRouter();
@@ -27,12 +27,14 @@ export function CerimonialLoginForm() {
         throw new Error(data?.error?.message ?? "Nao foi possivel entrar.");
       }
 
-      router.replace("/cerimonial/dashboard");
+      router.prefetch("/cerimonial/dashboard");
+      startTransition(() => {
+        router.replace("/cerimonial/dashboard");
+      });
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "Nao foi possivel entrar.",
       );
-    } finally {
       setIsSubmitting(false);
     }
   }

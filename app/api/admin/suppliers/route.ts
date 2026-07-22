@@ -15,16 +15,44 @@ export const runtime = "nodejs";
 
 const supplierSchema = z
   .object({
-    supplierName: z.string().trim().min(2).max(140),
-    category: z.string().trim().min(2).max(80),
-    supplierStatus: z.enum(["contratado", "pendente", "negociacao"]),
-    contactName: z.string().trim().max(140).optional(),
-    phone: z.string().trim().min(8).max(40),
-    email: z.string().trim().email().max(160).optional().or(z.literal("")),
+    supplierName: z
+      .string()
+      .trim()
+      .min(2, "Nome do fornecedor: informe pelo menos 2 caracteres.")
+      .max(140, "Nome do fornecedor: use no maximo 140 caracteres."),
+    category: z
+      .string()
+      .trim()
+      .min(2, "Categoria: informe o tipo de servico do fornecedor.")
+      .max(80, "Categoria: use no maximo 80 caracteres."),
+    supplierStatus: z.enum(["contratado", "pendente", "negociacao"], {
+      message: "Status: escolha Contratado, Pendente ou Em negociacao.",
+    }),
+    contactName: z
+      .string()
+      .trim()
+      .max(140, "Responsavel: use no maximo 140 caracteres.")
+      .optional(),
+    phone: z
+      .string()
+      .trim()
+      .min(8, "Telefone ou WhatsApp: informe um numero valido para contato.")
+      .max(40, "Telefone ou WhatsApp: use no maximo 40 caracteres."),
+    email: z
+      .string()
+      .trim()
+      .email("Email: confira se o endereco esta correto, como nome@email.com.")
+      .max(160, "Email: use no maximo 160 caracteres.")
+      .optional()
+      .or(z.literal("")),
     contractValueCents: z.number().int().min(0).nullable().optional(),
     amountPaidCents: z.number().int().min(0).default(0),
     nextPaymentDue: z.string().date().optional().or(z.literal("")),
-    note: z.string().trim().max(600).optional(),
+    note: z
+      .string()
+      .trim()
+      .max(600, "Observacoes: reduza o texto para ate 600 caracteres.")
+      .optional(),
   })
   .superRefine((data, ctx) => {
     if (
@@ -161,9 +189,7 @@ export async function POST(request: Request) {
         error: {
           code: "CREATE_SUPPLIER_FAILED",
           message:
-            error instanceof Error
-              ? error.message
-              : "Nao foi possivel cadastrar o fornecedor.",
+            "Nao foi possivel cadastrar o fornecedor agora. Revise os dados e tente novamente em alguns instantes.",
         },
       },
       { status: 500 },

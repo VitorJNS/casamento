@@ -57,7 +57,6 @@ export function AdminShell({
                 <Link
                   key={item.label}
                   href={item.href}
-                  prefetch={false}
                   className={`flex shrink-0 items-center gap-3 rounded-[18px] px-4 py-3.5 text-sm transition xl:w-full ${
                     isActive
                       ? "bg-[rgb(var(--olive)/0.24)] text-zinc-900"

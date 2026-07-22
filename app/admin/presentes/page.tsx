@@ -1,4 +1,5 @@
 import { AdminShell } from "@/component/AdminShell";
+import { AdminPaidOrdersList } from "@/component/AdminPaidOrdersList";
 import { requireAdminAuth } from "@/lib/admin-auth";
 import * as adminDashboard from "@/lib/admin-dashboard";
 
@@ -24,7 +25,7 @@ export default async function AdminGiftsPage() {
         </p>
       </div>
 
-      <div className="mt-8 grid gap-4 md:grid-cols-3">
+      <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           label="Presentes pagos"
           value={String(data.summary.paidOrders)}
@@ -36,9 +37,14 @@ export default async function AdminGiftsPage() {
           helper="Quantidade total de itens presenteados."
         />
         <MetricCard
-          label="Valor recebido"
+          label="Valor dos presentes"
           value={data.summary.totalReceivedLabel}
-          helper="Somatorio dos pedidos pagos."
+          helper="Soma dos valores dos presentes escolhidos."
+        />
+        <MetricCard
+          label="Pago no checkout"
+          value={data.summary.totalCheckoutPaidLabel}
+          helper="Valor bruto pago pelos convidados na InfinitePay."
         />
       </div>
 
@@ -52,52 +58,8 @@ export default async function AdminGiftsPage() {
           </p>
         </div>
 
-        <div className="mt-5 max-h-[46rem] space-y-4 overflow-y-auto pr-2">
-          {data.paidOrders.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-zinc-300 bg-[rgb(var(--paper))] px-4 py-5 text-sm text-zinc-600">
-              Nenhum presente pago ainda.
-            </p>
-          ) : (
-            data.paidOrders.map((order) => (
-              <article
-                key={order.publicId}
-                className="rounded-[22px] border border-zinc-200 bg-[rgb(var(--paper))] p-4"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <h2 className="text-lg font-semibold text-zinc-900">
-                      {order.guestName}
-                    </h2>
-                    <p className="mt-1 text-sm text-zinc-600">{order.guestEmail}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-lg font-semibold text-zinc-900">
-                      {order.paidLabel}
-                    </p>
-                    <p className="mt-1 text-xs text-zinc-500">
-                      {order.paymentMethod || "Metodo nao informado"}
-                    </p>
-                  </div>
-                </div>
-
-                <ul className="mt-4 space-y-2">
-                  {order.items.map((item) => (
-                    <li
-                      key={item.id}
-                      className="flex items-center justify-between gap-3 text-sm text-zinc-700"
-                    >
-                      <span>
-                        {item.quantity}x {item.title}
-                      </span>
-                      <span className="font-medium text-zinc-900">
-                        {item.lineTotalLabel}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </article>
-            ))
-          )}
+        <div className="mt-5">
+          <AdminPaidOrdersList orders={data.paidOrders} />
         </div>
       </section>
     </AdminShell>

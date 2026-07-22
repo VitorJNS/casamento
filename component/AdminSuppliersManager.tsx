@@ -1,9 +1,10 @@
 "use client";
 
 import type { InputHTMLAttributes, ReactNode } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { AdminShell } from "@/component/AdminShell";
+import { ListPagination } from "@/component/ListPagination";
 import { formatPriceCents, parsePriceLabelToCents } from "@/lib/currency";
 
 export type AdminSupplier = {
@@ -49,6 +50,8 @@ const emptyDraft: SupplierDraft = {
   note: "",
 };
 
+const SUPPLIERS_PER_PAGE = 10;
+
 export function AdminSuppliersManager({
   initialSuppliers,
 }: {
@@ -62,6 +65,7 @@ export function AdminSuppliersManager({
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
 
   const categories = useMemo(() => {
     const values = Array.from(
@@ -103,8 +107,27 @@ export function AdminSuppliersManager({
     },
   ];
 
+  const totalPages = Math.max(1, Math.ceil(suppliers.length / SUPPLIERS_PER_PAGE));
+  const visibleSuppliers = useMemo(() => {
+    const start = (page - 1) * SUPPLIERS_PER_PAGE;
+    return suppliers.slice(start, start + SUPPLIERS_PER_PAGE);
+  }, [page, suppliers]);
+  const startItem = suppliers.length === 0 ? 0 : (page - 1) * SUPPLIERS_PER_PAGE + 1;
+  const endItem = Math.min(page * SUPPLIERS_PER_PAGE, suppliers.length);
+
+  useEffect(() => {
+    setPage((current) => Math.min(current, totalPages));
+  }, [totalPages]);
+
   async function handleCreate(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const validationMessage = validateSupplierDraft(draft);
+
+    if (validationMessage) {
+      setErrorMessage(validationMessage);
+      return;
+    }
+
     setIsSaving(true);
     setErrorMessage(null);
 
@@ -216,16 +239,16 @@ export function AdminSuppliersManager({
         </div>
       </div>
 
-      <div className="mt-8 grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
+      <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {quickStats.map((item) => (
           <article
             key={item.label}
-            className="rounded-[24px] border border-zinc-200 bg-white px-6 py-5 shadow-[0_16px_45px_rgba(24,24,27,0.06)]"
+            className="rounded-[24px] border border-zinc-200 bg-white p-4 shadow-sm"
           >
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">
               {item.label}
             </p>
-            <p className={`mt-5 text-5xl font-light tracking-[-0.04em] ${item.tone}`}>
+            <p className={`mt-2 text-3xl font-semibold tracking-[-0.03em] ${item.tone}`}>
               {item.value}
             </p>
           </article>
@@ -245,10 +268,8 @@ export function AdminSuppliersManager({
         </div>
       ) : null}
 
-      <div className="mt-8 grid gap-5 lg:grid-cols-2 2xl:grid-cols-3">
-        <AddSupplierCard onClick={openModal} />
-
-        {suppliers.map((supplier) => (
+      <div className="mt-8 grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
+        {visibleSuppliers.map((supplier) => (
           <SupplierCard
             key={supplier.id}
             supplier={supplier}
@@ -259,6 +280,17 @@ export function AdminSuppliersManager({
           />
         ))}
       </div>
+
+      <ListPagination
+        page={page}
+        totalPages={totalPages}
+        totalItems={suppliers.length}
+        startItem={startItem}
+        endItem={endItem}
+        itemLabel="fornecedores"
+        onPrevious={() => setPage((current) => Math.max(1, current - 1))}
+        onNext={() => setPage((current) => Math.min(totalPages, current + 1))}
+      />
 
       {isModalOpen ? (
         <div className="fixed inset-0 z-[140] flex items-center justify-center bg-black/35 p-4 backdrop-blur-sm">
@@ -361,7 +393,7 @@ export function AdminSuppliersManager({
               </div>
 
               {errorMessage ? (
-                <p className="rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 md:col-span-2">
+                <p className="whitespace-pre-line rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm leading-6 text-rose-700 md:col-span-2">
                   {errorMessage}
                 </p>
               ) : null}
@@ -461,18 +493,18 @@ function SupplierCard({
   const nextLabel = getNextPaymentLabel(supplier);
 
   return (
-    <article className="rounded-[24px] border border-zinc-200 bg-white p-5 shadow-[0_16px_45px_rgba(24,24,27,0.06)]">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex min-w-0 gap-4">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[16px] bg-[linear-gradient(135deg,rgba(177,156,217,0.28),rgba(88,102,74,0.22))] text-base font-semibold text-[rgb(var(--olive))]">
+    <article className="rounded-[18px] border border-zinc-200 bg-white p-4 shadow-[0_10px_28px_rgba(24,24,27,0.05)]">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 gap-3">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-[linear-gradient(135deg,rgba(177,156,217,0.28),rgba(88,102,74,0.22))] text-sm font-semibold text-[rgb(var(--olive))]">
             {initials || "FV"}
           </div>
 
           <div className="min-w-0">
-            <h2 className="truncate text-xl font-semibold text-zinc-950">
+            <h2 className="truncate text-base font-semibold text-zinc-950">
               {supplier.supplierName}
             </h2>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
               <Badge tone="olive">{supplier.category}</Badge>
               <Badge tone={getStatusTone(supplier.supplierStatus)}>
                 {getStatusLabel(supplier.supplierStatus)}
@@ -485,38 +517,38 @@ function SupplierCard({
           type="button"
           onClick={onDelete}
           aria-label={`Excluir ${supplier.supplierName}`}
-          className="rounded-full border border-zinc-200 p-2 text-zinc-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
+          className="rounded-full border border-zinc-200 p-1.5 text-zinc-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
         >
-          <TrashIcon className="h-4 w-4" />
+          <TrashIcon className="h-3.5 w-3.5" />
         </button>
       </div>
 
-      <div className="mt-5 flex flex-wrap gap-4 text-sm text-zinc-600">
+      <div className="mt-3 flex flex-wrap gap-3 text-xs text-zinc-600">
         <ActionLink href={whatsappHref} label="WhatsApp">
-          <PhoneIcon className="h-4 w-4" />
+          <PhoneIcon className="h-3.5 w-3.5" />
         </ActionLink>
         {emailHref ? (
           <ActionLink href={emailHref} label="Email">
-            <MailIcon className="h-4 w-4" />
+            <MailIcon className="h-3.5 w-3.5" />
           </ActionLink>
         ) : null}
       </div>
 
-      <div className="mt-5 border-t border-zinc-100 pt-5">
-        <div className="flex items-start justify-between gap-4">
+      <div className="mt-3 border-t border-zinc-100 pt-3">
+        <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
               Valor do contrato
             </p>
-            <p className="mt-2 text-2xl font-semibold text-zinc-950">{contractValueLabel}</p>
+            <p className="mt-1 text-xl font-semibold text-zinc-950">{contractValueLabel}</p>
           </div>
-          <div className="text-right text-sm text-zinc-600">
+          <div className="text-right text-xs text-zinc-600">
             <p>{supplier.contactName || "Nao informado"}</p>
             <p className="mt-1">{supplier.phone}</p>
           </div>
         </div>
 
-        <div className="mt-4 flex items-center justify-between gap-3 text-sm">
+        <div className="mt-3 flex items-center justify-between gap-3 text-xs">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
               Valor ja pago
@@ -531,43 +563,23 @@ function SupplierCard({
           </div>
         </div>
 
-        <div className="mt-5 h-1.5 rounded-full bg-zinc-100">
+        <div className="mt-3 h-1 rounded-full bg-zinc-100">
           <div
-            className="h-1.5 rounded-full bg-[rgb(var(--olive))] transition-all"
+            className="h-1 rounded-full bg-[rgb(var(--olive))] transition-all"
             style={{ width: `${progress}%` }}
           />
         </div>
 
-        <div className="mt-3 flex items-center justify-between gap-3 text-sm text-zinc-600">
+        <div className="mt-2 flex items-center justify-between gap-3 text-xs text-zinc-600">
           <span>{paymentSummary}</span>
           <span>{nextLabel}</span>
         </div>
       </div>
 
-      <div className="mt-5 rounded-[18px] bg-zinc-50 px-4 py-4 text-sm leading-6 text-zinc-700">
+      <div className="mt-3 line-clamp-2 rounded-[14px] bg-zinc-50 px-3 py-2 text-xs leading-5 text-zinc-700">
         {supplier.note || "Sem observacoes registradas ate o momento."}
       </div>
     </article>
-  );
-}
-
-function AddSupplierCard({ onClick }: { onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex min-h-[23rem] flex-col items-center justify-center rounded-[24px] border border-dashed border-zinc-300 bg-white/70 p-6 text-center shadow-[0_16px_45px_rgba(24,24,27,0.04)] transition hover:border-[rgb(var(--lavender)/0.35)] hover:bg-white"
-    >
-      <div className="flex h-16 w-16 items-center justify-center rounded-full border border-[rgb(var(--lavender)/0.35)] bg-[rgb(var(--lavender)/0.10)] text-[rgb(var(--lavender))]">
-        <PlusCircleIcon className="h-8 w-8" />
-      </div>
-      <p className="mt-6 text-2xl font-semibold text-zinc-900">
-        Adicionar Novo Fornecedor
-      </p>
-      <p className="mt-2 max-w-xs text-sm leading-6 text-zinc-600">
-        Clique para cadastrar um novo parceiro ou servico.
-      </p>
-    </button>
   );
 }
 
@@ -610,7 +622,7 @@ function Badge({
           : "border-[rgb(var(--lavender)/0.25)] bg-[rgb(var(--lavender)/0.10)] text-[rgb(var(--olive))]";
 
   return (
-    <span className={`rounded-full border px-3 py-1 text-[11px] font-medium uppercase tracking-[0.08em] ${className}`}>
+    <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.08em] ${className}`}>
       {children}
     </span>
   );
@@ -705,6 +717,59 @@ function toCentsOrZero(value: string) {
   return toCentsOrNull(value) ?? 0;
 }
 
+function validateSupplierDraft(draft: SupplierDraft) {
+  const errors: string[] = [];
+  const supplierName = draft.supplierName.trim();
+  const category = draft.category.trim();
+  const phoneDigits = draft.phone.replace(/\D/g, "");
+  const email = draft.email.trim();
+  const contractValue = draft.contractValue.trim();
+  const amountPaid = draft.amountPaid.trim();
+  const note = draft.note.trim();
+  const contractValueCents = contractValue ? toCentsOrNull(contractValue) : null;
+  const amountPaidCents = amountPaid ? toCentsOrNull(amountPaid) : null;
+
+  if (supplierName.length < 2) {
+    errors.push("Nome do fornecedor: informe pelo menos 2 caracteres.");
+  }
+
+  if (category.length < 2) {
+    errors.push("Categoria: informe o tipo de servico, por exemplo buffet, foto ou decoracao.");
+  }
+
+  if (phoneDigits.length < 8) {
+    errors.push("Telefone ou WhatsApp: informe um numero valido para contato.");
+  }
+
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    errors.push("Email: confira se o endereco esta correto, como nome@email.com.");
+  }
+
+  if (contractValue && contractValueCents === null) {
+    errors.push("Valor do contrato: use um valor em reais, por exemplo 1500,00.");
+  }
+
+  if (amountPaid && amountPaidCents === null) {
+    errors.push("Valor ja pago: use um valor em reais, por exemplo 500,00.");
+  }
+
+  if (
+    contractValueCents !== null &&
+    amountPaidCents !== null &&
+    amountPaidCents > contractValueCents
+  ) {
+    errors.push("Valor ja pago: nao pode ser maior que o valor do contrato.");
+  }
+
+  if (note.length > 600) {
+    errors.push("Observacoes: reduza o texto para ate 600 caracteres.");
+  }
+
+  return errors.length > 0
+    ? `Revise os campos abaixo:\n- ${errors.join("\n- ")}`
+    : null;
+}
+
 function formatCurrencyInput(value: string) {
   if (!value.trim()) return "";
 
@@ -754,16 +819,6 @@ function PlusUserIcon({ className }: { className?: string }) {
       <circle cx="9" cy="7" r="3" />
       <path d="M19 8v6" />
       <path d="M16 11h6" />
-    </SvgIcon>
-  );
-}
-
-function PlusCircleIcon({ className }: { className?: string }) {
-  return (
-    <SvgIcon className={className}>
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 8v8" />
-      <path d="M8 12h8" />
     </SvgIcon>
   );
 }

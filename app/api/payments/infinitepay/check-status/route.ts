@@ -7,6 +7,7 @@ import { ORDERS_TAG } from "@/lib/orders";
 import { getPrisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
+export const preferredRegion = "gru1";
 
 const schema = z.object({
   publicId: z.string().min(1).optional(),

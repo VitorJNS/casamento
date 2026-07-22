@@ -4,6 +4,8 @@ import { GuestListManager } from "@/component/GuestListManager";
 import { requireAdminAuth } from "@/lib/admin-auth";
 import * as adminDashboard from "@/lib/admin-dashboard";
 
+export const preferredRegion = "gru1";
+
 export default async function AdminGuestsPage() {
   await requireAdminAuth();
   const getGuestsData = (

@@ -7,6 +7,7 @@ import { toIsoString } from "@/lib/date";
 import { listSuppliers } from "@/lib/suppliers-store";
 
 export const dynamic = "force-dynamic";
+export const preferredRegion = "gru1";
 
 function mapSupplier(
   supplier: Awaited<ReturnType<typeof listSuppliers>>[number],

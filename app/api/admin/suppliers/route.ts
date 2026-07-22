@@ -12,6 +12,7 @@ import {
 } from "@/lib/suppliers-store";
 
 export const runtime = "nodejs";
+export const preferredRegion = "gru1";
 
 const supplierSchema = z
   .object({

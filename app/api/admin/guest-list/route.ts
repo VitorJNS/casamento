@@ -18,6 +18,7 @@ import {
 import { PRESENCE_TAG } from "@/lib/presence-dashboard";
 
 export const runtime = "nodejs";
+export const preferredRegion = "gru1";
 
 const guestSchema = z.object({
   guestName: z.string().trim().min(2).max(140),

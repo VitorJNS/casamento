@@ -8,6 +8,7 @@ import { ORDERS_TAG } from "@/lib/orders";
 import { getPrisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
+export const preferredRegion = "gru1";
 
 const webhookSchema = z.object({
   invoice_slug: z.string().optional(),

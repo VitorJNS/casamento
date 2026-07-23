@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AdminShell } from "@/component/AdminShell";
 import { ListPagination } from "@/component/ListPagination";
 import { formatPriceCents, parsePriceLabelToCents } from "@/lib/currency";
+import { formatDisplayDate } from "@/lib/display-date";
 
 export type AdminSupplier = {
   id: string;
@@ -708,7 +709,7 @@ function getNextPaymentLabel(supplier: AdminSupplier) {
     return "Finalizado";
   }
   if (supplier.nextPaymentDue) {
-    return `Fechado em: ${new Date(supplier.nextPaymentDue).toLocaleDateString("pt-BR")}`;
+    return `Fechado em: ${formatDisplayDate(supplier.nextPaymentDue)}`;
   }
   return "Sem data de contrato";
 }

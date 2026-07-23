@@ -1,4 +1,5 @@
 import { AdminShell } from "@/component/AdminShell";
+import { AdminDataError } from "@/component/AdminDataError";
 import { AdminPaidOrdersList } from "@/component/AdminPaidOrdersList";
 import { requireAdminAuth } from "@/lib/admin-auth";
 import * as adminDashboard from "@/lib/admin-dashboard";
@@ -12,9 +13,21 @@ export default async function AdminGiftsPage() {
       getAdminGiftsData?: typeof adminDashboard.getAdminGiftsData;
     }
   ).getAdminGiftsData;
-  const data = getGiftsData
-    ? await getGiftsData()
-    : await adminDashboard.getAdminDashboardData();
+  const data = await (getGiftsData
+    ? getGiftsData()
+    : adminDashboard.getAdminDashboardData()
+  ).catch((error) => {
+    console.error("Nao foi possivel carregar presentes.", error);
+    return null;
+  });
+
+  if (!data) {
+    return (
+      <AdminShell title="Area dos Noivos">
+        <AdminDataError description="Nao conseguimos conectar ao banco para carregar os presentes agora. Tente novamente em alguns segundos." />
+      </AdminShell>
+    );
+  }
 
   return (
     <AdminShell title="Area dos Noivos">

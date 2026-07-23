@@ -1,7 +1,7 @@
 import { siteContent } from "@/content/siteContent";
 import { formatPriceCents, parsePriceLabelToCents } from "@/lib/currency";
 import { hasDatabaseUrl } from "@/lib/env";
-import { getPrisma } from "@/lib/prisma";
+import { getPrisma, withPrismaRetry } from "@/lib/prisma";
 
 export type DisplayGift = {
   id: string;
@@ -99,7 +99,7 @@ export async function ensureGiftCatalogSeeded() {
   }
 
   globalForGiftSeed.ensureGiftCatalogSeededSignature = seedSignature;
-  globalForGiftSeed.ensureGiftCatalogSeededPromise = (async () => {
+  globalForGiftSeed.ensureGiftCatalogSeededPromise = withPrismaRetry(async () => {
     const prisma = getPrisma();
     const activeSeedSlugs = seeds.map((gift) => gift.slug);
 
@@ -141,7 +141,7 @@ export async function ensureGiftCatalogSeeded() {
         }),
       ),
     );
-  })().catch((error) => {
+  }).catch((error) => {
     globalForGiftSeed.ensureGiftCatalogSeededPromise = undefined;
     globalForGiftSeed.ensureGiftCatalogSeededSignature = undefined;
     throw error;
@@ -155,12 +155,14 @@ export async function getDisplayGiftCatalog() {
     return getStaticDisplayGifts();
   }
 
-  await ensureGiftCatalogSeeded();
+  const gifts = await withPrismaRetry(async () => {
+    await ensureGiftCatalogSeeded();
 
-  const prisma = getPrisma();
-  const gifts = await prisma.giftItem.findMany({
-    where: { isActive: true },
-    orderBy: [{ displayOrder: "asc" }, { createdAt: "asc" }],
+    const prisma = getPrisma();
+    return prisma.giftItem.findMany({
+      where: { isActive: true },
+      orderBy: [{ displayOrder: "asc" }, { createdAt: "asc" }],
+    });
   });
 
   return gifts.map((gift) =>

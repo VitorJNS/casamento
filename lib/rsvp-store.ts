@@ -1,7 +1,7 @@
 import { unstable_cache } from "next/cache";
 
 import { shouldRunRuntimeDbSetup } from "@/lib/env";
-import { getPrisma } from "@/lib/prisma";
+import { getPrisma, withPrismaRetry } from "@/lib/prisma";
 
 export type RsvpConfirmationRow = {
   id: string;
@@ -72,7 +72,7 @@ type ColumnRow = {
 export async function ensureRsvpTable() {
   if (shouldRunRuntimeDbSetup()) {
     if (!globalForPresenceSetup.ensureRsvpTablePromise) {
-      globalForPresenceSetup.ensureRsvpTablePromise = (async () => {
+      globalForPresenceSetup.ensureRsvpTablePromise = withPrismaRetry(async () => {
         const prisma = getPrisma();
 
         await prisma.$executeRawUnsafe(`
@@ -91,14 +91,17 @@ export async function ensureRsvpTable() {
             updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
           );
         `);
-      })();
+      }).catch((error) => {
+        globalForPresenceSetup.ensureRsvpTablePromise = undefined;
+        throw error;
+      });
     }
 
     await globalForPresenceSetup.ensureRsvpTablePromise;
   }
 
   if (!globalForPresenceSetup.ensureRsvpTableShapePromise) {
-    globalForPresenceSetup.ensureRsvpTableShapePromise = (async () => {
+    globalForPresenceSetup.ensureRsvpTableShapePromise = withPrismaRetry(async () => {
       const prisma = getPrisma();
 
       await prisma.$executeRawUnsafe(`
@@ -131,7 +134,10 @@ export async function ensureRsvpTable() {
         CREATE INDEX IF NOT EXISTS idx_rsvp_confirmations_whatsapp_normalized
         ON rsvp_confirmations (whatsapp_normalized);
       `);
-    })();
+    }).catch((error) => {
+      globalForPresenceSetup.ensureRsvpTableShapePromise = undefined;
+      throw error;
+    });
   }
 
   return globalForPresenceSetup.ensureRsvpTableShapePromise;
@@ -140,7 +146,7 @@ export async function ensureRsvpTable() {
 export async function ensureGuestListTable() {
   if (shouldRunRuntimeDbSetup()) {
     if (!globalForPresenceSetup.ensureGuestListTablePromise) {
-      globalForPresenceSetup.ensureGuestListTablePromise = (async () => {
+      globalForPresenceSetup.ensureGuestListTablePromise = withPrismaRetry(async () => {
         const prisma = getPrisma();
 
         await prisma.$executeRawUnsafe(`
@@ -166,14 +172,17 @@ export async function ensureGuestListTable() {
           CREATE INDEX IF NOT EXISTS idx_guest_list_entries_whatsapp_normalized
           ON guest_list_entries (whatsapp_normalized);
         `);
-      })();
+      }).catch((error) => {
+        globalForPresenceSetup.ensureGuestListTablePromise = undefined;
+        throw error;
+      });
     }
 
     await globalForPresenceSetup.ensureGuestListTablePromise;
   }
 
   if (!globalForPresenceSetup.ensureGuestListTableShapePromise) {
-    globalForPresenceSetup.ensureGuestListTableShapePromise = (async () => {
+    globalForPresenceSetup.ensureGuestListTableShapePromise = withPrismaRetry(async () => {
       const prisma = getPrisma();
 
       await prisma.$executeRawUnsafe(`
@@ -249,7 +258,10 @@ export async function ensureGuestListTable() {
       `);
 
       globalForPresenceSetup.guestListColumnAvailabilityPromise = undefined;
-    })();
+    }).catch((error) => {
+      globalForPresenceSetup.ensureGuestListTableShapePromise = undefined;
+      throw error;
+    });
   }
 
   return globalForPresenceSetup.ensureGuestListTableShapePromise;
@@ -260,7 +272,7 @@ export async function getGuestListColumnAvailability() {
     return globalForPresenceSetup.guestListColumnAvailabilityPromise;
   }
 
-  globalForPresenceSetup.guestListColumnAvailabilityPromise = (async () => {
+  globalForPresenceSetup.guestListColumnAvailabilityPromise = withPrismaRetry(async () => {
     const prisma = getPrisma();
     const columns = await prisma.$queryRawUnsafe<ColumnRow[]>(`
       SELECT column_name
@@ -281,7 +293,10 @@ export async function getGuestListColumnAvailability() {
       familyLabel: columnNames.has("family_label"),
       isChild: columnNames.has("is_child"),
     } satisfies GuestListColumnAvailability;
-  })();
+  }).catch((error) => {
+    globalForPresenceSetup.guestListColumnAvailabilityPromise = undefined;
+    throw error;
+  });
 
   return globalForPresenceSetup.guestListColumnAvailabilityPromise;
 }
@@ -306,38 +321,40 @@ export async function listGuestListEntries(options?: { includeInactive?: boolean
 }
 
 async function queryGuestListEntries(includeInactive: boolean) {
-  await ensureGuestListTable();
-  const prisma = getPrisma();
-  const columns = await getGuestListColumnAvailability();
+  return withPrismaRetry(async () => {
+    await ensureGuestListTable();
+    const prisma = getPrisma();
+    const columns = await getGuestListColumnAvailability();
 
-  return prisma.$queryRawUnsafe<GuestListEntryRow[]>(
-    `
-      SELECT
-        id,
-        guest_name,
-        whatsapp,
-        whatsapp_normalized,
-        ${columns.secondaryWhatsapp ? "secondary_whatsapp" : "NULL AS secondary_whatsapp"},
-        ${
-          columns.secondaryWhatsappNormalized
-            ? "secondary_whatsapp_normalized"
-            : "NULL AS secondary_whatsapp_normalized"
-        },
-        ${columns.email ? "email" : "NULL AS email"},
-        ${columns.adultNames ? "adult_names" : "'[]'::jsonb AS adult_names"},
-        ${columns.childCount ? "child_count" : "0 AS child_count"},
-        ${columns.companionNames ? "companion_names" : "'[]'::jsonb AS companion_names"},
-        ${columns.familyLabel ? "family_label" : "NULL AS family_label"},
-        ${columns.isChild ? "is_child" : "FALSE AS is_child"},
-        note,
-        is_active,
-        created_at,
-        updated_at
-      FROM guest_list_entries
-      ${includeInactive ? "" : "WHERE is_active = TRUE"}
-      ORDER BY guest_name ASC
-    `,
-  );
+    return prisma.$queryRawUnsafe<GuestListEntryRow[]>(
+      `
+        SELECT
+          id,
+          guest_name,
+          whatsapp,
+          whatsapp_normalized,
+          ${columns.secondaryWhatsapp ? "secondary_whatsapp" : "NULL AS secondary_whatsapp"},
+          ${
+            columns.secondaryWhatsappNormalized
+              ? "secondary_whatsapp_normalized"
+              : "NULL AS secondary_whatsapp_normalized"
+          },
+          ${columns.email ? "email" : "NULL AS email"},
+          ${columns.adultNames ? "adult_names" : "'[]'::jsonb AS adult_names"},
+          ${columns.childCount ? "child_count" : "0 AS child_count"},
+          ${columns.companionNames ? "companion_names" : "'[]'::jsonb AS companion_names"},
+          ${columns.familyLabel ? "family_label" : "NULL AS family_label"},
+          ${columns.isChild ? "is_child" : "FALSE AS is_child"},
+          note,
+          is_active,
+          created_at,
+          updated_at
+        FROM guest_list_entries
+        ${includeInactive ? "" : "WHERE is_active = TRUE"}
+        ORDER BY guest_name ASC
+      `,
+    );
+  });
 }
 
 const listActiveGuestListEntriesCached = unstable_cache(

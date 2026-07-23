@@ -4,7 +4,7 @@ import { formatPriceCents } from "@/lib/currency";
 import { toIsoString, toIsoStringOrNull } from "@/lib/date";
 import { ORDERS_TAG } from "@/lib/orders";
 import { getPresenceDashboardData, PRESENCE_TAG } from "@/lib/presence-dashboard";
-import { getPrisma } from "@/lib/prisma";
+import { getPrisma, withPrismaRetry } from "@/lib/prisma";
 import {
   ensureRsvpTable,
   GUEST_LIST_TAG,
@@ -56,8 +56,9 @@ function normalizeGuestResponses(value: unknown) {
 }
 
 export async function getAdminDashboardData() {
-  const prisma = getPrisma();
-  await ensureRsvpTable();
+  return withPrismaRetry(async () => {
+    const prisma = getPrisma();
+    await ensureRsvpTable();
 
   const [orders, paidOrders, paidAggregate, rsvpRows, presenceData] = await Promise.all([
     prisma.order.findMany({
@@ -108,89 +109,92 @@ export async function getAdminDashboardData() {
   const guestListEntries = await listGuestListEntries({ includeInactive: false });
   const presenceById = new Map(dataToPresenceMap(presenceData.guests).map((entry) => [entry.id, entry]));
 
-  return {
-    summary: {
-      totalRsvps: rsvpRows.length,
-      confirmedRsvps: rsvpConfirmed.length,
-      declinedRsvps: rsvpDeclined.length,
-      confirmedGuests,
-      confirmedChildren,
-      declinedGuests,
-      declinedChildren,
-      totalOrders: orders.length,
-      paidOrders: paidAggregate._count._all,
-      totalReceivedCents: paidAggregate._sum.subtotalCents ?? 0,
-      totalReceivedLabel: formatPriceCents(paidAggregate._sum.subtotalCents ?? 0),
-      totalCheckoutPaidCents: paidAggregate._sum.paidCents ?? 0,
-      totalCheckoutPaidLabel: formatPriceCents(paidAggregate._sum.paidCents ?? 0),
-      totalCheckoutDifferenceCents:
-        (paidAggregate._sum.paidCents ?? 0) - (paidAggregate._sum.subtotalCents ?? 0),
-      totalCheckoutDifferenceLabel: formatPriceCents(
-        (paidAggregate._sum.paidCents ?? 0) - (paidAggregate._sum.subtotalCents ?? 0),
-      ),
-      paidGiftUnits,
-    },
-    rsvps: rsvpRows.map((row) => ({
-      id: row.id,
-      guestName: row.guest_name,
-      whatsapp: row.whatsapp,
-      email: row.email,
-      attendance: row.attendance,
-      guestCount: row.guest_count,
-      childCount: row.child_count,
-      countableGuestCount: Math.max(row.guest_count - row.child_count, 0),
-      companionNames: normalizeCompanionNames(row.companion_names),
-      guestResponses: normalizeGuestResponses(row.guest_responses),
-      note: row.note,
-      createdAt: toIsoString(row.created_at),
-    })),
-    paidOrders: paidOrders.map((order) => ({
-      publicId: order.publicId,
-      guestName: order.guestName,
-      guestEmail: order.guestEmail,
-      subtotalCents: order.subtotalCents,
-      subtotalLabel: formatPriceCents(order.subtotalCents),
-      paidCents: order.paidCents,
-      paidLabel: formatPriceCents(order.paidCents),
-      checkoutDifferenceCents: order.paidCents - order.subtotalCents,
-      checkoutDifferenceLabel: formatPriceCents(order.paidCents - order.subtotalCents),
-      paidAt: toIsoStringOrNull(order.paidAt),
-      paymentMethod: order.paymentMethod,
-      items: order.items.map((item) => ({
-        id: item.id,
-        title: item.titleSnapshot,
-        quantity: item.quantity,
-        lineTotalLabel: formatPriceCents(item.lineTotalCents),
+    return {
+      summary: {
+        totalRsvps: rsvpRows.length,
+        confirmedRsvps: rsvpConfirmed.length,
+        declinedRsvps: rsvpDeclined.length,
+        confirmedGuests,
+        confirmedChildren,
+        declinedGuests,
+        declinedChildren,
+        totalOrders: orders.length,
+        paidOrders: paidAggregate._count._all,
+        totalReceivedCents: paidAggregate._sum.subtotalCents ?? 0,
+        totalReceivedLabel: formatPriceCents(paidAggregate._sum.subtotalCents ?? 0),
+        totalCheckoutPaidCents: paidAggregate._sum.paidCents ?? 0,
+        totalCheckoutPaidLabel: formatPriceCents(paidAggregate._sum.paidCents ?? 0),
+        totalCheckoutDifferenceCents:
+          (paidAggregate._sum.paidCents ?? 0) -
+          (paidAggregate._sum.subtotalCents ?? 0),
+        totalCheckoutDifferenceLabel: formatPriceCents(
+          (paidAggregate._sum.paidCents ?? 0) -
+            (paidAggregate._sum.subtotalCents ?? 0),
+        ),
+        paidGiftUnits,
+      },
+      rsvps: rsvpRows.map((row) => ({
+        id: row.id,
+        guestName: row.guest_name,
+        whatsapp: row.whatsapp,
+        email: row.email,
+        attendance: row.attendance,
+        guestCount: row.guest_count,
+        childCount: row.child_count,
+        countableGuestCount: Math.max(row.guest_count - row.child_count, 0),
+        companionNames: normalizeCompanionNames(row.companion_names),
+        guestResponses: normalizeGuestResponses(row.guest_responses),
+        note: row.note,
+        createdAt: toIsoString(row.created_at),
+      })),
+      paidOrders: paidOrders.map((order) => ({
+        publicId: order.publicId,
+        guestName: order.guestName,
+        guestEmail: order.guestEmail,
+        subtotalCents: order.subtotalCents,
+        subtotalLabel: formatPriceCents(order.subtotalCents),
+        paidCents: order.paidCents,
+        paidLabel: formatPriceCents(order.paidCents),
+        checkoutDifferenceCents: order.paidCents - order.subtotalCents,
+        checkoutDifferenceLabel: formatPriceCents(order.paidCents - order.subtotalCents),
+        paidAt: toIsoStringOrNull(order.paidAt),
+        paymentMethod: order.paymentMethod,
+        items: order.items.map((item) => ({
+          id: item.id,
+          title: item.titleSnapshot,
+          quantity: item.quantity,
+          lineTotalLabel: formatPriceCents(item.lineTotalCents),
         })),
-    })),
-    guestPresence: presenceData,
-    guestList: guestListEntries.map((guest) => {
-      const presence = presenceById.get(guest.id);
+      })),
+      guestPresence: presenceData,
+      guestList: guestListEntries.map((guest) => {
+        const presence = presenceById.get(guest.id);
 
-      return {
-        id: guest.id,
-        guestName: guest.guest_name,
-        whatsapp: guest.whatsapp,
-        secondaryWhatsapp: guest.secondary_whatsapp,
-        note: guest.note,
-        familyLabel: guest.family_label,
-        isChild: guest.is_child,
-        status: presence?.status ?? "pending",
-        rsvpId: presence?.rsvpId ?? null,
-        email: presence?.email ?? guest.email ?? null,
-        guestCount: presence?.guestCount ?? null,
-        childCount: presence?.childCount ?? 0,
-        countableGuestCount: presence?.countableGuestCount ?? null,
-        companionNames: presence?.companionNames ?? [],
-        adultNames: presence?.adultNames ?? [],
-        householdMembers: presence?.householdMembers ?? [],
-        responseNote: presence?.responseNote ?? null,
-        respondedAt: presence?.respondedAt ?? null,
-        sourceKind: "guest-list" as const,
-        whatsappNormalized: normalizeWhatsapp(guest.whatsapp),
-      };
-    }),
-  };
+        return {
+          id: guest.id,
+          guestName: guest.guest_name,
+          whatsapp: guest.whatsapp,
+          secondaryWhatsapp: guest.secondary_whatsapp,
+          note: guest.note,
+          familyLabel: guest.family_label,
+          isChild: guest.is_child,
+          status: presence?.status ?? "pending",
+          rsvpId: presence?.rsvpId ?? null,
+          email: presence?.email ?? guest.email ?? null,
+          guestCount: presence?.guestCount ?? null,
+          childCount: presence?.childCount ?? 0,
+          countableGuestCount: presence?.countableGuestCount ?? null,
+          companionNames: presence?.companionNames ?? [],
+          adultNames: presence?.adultNames ?? [],
+          householdMembers: presence?.householdMembers ?? [],
+          responseNote: presence?.responseNote ?? null,
+          respondedAt: presence?.respondedAt ?? null,
+          sourceKind: "guest-list" as const,
+          whatsappNormalized: normalizeWhatsapp(guest.whatsapp),
+        };
+      }),
+    };
+  });
 }
 
 function dataToPresenceMap(
@@ -204,7 +208,7 @@ export async function getAdminGuestsData() {
 }
 
 const getAdminGuestsDataCached = unstable_cache(
-  async () => {
+  async () => withPrismaRetry(async () => {
   const prisma = getPrisma();
   await ensureRsvpTable();
 
@@ -290,7 +294,7 @@ const getAdminGuestsDataCached = unstable_cache(
       };
     }),
   };
-  },
+  }),
   ["admin-guests"],
   { revalidate: 15, tags: [RSVP_TAG, GUEST_LIST_TAG, PRESENCE_TAG] },
 );
@@ -300,7 +304,7 @@ export async function getAdminGiftsData() {
 }
 
 const getAdminGiftsDataCached = unstable_cache(
-  async () => {
+  async () => withPrismaRetry(async () => {
   const prisma = getPrisma();
 
   const [paidOrders, paidAggregate] = await Promise.all([
@@ -356,7 +360,7 @@ const getAdminGiftsDataCached = unstable_cache(
       })),
     })),
   };
-  },
+  }),
   ["admin-gifts"],
   { revalidate: 15, tags: [ORDERS_TAG] },
 );

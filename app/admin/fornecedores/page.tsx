@@ -2,6 +2,8 @@ import {
   AdminSuppliersManager,
   type AdminSupplier,
 } from "@/component/AdminSuppliersManager";
+import { AdminDataError } from "@/component/AdminDataError";
+import { AdminShell } from "@/component/AdminShell";
 import { requireAdminAuth } from "@/lib/admin-auth";
 import { toIsoString, toIsoStringOrNull } from "@/lib/date";
 import { listSuppliers } from "@/lib/suppliers-store";
@@ -32,7 +34,18 @@ function mapSupplier(
 
 export default async function AdminSuppliersPage() {
   await requireAdminAuth();
-  const suppliers = await listSuppliers();
+  const suppliers = await listSuppliers().catch((error) => {
+    console.error("Nao foi possivel carregar fornecedores.", error);
+    return null;
+  });
+
+  if (!suppliers) {
+    return (
+      <AdminShell title="Area dos Noivos">
+        <AdminDataError description="Nao conseguimos conectar ao banco para carregar os fornecedores agora. Tente novamente em alguns segundos." />
+      </AdminShell>
+    );
+  }
 
   return <AdminSuppliersManager initialSuppliers={suppliers.map(mapSupplier)} />;
 }

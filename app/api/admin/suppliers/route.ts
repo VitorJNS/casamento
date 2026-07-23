@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { toIsoString, toIsoStringOrNull } from "@/lib/date";
-import { getPrisma } from "@/lib/prisma";
+import { getPrisma, withPrismaRetry } from "@/lib/prisma";
 import {
   ensureSuppliersTable,
   SUPPLIERS_TAG,
@@ -120,7 +120,8 @@ export async function POST(request: Request) {
     const prisma = getPrisma();
     const id = `supplier_${crypto.randomUUID().replace(/-/g, "")}`;
 
-    await prisma.$executeRawUnsafe(
+    await withPrismaRetry(() =>
+      prisma.$executeRawUnsafe(
       `
         INSERT INTO cerimonial_suppliers (
           id,
@@ -148,9 +149,11 @@ export async function POST(request: Request) {
       payload.amountPaidCents,
       payload.nextPaymentDue || null,
       payload.note || null,
+      ),
     );
 
-    const [created] = await prisma.$queryRawUnsafe<SupplierEntryRow[]>(
+    const [created] = await withPrismaRetry(() =>
+      prisma.$queryRawUnsafe<SupplierEntryRow[]>(
       `
         SELECT
           id,
@@ -171,6 +174,7 @@ export async function POST(request: Request) {
         WHERE id = $1
       `,
       id,
+      ),
     );
 
     revalidateTag(SUPPLIERS_TAG, { expire: 0 });

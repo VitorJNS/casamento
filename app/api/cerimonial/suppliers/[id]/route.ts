@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 
 import { isCerimonialAuthenticated } from "@/lib/cerimonial-auth";
-import { getPrisma } from "@/lib/prisma";
-import { ensureSuppliersTable } from "@/lib/suppliers-store";
 
 export const runtime = "nodejs";
 

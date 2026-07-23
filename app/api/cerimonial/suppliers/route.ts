@@ -3,9 +3,7 @@ import { z } from "zod";
 
 import { isCerimonialAuthenticated } from "@/lib/cerimonial-auth";
 import { toIsoString, toIsoStringOrNull } from "@/lib/date";
-import { getPrisma } from "@/lib/prisma";
 import {
-  ensureSuppliersTable,
   listSuppliers,
   type SupplierEntryRow,
 } from "@/lib/suppliers-store";
@@ -115,8 +113,22 @@ export async function GET() {
   const authError = await requireCerimonialApiAuth();
   if (authError) return authError;
 
-  const suppliers = await listSuppliers();
-  return NextResponse.json({ suppliers: suppliers.map(mapSupplier) });
+  try {
+    const suppliers = await listSuppliers();
+    return NextResponse.json({ suppliers: suppliers.map(mapSupplier) });
+  } catch (error) {
+    console.error("Nao foi possivel carregar fornecedores para cerimonial.", error);
+    return NextResponse.json(
+      {
+        error: {
+          code: "LIST_SUPPLIERS_FAILED",
+          message:
+            "Nao conseguimos carregar os fornecedores agora. Aguarde alguns segundos e tente novamente.",
+        },
+      },
+      { status: 500 },
+    );
+  }
 }
 
 export async function POST(_request: Request) {

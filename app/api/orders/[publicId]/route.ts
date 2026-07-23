@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { serializeOrder } from "@/lib/orders";
-import { getPrisma } from "@/lib/prisma";
+import { getPrisma, withPrismaRetry } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
@@ -13,10 +13,10 @@ export async function GET(
 
   try {
     const prisma = getPrisma();
-    const order = await prisma.order.findUnique({
+    const order = await withPrismaRetry(() => prisma.order.findUnique({
       where: { publicId },
       include: { items: true },
-    });
+    }));
 
     if (!order) {
       return NextResponse.json({ error: { code: "ORDER_NOT_FOUND", message: "Pedido nao encontrado." } }, { status: 404 });

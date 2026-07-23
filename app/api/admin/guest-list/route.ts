@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { toIsoString } from "@/lib/date";
-import { getPrisma } from "@/lib/prisma";
+import { getPrisma, withPrismaRetry } from "@/lib/prisma";
 import {
   ensureGuestListTable,
   getGuestListColumnAvailability,
@@ -90,8 +90,24 @@ export async function GET() {
   const authError = await requireAdminApiAuth();
   if (authError) return authError;
 
-  const entries = await listGuestListEntries({ includeInactive: true });
-  return NextResponse.json({ guests: entries.map(mapGuestEntry) });
+  try {
+    const entries = await withPrismaRetry(() =>
+      listGuestListEntries({ includeInactive: true }),
+    );
+    return NextResponse.json({ guests: entries.map(mapGuestEntry) });
+  } catch (error) {
+    console.error("Nao foi possivel carregar convidados pela API.", error);
+    return NextResponse.json(
+      {
+        error: {
+          code: "LIST_GUESTS_FAILED",
+          message:
+            "Nao conseguimos carregar os convidados agora. Aguarde alguns segundos e tente novamente.",
+        },
+      },
+      { status: 500 },
+    );
+  }
 }
 
 export async function POST(request: Request) {
@@ -157,16 +173,19 @@ export async function POST(request: Request) {
     insertColumns.push("updated_at");
     placeholders.push("CURRENT_TIMESTAMP");
 
-    await prisma.$executeRawUnsafe(
+    await withPrismaRetry(() =>
+      prisma.$executeRawUnsafe(
       `
         INSERT INTO guest_list_entries (
           ${insertColumns.join(", ")}
         ) VALUES (${placeholders.join(", ")})
       `,
       ...insertValues,
+      ),
     );
 
-    const [created] = await prisma.$queryRawUnsafe<GuestListEntryRow[]>(
+    const [created] = await withPrismaRetry(() =>
+      prisma.$queryRawUnsafe<GuestListEntryRow[]>(
       `
         SELECT
           id,
@@ -193,6 +212,7 @@ export async function POST(request: Request) {
         WHERE id = $1
       `,
       id,
+      ),
     );
 
     revalidateTag(GUEST_LIST_TAG, { expire: 0 });

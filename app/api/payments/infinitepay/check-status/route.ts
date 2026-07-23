@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { checkInfinitePayPayment } from "@/lib/infinitepay";
 import { ORDERS_TAG } from "@/lib/orders";
-import { getPrisma } from "@/lib/prisma";
+import { getPrisma, withPrismaRetry } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const preferredRegion = "gru1";
@@ -27,9 +27,11 @@ export async function POST(request: Request) {
     }
 
     const prisma = getPrisma();
-    const order = await prisma.order.findFirst({
+    const order = await withPrismaRetry(() =>
+      prisma.order.findFirst({
       where: payload.publicId ? { publicId: payload.publicId } : { providerOrderNsu: payload.orderNsu },
-    });
+      }),
+    );
 
     if (!order || !order.providerOrderNsu) {
       return NextResponse.json({ error: { code: "ORDER_NOT_FOUND", message: "Pedido nao encontrado para reconciliacao." } }, { status: 404 });
@@ -45,7 +47,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: { code: "PAYMENT_CHECK_NOT_CONFIRMED", message: payment.message } }, { status: 400 });
     }
 
-    const updated = await prisma.order.update({
+    const updated = await withPrismaRetry(() =>
+      prisma.order.update({
       where: { id: order.id },
       data: {
         status: payment.paid ? "paid" : "pending_payment",
@@ -54,7 +57,8 @@ export async function POST(request: Request) {
         paidAt: payment.paid ? order.paidAt ?? new Date() : order.paidAt,
       },
       include: { items: true },
-    });
+      }),
+    );
 
     revalidateTag(ORDERS_TAG, { expire: 0 });
     return NextResponse.json({

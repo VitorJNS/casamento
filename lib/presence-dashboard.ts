@@ -1,6 +1,6 @@
 import { unstable_cache } from "next/cache";
 
-import { getPrisma } from "@/lib/prisma";
+import { getPrisma, withPrismaRetry } from "@/lib/prisma";
 import {
   ensurePresenceTables,
   getGuestListColumnAvailability,
@@ -68,7 +68,7 @@ export async function getPresenceDashboardData() {
 }
 
 const getPresenceDashboardDataCached = unstable_cache(
-  async () => {
+  async () => withPrismaRetry(async () => {
     await ensurePresenceTables();
     const prisma = getPrisma();
     const guestListColumns = await getGuestListColumnAvailability();
@@ -242,7 +242,7 @@ const getPresenceDashboardDataCached = unstable_cache(
       },
       guests,
     };
-  },
+  }),
   ["presence-dashboard"],
   { revalidate: 15, tags: [PRESENCE_TAG, RSVP_TAG, GUEST_LIST_TAG] },
 );

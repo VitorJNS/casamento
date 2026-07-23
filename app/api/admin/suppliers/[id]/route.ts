@@ -2,7 +2,7 @@ import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { isAdminAuthenticated } from "@/lib/admin-auth";
-import { getPrisma } from "@/lib/prisma";
+import { getPrisma, withPrismaRetry } from "@/lib/prisma";
 import { ensureSuppliersTable, SUPPLIERS_TAG } from "@/lib/suppliers-store";
 
 export const runtime = "nodejs";
@@ -38,7 +38,8 @@ export async function DELETE(
     const { id } = await context.params;
     const prisma = getPrisma();
 
-    const result = await prisma.$executeRawUnsafe(
+    const result = await withPrismaRetry(() =>
+      prisma.$executeRawUnsafe(
       `
         UPDATE cerimonial_suppliers
         SET
@@ -47,6 +48,7 @@ export async function DELETE(
         WHERE id = $1
       `,
       id,
+      ),
     );
 
     if (result === 0) {

@@ -1,7 +1,7 @@
 import { unstable_cache } from "next/cache";
 
 import { shouldRunRuntimeDbSetup } from "@/lib/env";
-import { getPrisma } from "@/lib/prisma";
+import { getPrisma, withPrismaRetry } from "@/lib/prisma";
 
 export type SupplierEntryRow = {
   id: string;
@@ -35,7 +35,7 @@ export async function ensureSuppliersTable() {
     return globalForSupplierSetup.ensureSuppliersTablePromise;
   }
 
-  globalForSupplierSetup.ensureSuppliersTablePromise = (async () => {
+  globalForSupplierSetup.ensureSuppliersTablePromise = withPrismaRetry(async () => {
     const prisma = getPrisma();
 
     await prisma.$executeRawUnsafe(`
@@ -86,7 +86,10 @@ export async function ensureSuppliersTable() {
       CREATE INDEX IF NOT EXISTS idx_cerimonial_suppliers_is_active
       ON cerimonial_suppliers (is_active);
     `);
-  })();
+  }).catch((error) => {
+    globalForSupplierSetup.ensureSuppliersTablePromise = undefined;
+    throw error;
+  });
 
   return globalForSupplierSetup.ensureSuppliersTablePromise;
 }
@@ -98,31 +101,33 @@ export async function listSuppliers(options?: { includeInactive?: boolean }) {
 }
 
 async function querySuppliers(includeInactive: boolean) {
-  await ensureSuppliersTable();
-  const prisma = getPrisma();
+  return withPrismaRetry(async () => {
+    await ensureSuppliersTable();
+    const prisma = getPrisma();
 
-  return prisma.$queryRawUnsafe<SupplierEntryRow[]>(
-    `
-      SELECT
-        id,
-        supplier_name,
-        category,
-        supplier_status,
-        contact_name,
-        phone,
-        email,
-        contract_value_cents,
-        amount_paid_cents,
-        next_payment_due,
-        note,
-        is_active,
-        created_at,
-        updated_at
-      FROM cerimonial_suppliers
-      ${includeInactive ? "" : "WHERE is_active = TRUE"}
-      ORDER BY supplier_name ASC
-    `,
-  );
+    return prisma.$queryRawUnsafe<SupplierEntryRow[]>(
+      `
+        SELECT
+          id,
+          supplier_name,
+          category,
+          supplier_status,
+          contact_name,
+          phone,
+          email,
+          contract_value_cents,
+          amount_paid_cents,
+          next_payment_due,
+          note,
+          is_active,
+          created_at,
+          updated_at
+        FROM cerimonial_suppliers
+        ${includeInactive ? "" : "WHERE is_active = TRUE"}
+        ORDER BY supplier_name ASC
+      `,
+    );
+  });
 }
 
 const listActiveSuppliersCached = unstable_cache(

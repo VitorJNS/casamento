@@ -176,13 +176,13 @@ export function GuestListManager({
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data?.error?.message ?? "Nao foi possivel desativar o convidado.");
+        throw new Error(data?.error?.message ?? "Nao foi possivel remover o convidado.");
       }
 
       refreshPage();
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : "Nao foi possivel desativar o convidado.",
+        error instanceof Error ? error.message : "Nao foi possivel remover o convidado.",
       );
     } finally {
       setIsSaving(false);
@@ -331,7 +331,7 @@ export function GuestListManager({
                           disabled={isSaving}
                           className="rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-700 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                          Desativar
+                          Remover
                         </button>
                       </div>
                     </div>

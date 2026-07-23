@@ -5,7 +5,7 @@ import { z } from "zod";
 import { getOptionalServerEnv } from "@/lib/env";
 import { buildGiftPaidEmail, sendGiftStatusEmail } from "@/lib/gift-email";
 import { ORDERS_TAG } from "@/lib/orders";
-import { getPrisma } from "@/lib/prisma";
+import { getPrisma, withPrismaRetry } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const preferredRegion = "gru1";
@@ -38,14 +38,17 @@ export async function POST(request: Request) {
     const orWhere: Array<{ providerOrderNsu?: string; providerTransactionNsu?: string }> = [{ providerOrderNsu: payload.order_nsu }];
     if (payload.transaction_nsu) orWhere.push({ providerTransactionNsu: payload.transaction_nsu });
 
-    const order = await prisma.order.findFirst({ where: { OR: orWhere } });
+    const order = await withPrismaRetry(() =>
+      prisma.order.findFirst({ where: { OR: orWhere } }),
+    );
     if (!order) {
       return NextResponse.json({ error: { code: "ORDER_NOT_FOUND", message: "Pedido do webhook nao encontrado." } }, { status: 404 });
     }
 
     const dedupeKey = payload.transaction_nsu ?? `${payload.order_nsu}:${payload.invoice_slug ?? "no-slug"}:${payload.paid_amount ?? payload.amount ?? 0}`;
     try {
-      await prisma.paymentEvent.create({
+      await withPrismaRetry(() =>
+        prisma.paymentEvent.create({
         data: {
           orderId: order.id,
           providerEventId: payload.transaction_nsu,
@@ -54,7 +57,8 @@ export async function POST(request: Request) {
           status: "received",
           processedAt: new Date(),
         },
-      });
+        }),
+      );
     } catch (error) {
       if (error instanceof Error && "code" in error && error.code === "P2002") {
         return NextResponse.json({ received: true, deduplicated: true });
@@ -62,7 +66,8 @@ export async function POST(request: Request) {
       throw error;
     }
 
-    const updatedOrder = await prisma.order.update({
+    const updatedOrder = await withPrismaRetry(() =>
+      prisma.order.update({
       where: { id: order.id },
       data: {
         status: "paid",
@@ -74,7 +79,8 @@ export async function POST(request: Request) {
         paidAt: new Date(),
       },
       include: { items: true },
-    });
+      }),
+    );
 
     try {
       await sendGiftStatusEmail(

@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { toIsoString } from "@/lib/date";
-import { getPrisma } from "@/lib/prisma";
+import { getPrisma, withPrismaRetry } from "@/lib/prisma";
 import {
   ensureGuestListTable,
   getGuestListColumnAvailability,
@@ -88,7 +88,8 @@ async function requireAdminApiAuth() {
 async function loadGuest(id: string) {
   const columns = await getGuestListColumnAvailability();
   const prisma = getPrisma();
-  const [row] = await prisma.$queryRawUnsafe<GuestListEntryRow[]>(
+  const [row] = await withPrismaRetry(() =>
+    prisma.$queryRawUnsafe<GuestListEntryRow[]>(
     `
       SELECT
         id,
@@ -115,6 +116,7 @@ async function loadGuest(id: string) {
       WHERE id = $1
     `,
     id,
+    ),
   );
 
   return row ?? null;
@@ -182,7 +184,8 @@ export async function PATCH(
     pushSet("note", payload.note ?? null);
     setClauses.push("updated_at = CURRENT_TIMESTAMP");
 
-    await prisma.$executeRawUnsafe(
+    const result = await withPrismaRetry(() =>
+      prisma.$executeRawUnsafe(
       `
         UPDATE guest_list_entries
         SET
@@ -190,6 +193,7 @@ export async function PATCH(
         WHERE id = $1
       `,
       ...values,
+      ),
     );
 
     const updated = await loadGuest(id);
@@ -264,7 +268,8 @@ export async function DELETE(
     const { id } = await context.params;
     const prisma = getPrisma();
 
-    await prisma.$executeRawUnsafe(
+    const result = await withPrismaRetry(() =>
+      prisma.$executeRawUnsafe(
       `
         UPDATE guest_list_entries
         SET
@@ -273,7 +278,20 @@ export async function DELETE(
         WHERE id = $1
       `,
       id,
+      ),
     );
+
+    if (result === 0) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "GUEST_NOT_FOUND",
+            message: "Convidado nao encontrado.",
+          },
+        },
+        { status: 404 },
+      );
+    }
 
     revalidateTag(GUEST_LIST_TAG, { expire: 0 });
     revalidateTag(RSVP_TAG, { expire: 0 });
@@ -287,7 +305,7 @@ export async function DELETE(
           message:
             error instanceof Error
               ? error.message
-              : "Nao foi possivel desativar o convidado.",
+              : "Nao foi possivel remover o convidado.",
         },
       },
       { status: 500 },

@@ -1,4 +1,5 @@
 import { AdminShell } from "@/component/AdminShell";
+import { AdminDataError } from "@/component/AdminDataError";
 import { AdminRsvpList } from "@/component/AdminRsvpList";
 import { GuestListManager } from "@/component/GuestListManager";
 import { requireAdminAuth } from "@/lib/admin-auth";
@@ -13,9 +14,21 @@ export default async function AdminGuestsPage() {
       getAdminGuestsData?: typeof adminDashboard.getAdminGuestsData;
     }
   ).getAdminGuestsData;
-  const data = getGuestsData
-    ? await getGuestsData()
-    : await adminDashboard.getAdminDashboardData();
+  const data = await (getGuestsData
+    ? getGuestsData()
+    : adminDashboard.getAdminDashboardData()
+  ).catch((error) => {
+    console.error("Nao foi possivel carregar a lista de convidados.", error);
+    return null;
+  });
+
+  if (!data) {
+    return (
+      <AdminShell title="Area dos Noivos">
+        <AdminDataError description="Nao conseguimos conectar ao banco para carregar os convidados agora. Tente novamente em alguns segundos." />
+      </AdminShell>
+    );
+  }
 
   return (
     <AdminShell title="Area dos Noivos">

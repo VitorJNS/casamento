@@ -4,7 +4,7 @@ import { z } from "zod";
 import { ensureGiftCatalogSeeded } from "@/lib/gifts";
 import { createInfinitePayCheckoutLink } from "@/lib/infinitepay";
 import { createProviderOrderNsu, createPublicOrderId } from "@/lib/orders";
-import { getPrisma } from "@/lib/prisma";
+import { getPrisma, withPrismaRetry } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
@@ -28,12 +28,14 @@ type GiftRecord = {
 export async function POST(request: Request) {
   try {
     const payload = checkoutSchema.parse(await request.json());
-    await ensureGiftCatalogSeeded();
-
     const prisma = getPrisma();
     const uniqueIds = [...new Set(payload.items.map((item) => item.giftId))];
-    const giftItems = (await prisma.giftItem.findMany({
-      where: { slug: { in: uniqueIds }, isActive: true },
+    const giftItems = (await withPrismaRetry(async () => {
+      await ensureGiftCatalogSeeded();
+
+      return prisma.giftItem.findMany({
+        where: { slug: { in: uniqueIds }, isActive: true },
+      });
     })) as GiftRecord[];
 
     if (giftItems.length !== uniqueIds.length) {
@@ -55,7 +57,7 @@ export async function POST(request: Request) {
     const publicId = createPublicOrderId();
     const providerOrderNsu = createProviderOrderNsu(publicId);
 
-    const order = await prisma.order.create({
+    const order = await withPrismaRetry(() => prisma.order.create({
       data: {
         publicId,
         guestName: payload.guestName,
@@ -75,7 +77,7 @@ export async function POST(request: Request) {
           })),
         },
       },
-    });
+    }));
 
     try {
       const checkout = await createInfinitePayCheckoutLink({
@@ -90,18 +92,20 @@ export async function POST(request: Request) {
         })),
       });
 
-      await prisma.order.update({
+      await withPrismaRetry(() => prisma.order.update({
         where: { id: order.id },
         data: {
           status: "checkout_created",
           providerSlug: checkout.slug,
           providerCheckoutUrl: checkout.checkoutUrl,
         },
-      });
+      }));
 
       return NextResponse.json({ orderPublicId: publicId, checkoutUrl: checkout.checkoutUrl });
     } catch (error) {
-      await prisma.order.update({ where: { id: order.id }, data: { status: "failed" } });
+      await withPrismaRetry(() =>
+        prisma.order.update({ where: { id: order.id }, data: { status: "failed" } }),
+      );
       throw error;
     }
   } catch (error) {

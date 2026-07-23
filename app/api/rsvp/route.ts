@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { PRESENCE_TAG } from "@/lib/presence-dashboard";
-import { getPrisma } from "@/lib/prisma";
+import { getPrisma, withPrismaRetry } from "@/lib/prisma";
 import { sendRsvpConfirmationEmail } from "@/lib/rsvp-email";
 import {
   ensureGuestListTable,
@@ -48,9 +48,10 @@ type LatestGuestResponseRow = {
 async function loadGuestsByWhatsapp(whatsapp: string) {
   await ensureGuestListTable();
   const columns = await getGuestListColumnAvailability();
-  const prisma = getPrisma();
+  return withPrismaRetry(async () => {
+    const prisma = getPrisma();
 
-  return prisma.$queryRawUnsafe<GuestListEntryRow[]>(
+    return prisma.$queryRawUnsafe<GuestListEntryRow[]>(
     `
       SELECT
         id,
@@ -79,7 +80,8 @@ async function loadGuestsByWhatsapp(whatsapp: string) {
       ORDER BY guest_name ASC
     `,
     normalizeWhatsapp(whatsapp),
-  );
+    );
+  });
 }
 
 async function loadInviteGroupByWhatsapp(whatsapp: string) {
@@ -96,9 +98,10 @@ async function loadInviteGroupByWhatsapp(whatsapp: string) {
   }
 
   const columns = await getGuestListColumnAvailability();
-  const prisma = getPrisma();
+  return withPrismaRetry(async () => {
+    const prisma = getPrisma();
 
-  return prisma.$queryRawUnsafe<GuestListEntryRow[]>(
+    return prisma.$queryRawUnsafe<GuestListEntryRow[]>(
     `
       SELECT
         id,
@@ -131,7 +134,8 @@ async function loadInviteGroupByWhatsapp(whatsapp: string) {
     `,
     familyLabel,
     normalizeWhatsapp(whatsapp),
-  );
+    );
+  });
 }
 
 async function loadLatestGuestResponses(guestIds: string[]) {
@@ -139,8 +143,10 @@ async function loadLatestGuestResponses(guestIds: string[]) {
     return new Map<string, "confirmed" | "declined">();
   }
 
-  const prisma = getPrisma();
-  const rows = await prisma.$queryRawUnsafe<LatestGuestResponseRow[]>(
+  const rows = await withPrismaRetry(async () => {
+    const prisma = getPrisma();
+
+    return prisma.$queryRawUnsafe<LatestGuestResponseRow[]>(
     `
       WITH expanded_responses AS (
         SELECT
@@ -164,50 +170,65 @@ async function loadLatestGuestResponses(guestIds: string[]) {
       ORDER BY guest_id, created_at DESC
     `,
     guestIds,
-  );
+    );
+  });
 
   return new Map(rows.map((row) => [row.guest_id, row.attendance]));
 }
 
 export async function GET(request: NextRequest) {
-  const whatsapp = request.nextUrl.searchParams.get("whatsapp")?.trim();
+  try {
+    const whatsapp = request.nextUrl.searchParams.get("whatsapp")?.trim();
 
-  if (!whatsapp) {
+    if (!whatsapp) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "MISSING_WHATSAPP",
+            message: "Informe o WhatsApp para localizar seu convite.",
+          },
+        },
+        { status: 400 },
+      );
+    }
+
+    const guests = await loadInviteGroupByWhatsapp(whatsapp);
+
+    if (guests.length === 0) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "INVITE_NOT_FOUND",
+            message: "Nao encontramos convidados cadastrados com esse WhatsApp.",
+          },
+        },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json({
+      whatsapp: guests[0].whatsapp,
+      familyLabel: guests.find((guest) => guest.family_label)?.family_label ?? null,
+      guests: guests.map(mapGuestRow),
+      latestResponses: Object.fromEntries(
+        (
+          await loadLatestGuestResponses(guests.map((guest) => guest.id))
+        ).entries(),
+      ),
+    });
+  } catch (error) {
+    console.error("Nao foi possivel buscar convite para RSVP.", error);
     return NextResponse.json(
       {
         error: {
-          code: "MISSING_WHATSAPP",
-          message: "Informe o WhatsApp para localizar seu convite.",
+          code: "RSVP_LOOKUP_FAILED",
+          message:
+            "Nao conseguimos buscar seu convite agora. Aguarde alguns segundos e tente novamente.",
         },
       },
-      { status: 400 },
+      { status: 500 },
     );
   }
-
-  const guests = await loadInviteGroupByWhatsapp(whatsapp);
-
-  if (guests.length === 0) {
-    return NextResponse.json(
-      {
-        error: {
-          code: "INVITE_NOT_FOUND",
-          message: "Nao encontramos convidados cadastrados com esse WhatsApp.",
-        },
-      },
-      { status: 404 },
-    );
-  }
-
-  return NextResponse.json({
-    whatsapp: guests[0].whatsapp,
-    familyLabel: guests.find((guest) => guest.family_label)?.family_label ?? null,
-    guests: guests.map(mapGuestRow),
-    latestResponses: Object.fromEntries(
-      (
-        await loadLatestGuestResponses(guests.map((guest) => guest.id))
-      ).entries(),
-    ),
-  });
 }
 
 export async function POST(request: Request) {
@@ -257,7 +278,8 @@ export async function POST(request: Request) {
       (guest) => invitedGuestMap.get(guest.guestId)?.is_child,
     ).length;
 
-    await prisma.$executeRawUnsafe(
+    await withPrismaRetry(() =>
+      prisma.$executeRawUnsafe(
       `
         INSERT INTO rsvp_confirmations (
           id,
@@ -285,6 +307,7 @@ export async function POST(request: Request) {
       JSON.stringify([]),
       JSON.stringify(normalizedGuestResponses),
       payload.note ?? null,
+      ),
     );
 
     try {

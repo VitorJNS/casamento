@@ -25,6 +25,17 @@ type GiftRecord = {
   priceCents: number;
 };
 
+function getSafeCheckoutDescription(title: string) {
+  return title
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .replace(/[^\w\s.,:;!?'"()/-]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export async function POST(request: Request) {
   try {
     const payload = checkoutSchema.parse(await request.json());
@@ -88,7 +99,7 @@ export async function POST(request: Request) {
         items: lineItems.map((item) => ({
           quantity: item.quantity,
           price: item.gift.priceCents,
-          description: item.gift.title,
+          description: getSafeCheckoutDescription(item.gift.title),
         })),
       });
 

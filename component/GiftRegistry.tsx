@@ -17,6 +17,15 @@ type CheckoutState = {
 
 const CART_STORAGE_KEY = "casamento-cart-v1";
 
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 function readCartStorage(): CartItem[] {
   if (typeof window === "undefined") return [];
   try {
@@ -40,17 +49,19 @@ export function GiftRegistry({ gifts }: { gifts: DisplayGift[] }) {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [cartHydrated, setCartHydrated] = useState(false);
   const modalScrollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setCart(readCartStorage());
+    setCartHydrated(true);
   }, []);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (cartHydrated && typeof window !== "undefined") {
       window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
     }
-  }, [cart]);
+  }, [cart, cartHydrated]);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -164,7 +175,7 @@ export function GiftRegistry({ gifts }: { gifts: DisplayGift[] }) {
         <body style="font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#fafaf9;color:#27272a;">
           <div style="text-align:center;padding:24px;">
             <p style="font-size:16px;margin:0 0 8px;">Abrindo checkout seguro...</p>
-            <p style="font-size:14px;margin:0;color:#71717a;">Voce pode voltar para a aba do site a qualquer momento.</p>
+            <p style="font-size:14px;margin:0;color:#71717a;">Você pode voltar para a aba do site a qualquer momento.</p>
           </div>
         </body>
       `);
@@ -192,8 +203,6 @@ export function GiftRegistry({ gifts }: { gifts: DisplayGift[] }) {
         );
       }
 
-      window.localStorage.removeItem(CART_STORAGE_KEY);
-      setCart([]);
       setModalOpen(false);
       if (checkoutWindow) {
         checkoutWindow.location.href = data.checkoutUrl;
@@ -203,14 +212,23 @@ export function GiftRegistry({ gifts }: { gifts: DisplayGift[] }) {
         );
       }
     } catch (error) {
-      if (checkoutWindow && !checkoutWindow.closed) {
-        checkoutWindow.close();
-      }
-      setErrorMessage(
+      const message =
         error instanceof Error
           ? error.message
-          : "Nao foi possivel iniciar o checkout.",
-      );
+          : "Nao foi possivel iniciar o checkout.";
+
+      if (checkoutWindow && !checkoutWindow.closed) {
+        checkoutWindow.document.body.innerHTML = `
+          <div style="font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#fafaf9;color:#27272a;">
+            <div style="max-width:460px;text-align:center;padding:24px;">
+              <p style="font-size:18px;font-weight:700;margin:0 0 8px;">Nao conseguimos abrir o checkout</p>
+              <p style="font-size:14px;line-height:1.6;margin:0;color:#71717a;">${escapeHtml(message)}</p>
+              <p style="font-size:14px;line-height:1.6;margin:16px 0 0;color:#71717a;">Volte para a aba do site e tente novamente.</p>
+            </div>
+          </div>
+        `;
+      }
+      setErrorMessage(message);
     } finally {
       setIsSubmitting(false);
     }

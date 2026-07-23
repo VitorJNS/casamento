@@ -18,7 +18,7 @@ export default async function PaymentSuccessPage({
         <h1 className="display-font mt-2 text-3xl font-semibold" style={{ color: "rgb(var(--olive))" }}>
           Estamos acompanhando seu presente
         </h1>
-        <p className="mt-3 text-zinc-700">Se o pagamento ja tiver sido aprovado, ele aparecera aqui em alguns instantes. Caso contrario, voce pode atualizar o status manualmente.</p>
+        <p className="mt-3 text-zinc-700">Se o pagamento ja tiver sido aprovado, ele aparecera aqui em alguns instantes. Caso contrario, você pode atualizar o status manualmente.</p>
         <div className="mt-5">
           <Link
             href="/"

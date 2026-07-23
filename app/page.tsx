@@ -111,6 +111,18 @@ export default async function Home() {
               );
             }
 
+            if (trimmedParagraph.includes("traje esporte fino")) {
+              const [before, after] = trimmedParagraph.split("traje esporte fino");
+
+              return (
+                <p key={`${trimmedParagraph}-${index}`}>
+                  {before}
+                  <strong className="font-semibold text-zinc-900">traje esporte fino</strong>
+                  {after}
+                </p>
+              );
+            }
+
             return <p key={`${trimmedParagraph}-${index}`}>{trimmedParagraph}</p>;
           })}
         </div>
@@ -204,7 +216,7 @@ export default async function Home() {
       <Footer
         names="Yasmim & Vitor"
         dateText="20 • 06 • 2027"
-        note="Esperamos voce no nosso grande dia."
+        note="Esperamos você no nosso grande dia."
       />
     </main>
   );

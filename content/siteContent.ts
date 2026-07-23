@@ -49,7 +49,7 @@ Sugerimos evitar:
 Casacos delicados e mangas longas também serão muito bem-vindos.
 
 Para eles 🤎
-Camisa, calça de alfaiataria e sapatos sociais ou esportivos elegantes são ótimas escolhas para a ocasião.
+Camisa, calça de alfaiataria e sapatos sociais são ótimas escolhas para a ocasião.
 Blazers e sobreposições sofisticadas também combinarão perfeitamente com o clima do casamento.
 Sugerimos evitar:
   - Jeans
@@ -62,7 +62,7 @@ Pedimos, com carinho, que evitem essas tonalidades para que cada um tenha seu de
 
   ceremonyTitle: "Cerimonia",
   ceremonyText:
-    "Abaixo, disponibilizamos o endereço completo e o link para acesso pelo Google Maps, para facilitar sua chegada no grande dia.",
+    "Abaixo, disponibilizamos o endereço completo e o link para acesso pelo Google Maps, para facilitar sua chegada à cerimônia.",
   ceremonyAddress:
     "Av. Comendador Pedro Morganti, s/n - Monte Alegre, Piracicaba - SP, 13415-001",
   ceremonyMapsLink: "https://maps.app.goo.gl/fXMbsrVRAooaDbXQ9",
@@ -76,7 +76,7 @@ Pedimos, com carinho, que evitem essas tonalidades para que cada um tenha seu de
   dinnerMapEmbedUrl:
     "https://www.google.com/maps?q=Praca%20Antonio%20Keller%2C%2022%20-%20Monte%20Alegre%2C%20Piracicaba%20-%20SP%2C%2013415-020&output=embed",
   dinnerText:
-    "Abaixo, disponibilizamos o endereço completo e o link para acesso pelo Google Maps, para facilitar sua chegada no grande dia.",
+    "Abaixo, disponibilizamos o endereço completo e o link para acesso pelo Google Maps, para facilitar sua chegada ao jantar.",
 
   rsvpTitle: "Confirmação de presença",
   rsvpText: `

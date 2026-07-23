@@ -260,7 +260,7 @@ export function RsvpForm() {
                   <p className="mt-1 text-sm leading-6 text-zinc-600">
                     {lookupState.familyLabel
                       ? `${lookupState.familyLabel}: escolha quem vai comparecer ou quem nao podera ir neste grupo.`
-                      : "Escolha abaixo quem voce deseja confirmar ou recusar neste convite."}
+                      : "Escolha abaixo quem você deseja confirmar ou recusar neste convite."}
                   </p>
                 </div>
 

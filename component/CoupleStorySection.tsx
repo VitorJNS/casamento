@@ -51,9 +51,9 @@ export function CoupleStorySection({
       id={id}
       className="section-shell mb-10 rounded-3xl border border-zinc-200 bg-white/70 p-5 shadow-sm backdrop-blur sm:min-h-0 sm:p-8"
     >
-      <div className="mx-auto max-w-5xl text-center">
+      <div className="mx-auto max-w-5xl">
         <h2
-          className="display-font text-3xl font-semibold tracking-[0.08em] sm:text-5xl"
+          className="display-font text-center text-3xl font-semibold tracking-[0.08em] sm:text-5xl"
           style={{ color: "rgb(var(--olive))" }}
         >
           {title}
@@ -64,10 +64,8 @@ export function CoupleStorySection({
           <PortraitCircle photo={rightPortrait} />
         </div>
 
-        <div className="mx-auto mt-8 max-w-3xl space-y-4 text-sm leading-7 text-zinc-600 sm:text-base">
-          {storyParagraphs.map((paragraph) => (
-            <p key={paragraph}>{paragraph}</p>
-          ))}
+        <div className="mt-6 text-zinc-700">
+          <p className="whitespace-pre-line">{storyParagraphs.join("\n\n")}</p>
         </div>
 
         <div className="mt-10">

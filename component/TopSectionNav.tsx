@@ -44,25 +44,50 @@ export function TopSectionNav({ items }: TopSectionNavProps) {
       return;
     }
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visibleEntry = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+    let animationFrameId = 0;
 
-        if (visibleEntry?.target.id) {
-          setActiveId(visibleEntry.target.id);
-        }
-      },
-      {
-        rootMargin: "-25% 0px -45% 0px",
-        threshold: [0.2, 0.4, 0.6],
-      },
-    );
+    const updateActiveSection = () => {
+      const viewportMarker = Math.min(window.innerHeight * 0.38, 280);
+      const documentHeight = document.documentElement.scrollHeight;
+      const viewportBottom = window.scrollY + window.innerHeight;
 
-    sections.forEach((section) => observer.observe(section));
+      if (viewportBottom >= documentHeight - 8) {
+        setActiveId(sections[sections.length - 1].id);
+        return;
+      }
 
-    return () => observer.disconnect();
+      const sectionInMarker = sections.find((section) => {
+        const rect = section.getBoundingClientRect();
+        return rect.top <= viewportMarker && rect.bottom > viewportMarker;
+      });
+
+      if (sectionInMarker) {
+        setActiveId(sectionInMarker.id);
+        return;
+      }
+
+      const activeSection = sections.reduce((currentActive, section) => {
+        const rect = section.getBoundingClientRect();
+        return rect.top <= viewportMarker ? section : currentActive;
+      }, sections[0]);
+
+      setActiveId(activeSection.id);
+    };
+
+    const scheduleUpdate = () => {
+      window.cancelAnimationFrame(animationFrameId);
+      animationFrameId = window.requestAnimationFrame(updateActiveSection);
+    };
+
+    updateActiveSection();
+    window.addEventListener("scroll", scheduleUpdate, { passive: true });
+    window.addEventListener("resize", scheduleUpdate);
+
+    return () => {
+      window.cancelAnimationFrame(animationFrameId);
+      window.removeEventListener("scroll", scheduleUpdate);
+      window.removeEventListener("resize", scheduleUpdate);
+    };
   }, [items]);
 
   useEffect(() => {
@@ -94,6 +119,7 @@ export function TopSectionNav({ items }: TopSectionNavProps) {
                 <a
                   key={item.id}
                   href={`#${item.id}`}
+                  onClick={() => setActiveId(item.id)}
                   className={`whitespace-nowrap rounded-full px-2.5 py-2 text-[9px] font-semibold tracking-[0.08em] uppercase transition lg:px-3 lg:text-[10px] ${
                     isActive ? "text-white" : "text-[rgb(var(--olive))]"
                   }`}
@@ -184,7 +210,10 @@ export function TopSectionNav({ items }: TopSectionNavProps) {
                   <a
                     key={item.id}
                     href={`#${item.id}`}
-                    onClick={closeMenu}
+                    onClick={() => {
+                      setActiveId(item.id);
+                      closeMenu();
+                    }}
                     className={`rounded-2xl px-4 py-3 text-sm font-semibold uppercase tracking-[0.08em] transition ${
                       isActive ? "text-white" : "text-[rgb(var(--olive))]"
                     }`}

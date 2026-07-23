@@ -62,6 +62,7 @@ export function GuestListManager({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
+  const [isResetting, setIsResetting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [page, setPage] = useState(1);
 
@@ -209,6 +210,39 @@ export function GuestListManager({
     }
   }
 
+  async function handleResetGuests() {
+    const confirmed = window.confirm(
+      "Tem certeza que deseja remover todos os convidados e todas as confirmacoes de presenca? Essa acao nao pode ser desfeita.",
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setIsResetting(true);
+    setErrorMessage(null);
+
+    try {
+      const response = await fetch("/api/admin/guest-list/reset", {
+        method: "POST",
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error?.message ?? "Nao foi possivel limpar a lista.");
+      }
+
+      setGuests([]);
+      router.refresh();
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Nao foi possivel limpar a lista.",
+      );
+    } finally {
+      setIsResetting(false);
+    }
+  }
+
   return (
     <section className="rounded-[28px] border border-zinc-200 bg-white p-5 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -226,9 +260,20 @@ export function GuestListManager({
           <div className="rounded-full border border-zinc-200 bg-[rgb(var(--paper))] px-4 py-2 text-sm text-zinc-700">
             {pendingCount} pendentes
           </div>
+          {guests.length > 0 ? (
+            <button
+              type="button"
+              onClick={handleResetGuests}
+              disabled={isSaving || removingId !== null || isResetting}
+              className="rounded-full border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isResetting ? "Limpando..." : "Limpar lista"}
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={openCreateModal}
+            disabled={isResetting}
             className="btn-primary rounded-full px-5 py-3 text-sm font-semibold"
           >
             Adicionar convidado

@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 
 import { CerimonialShell } from "@/component/CerimonialShell";
+import { formatDisplayDateTime } from "@/lib/display-date";
 import type { PresenceGuest, PresenceStatus } from "@/lib/presence-dashboard";
 
 type CerimonialDashboardProps = {
@@ -160,7 +161,7 @@ function GuestCard({ guest }: { guest: PresenceGuest }) {
               label="Resposta"
               value={
                 guest.respondedAt
-                  ? new Date(guest.respondedAt).toLocaleString("pt-BR")
+                  ? formatDisplayDateTime(guest.respondedAt)
                   : "Ainda nao respondeu"
               }
             />

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { CerimonialShell } from "@/component/CerimonialShell";
 import { ListPagination } from "@/component/ListPagination";
+import { formatDisplayDate, formatDisplayDateTime } from "@/lib/display-date";
 
 export type CerimonialSupplierView = {
   id: string;
@@ -215,7 +216,7 @@ function SupplierCard({ supplier }: { supplier: CerimonialSupplierView }) {
         </div>
 
         <p className="text-xs text-zinc-500">
-          {new Date(supplier.updatedAt).toLocaleDateString("pt-BR")}
+          {formatDisplayDate(supplier.updatedAt)}
         </p>
       </div>
 
@@ -225,7 +226,7 @@ function SupplierCard({ supplier }: { supplier: CerimonialSupplierView }) {
         <InfoBox label="Email" value={supplier.email || "Nao informado"} breakAll />
         <InfoBox
           label="Atualizado em"
-          value={new Date(supplier.updatedAt).toLocaleString("pt-BR")}
+          value={formatDisplayDateTime(supplier.updatedAt)}
         />
       </div>
 

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 
 import { ListPagination } from "@/component/ListPagination";
+import { formatDisplayDate } from "@/lib/display-date";
 
 type RsvpGuestResponse = {
   guestId: string;
@@ -64,7 +65,7 @@ export function AdminRsvpList({ rsvps }: { rsvps: AdminRsvpEntry[] }) {
                 </p>
               </div>
               <p className="shrink-0 text-right text-[11px] leading-4 text-zinc-500">
-                {new Date(rsvp.createdAt).toLocaleDateString("pt-BR")}
+                {formatDisplayDate(rsvp.createdAt)}
               </p>
             </div>
 

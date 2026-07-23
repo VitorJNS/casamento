@@ -1,8 +1,10 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { ListPagination } from "@/component/ListPagination";
+import { formatDisplayDateTime } from "@/lib/display-date";
 import type { PresenceGuest } from "@/lib/presence-dashboard";
 
 type DraftState = {
@@ -52,12 +54,14 @@ export function GuestListManager({
 }: {
   initialGuests: PresenceGuest[];
 }) {
-  const [guests] = useState(initialGuests);
+  const router = useRouter();
+  const [guests, setGuests] = useState(initialGuests);
   const [draft, setDraft] = useState<DraftState>(emptyDraft);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingDraft, setEditingDraft] = useState<DraftState>(emptyDraft);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [removingId, setRemovingId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [page, setPage] = useState(1);
 
@@ -76,6 +80,10 @@ export function GuestListManager({
   useEffect(() => {
     setPage((current) => Math.min(current, totalPages));
   }, [totalPages]);
+
+  useEffect(() => {
+    setGuests(initialGuests);
+  }, [initialGuests]);
 
   function openCreateModal() {
     setDraft(emptyDraft);
@@ -105,10 +113,6 @@ export function GuestListManager({
     setEditingDraft(emptyDraft);
   }
 
-  function refreshPage() {
-    window.location.reload();
-  }
-
   async function handleCreate(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSaving(true);
@@ -127,7 +131,8 @@ export function GuestListManager({
         throw new Error(data?.error?.message ?? "Nao foi possivel cadastrar o convidado.");
       }
 
-      refreshPage();
+      closeCreateModal();
+      router.refresh();
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "Nao foi possivel cadastrar o convidado.",
@@ -154,7 +159,22 @@ export function GuestListManager({
         throw new Error(data?.error?.message ?? "Nao foi possivel atualizar o convidado.");
       }
 
-      refreshPage();
+      setGuests((current) =>
+        current.map((guest) =>
+          guest.id === id
+            ? {
+                ...guest,
+                guestName: editingDraft.guestName,
+                whatsapp: editingDraft.whatsapp,
+                familyLabel: editingDraft.familyLabel || null,
+                note: editingDraft.note || null,
+                isChild: editingDraft.isChild,
+              }
+            : guest,
+        ),
+      );
+      cancelEdit();
+      router.refresh();
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "Nao foi possivel atualizar o convidado.",
@@ -165,7 +185,7 @@ export function GuestListManager({
   }
 
   async function handleDeactivate(id: string) {
-    setIsSaving(true);
+    setRemovingId(id);
     setErrorMessage(null);
 
     try {
@@ -179,13 +199,13 @@ export function GuestListManager({
         throw new Error(data?.error?.message ?? "Nao foi possivel remover o convidado.");
       }
 
-      refreshPage();
+      setGuests((current) => current.filter((guest) => guest.id !== id));
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "Nao foi possivel remover o convidado.",
       );
     } finally {
-      setIsSaving(false);
+      setRemovingId(null);
     }
   }
 
@@ -328,10 +348,10 @@ export function GuestListManager({
                         <button
                           type="button"
                           onClick={() => handleDeactivate(guest.id)}
-                          disabled={isSaving}
+                          disabled={isSaving || removingId !== null}
                           className="rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-700 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                          Remover
+                          {removingId === guest.id ? "Removendo..." : "Remover"}
                         </button>
                       </div>
                     </div>
@@ -348,7 +368,7 @@ export function GuestListManager({
                       <p>
                         <span className="font-medium text-zinc-900">Resposta:</span>{" "}
                         {guest.respondedAt
-                          ? new Date(guest.respondedAt).toLocaleString("pt-BR")
+                          ? formatDisplayDateTime(guest.respondedAt)
                           : "Ainda nao respondeu"}
                       </p>
                     </div>

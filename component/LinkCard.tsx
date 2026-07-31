@@ -7,6 +7,7 @@ type LinkCardProps = {
   description?: string;
   href: string;
   buttonText?: string;
+  actionsAlign?: "start" | "center";
 };
 
 export function LinkCard({
@@ -14,6 +15,7 @@ export function LinkCard({
   description,
   href,
   buttonText = "Abrir pasta",
+  actionsAlign = "start",
 }: LinkCardProps) {
   const [copied, setCopied] = useState(false);
 
@@ -36,7 +38,11 @@ export function LinkCard({
         {href}
       </div> */}
 
-      <div className="mt-4 flex flex-wrap gap-3">
+      <div
+        className={`mt-4 flex flex-wrap gap-3 ${
+          actionsAlign === "center" ? "justify-center" : ""
+        }`}
+      >
         <a
           href={href}
           target="_blank"

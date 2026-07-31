@@ -19,7 +19,7 @@ export function AdminLogoutButton({
 
     try {
       await fetch("/api/admin/logout", { method: "POST" });
-      router.replace("/admin");
+      router.replace("/preview-design");
     } finally {
       setIsSubmitting(false);
     }

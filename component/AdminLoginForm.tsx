@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { startTransition, useState } from "react";
 
@@ -55,9 +56,22 @@ export function AdminLoginForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="mx-auto w-full max-w-md rounded-[28px] border border-zinc-200 bg-white/92 p-5 shadow-sm backdrop-blur sm:p-6"
+      className="mx-auto w-full max-w-md rounded-[28px] border border-[#d8ddcf]/95 bg-[#fffefa]/92 p-5 shadow-[0_24px_70px_rgba(79,97,70,0.14)] backdrop-blur sm:p-6"
     >
-      <div className="rounded-full border border-zinc-200 bg-[rgb(var(--paper))] p-1">
+      <div className="mb-5 flex justify-center">
+        <div className="relative h-20 w-20 opacity-85">
+          <Image
+            src="/brand/monograma.png"
+            alt="Monograma do casamento"
+            fill
+            sizes="80px"
+            className="object-contain"
+            priority
+          />
+        </div>
+      </div>
+
+      <div className="rounded-full border border-[#d8ddcf]/95 bg-[#f5f3e8] p-1">
         <div className="grid grid-cols-2 gap-1">
           <button
             type="button"
@@ -68,8 +82,8 @@ export function AdminLoginForm() {
             }}
             className={`rounded-full px-4 py-2.5 text-sm font-semibold transition ${
               isAdminRole
-                ? "bg-white text-zinc-900 shadow-sm"
-                : "text-zinc-600 hover:text-zinc-900"
+                ? "bg-white text-[#4f6146] shadow-sm"
+                : "text-[#66745c] hover:text-[#4f6146]"
             }`}
           >
             Noivos
@@ -83,8 +97,8 @@ export function AdminLoginForm() {
             }}
             className={`rounded-full px-4 py-2.5 text-sm font-semibold transition ${
               !isAdminRole
-                ? "bg-white text-zinc-900 shadow-sm"
-                : "text-zinc-600 hover:text-zinc-900"
+                ? "bg-white text-[#4f6146] shadow-sm"
+                : "text-[#66745c] hover:text-[#4f6146]"
             }`}
           >
             Cerimonialista
@@ -92,23 +106,25 @@ export function AdminLoginForm() {
         </div>
       </div>
 
-      <p className="mt-4 text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500 sm:mt-5">
+      <p className="mt-4 text-center text-xs font-semibold uppercase tracking-[0.2em] text-[#b89543] sm:mt-5">
         {title}
       </p>
-      <h1 className="mt-1.5 text-2xl font-semibold text-zinc-900 sm:mt-2 sm:text-3xl">Entrar</h1>
-      <p className="mt-2 text-sm leading-5 text-zinc-600 sm:leading-6">
+      <h1 className="display-font mt-1.5 text-center text-4xl font-semibold text-[#4f6146] sm:mt-2">
+        Entrar
+      </h1>
+      <p className="mt-2 text-center text-sm leading-5 text-[#66745c] sm:leading-6">
         {description}
       </p>
 
       <label className="mt-4 block sm:mt-5">
-        <span className="mb-1.5 block text-sm font-medium text-zinc-700">
+        <span className="mb-1.5 block text-sm font-medium text-[#4f6146]">
           Senha
         </span>
         <input
           type="password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-          className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28]"
+          className="w-full rounded-2xl border border-[#d8ddcf] bg-white/95 px-4 py-3 text-sm outline-none transition focus:border-[#4f6146] focus:ring-2 focus:ring-[#b19cd9]/25"
           placeholder="Digite sua senha"
         />
       </label>
@@ -123,14 +139,14 @@ export function AdminLoginForm() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="btn-primary rounded-full px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60 max-sm:w-full"
+          className="rounded-full bg-[#4f6146] px-5 py-3 text-sm font-semibold text-[#fffdf3] shadow-sm transition hover:bg-[#b89543] disabled:cursor-not-allowed disabled:opacity-60 max-sm:w-full"
         >
           {isSubmitting ? "Entrando..." : submitLabel}
         </button>
 
         <a
-          href="/"
-          className="inline-flex rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-600 transition hover:bg-zinc-50 hover:text-zinc-900 max-sm:w-full max-sm:justify-center"
+          href="/preview-design"
+          className="inline-flex rounded-full border border-[#d8ddcf] px-4 py-2 text-sm font-medium text-[#66745c] transition hover:bg-white hover:text-[#4f6146] max-sm:w-full max-sm:justify-center"
         >
           Voltar para o site
         </a>

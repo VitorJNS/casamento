@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { AdminLoginForm } from "@/component/AdminLoginForm";
+import { LoggedAreaBackdrop } from "@/component/LoggedAreaBackdrop";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { isCerimonialAuthenticated } from "@/lib/cerimonial-auth";
 
@@ -21,8 +22,9 @@ export default async function AdminLoginPage() {
   }
 
   return (
-    <main className="relative z-10 mx-auto flex min-h-dvh max-w-6xl items-center justify-center px-4 py-4 sm:px-6 sm:py-8">
-      <div className="w-full">
+    <main className="logged-area-shell relative isolate flex min-h-dvh items-center justify-center overflow-hidden bg-[#fffdf3] px-4 py-4 sm:px-6 sm:py-8">
+      <LoggedAreaBackdrop variant="full" />
+      <div className="relative z-10 w-full max-w-6xl">
         <AdminLoginForm />
       </div>
     </main>

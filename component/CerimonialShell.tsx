@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { CerimonialLogoutButton } from "@/component/CerimonialLogoutButton";
+import { LoggedAreaBackdrop } from "@/component/LoggedAreaBackdrop";
 
 type CerimonialShellProps = {
   children: ReactNode;
@@ -34,11 +35,13 @@ export function CerimonialShell({
   const pathname = usePathname();
 
   return (
-    <main className="relative z-10 min-h-dvh bg-[linear-gradient(180deg,rgba(255,255,255,0.35),rgba(255,255,255,0.82))] text-zinc-950">
-      <div className="xl:grid xl:min-h-dvh xl:grid-cols-[290px_minmax(0,1fr)] xl:items-start">
-        <aside className="border-b border-zinc-200/80 bg-white/88 px-5 py-5 backdrop-blur xl:sticky xl:top-0 xl:flex xl:h-dvh xl:flex-col xl:overflow-hidden xl:border-b-0 xl:border-r xl:px-6 xl:py-6">
+    <main className="logged-area-shell relative isolate min-h-dvh bg-[#fffdf3] text-zinc-950">
+      <LoggedAreaBackdrop />
+
+      <div className="relative z-10 xl:grid xl:min-h-dvh xl:grid-cols-[290px_minmax(0,1fr)] xl:items-start">
+        <aside className="border-b border-[#d8ddcf]/90 bg-[#fffefa]/88 px-5 py-5 backdrop-blur xl:sticky xl:top-0 xl:flex xl:h-dvh xl:flex-col xl:overflow-hidden xl:border-b-0 xl:border-r xl:px-6 xl:py-6">
           <div className="flex shrink-0 justify-center">
-            <div className="flex h-24 w-24 items-center justify-center rounded-full xl:h-28 xl:w-28">
+            <div className="flex h-24 w-24 items-center justify-center rounded-full border border-[#d8ddcf]/80 bg-white/45 shadow-sm xl:h-28 xl:w-28">
               <Image
                 src="/brand/monograma.png"
                 alt="Monograma do casamento"
@@ -64,9 +67,9 @@ export function CerimonialShell({
 
               const className = `flex shrink-0 items-center gap-3 rounded-[18px] px-4 py-3.5 text-sm transition xl:w-full ${
                 isActive
-                  ? "bg-[rgb(var(--olive)/0.24)] text-zinc-900"
+                  ? "bg-[#4f6146] text-[#fffdf3] shadow-sm"
                   : item.href
-                    ? "text-zinc-700 hover:bg-white"
+                    ? "text-[#66745c] hover:bg-white/75 hover:text-[#4f6146]"
                     : "cursor-default text-zinc-400"
               }`;
 
@@ -90,8 +93,8 @@ export function CerimonialShell({
             })}
           </nav>
 
-          <div className="mt-5 shrink-0 space-y-3 border-t border-zinc-200/70 pt-4 xl:mt-6">
-            <CerimonialLogoutButton className="flex w-full items-center gap-3 rounded-[18px] border border-zinc-200/80 bg-white/60 px-5 py-3.5 text-left text-base font-medium text-zinc-700 shadow-sm transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60">
+          <div className="mt-auto shrink-0 space-y-3 border-t border-[#d8ddcf]/80 pt-4">
+            <CerimonialLogoutButton className="flex w-full items-center gap-3 rounded-[18px] border border-[#d8ddcf]/90 bg-white/55 px-5 py-3.5 text-left text-base font-medium text-[#66745c] shadow-sm transition hover:bg-white hover:text-[#4f6146] disabled:cursor-not-allowed disabled:opacity-60">
               <LogoutIcon className="h-5 w-5" />
               <span>Sair</span>
             </CerimonialLogoutButton>
@@ -99,11 +102,14 @@ export function CerimonialShell({
         </aside>
 
         <div className="min-w-0">
-          <header className="border-b border-zinc-200/80 bg-white/74 px-5 py-5 backdrop-blur xl:px-10">
+          <header className="border-b border-[#d8ddcf]/90 bg-[#fffefa]/72 px-5 py-5 backdrop-blur xl:px-10">
             <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
               <div>
-                <p className="text-[2rem] font-semibold tracking-[-0.03em] text-[rgb(var(--lavender))]">
+                <p className="display-font text-[2.35rem] font-semibold leading-tight text-[#4f6146]">
                   {title}
+                </p>
+                <p className="mt-1 text-xs font-semibold uppercase tracking-[0.2em] text-[#b89543]">
+                  Yasmim & Vitor
                 </p>
               </div>
 

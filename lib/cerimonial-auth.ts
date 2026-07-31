@@ -64,7 +64,7 @@ export async function isCerimonialAuthenticated() {
 
   if (provided.length !== target.length) return false;
 
-  return timingSafeEqual(provided, target);
+return timingSafeEqual(provided, target);
 }
 
 export async function requireCerimonialAuth() {

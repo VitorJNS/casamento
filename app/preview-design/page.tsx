@@ -2,6 +2,7 @@ import { GiftRegistry } from "@/component/GiftRegistry";
 import { LinkCard } from "@/component/LinkCard";
 import { RsvpForm } from "@/component/RsvpForm";
 import { Countdown } from "@/component/Countdown";
+import { PreviewNavScrollController } from "@/component/PreviewNavScrollController";
 import { getDisplayGiftCatalog } from "@/lib/gifts";
 import Image from "next/image";
 
@@ -247,7 +248,11 @@ export default async function PreviewDesignPage() {
       {/* <Ornament side="left" />
       <Ornament side="right" /> */}
 
-      <nav className="sticky top-0 z-40 border-b border-[#d8ddcf]/70 bg-[#fffdf3]/88 backdrop-blur">
+      <PreviewNavScrollController />
+      <nav
+        data-preview-top-nav
+        className="fixed inset-x-0 top-0 z-40 border-b border-[#d8ddcf]/70 bg-[#fffdf3]/88 backdrop-blur transition-transform duration-300"
+      >
         <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-5 sm:px-6">
           <a
             href="#home"
@@ -290,6 +295,7 @@ export default async function PreviewDesignPage() {
           </div>
         </div>
       </nav>
+      <div className="h-20" aria-hidden="true" />
 
       <section
         id="home"
@@ -571,6 +577,7 @@ export default async function PreviewDesignPage() {
             description="Clique para abrir a pasta e fazer upload das suas fotos."
             href={cleanContent.photosUploadLink}
             buttonText="Enviar fotos"
+            actionsAlign="center"
           />
         </div>
       </section>

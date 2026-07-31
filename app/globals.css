@@ -215,6 +215,13 @@ body::after {
   mask-image: url("/ornaments/oliveira-preto-branco.png");
 }
 
+body:has(.logged-area-shell)::before,
+body:has(.logged-area-shell)::after,
+body:has(.design-preview-shell)::before,
+body:has(.design-preview-shell)::after {
+  display: none;
+}
+
 /* Ajuste para telas menores */
 @media (max-width: 640px) {
   body::before,

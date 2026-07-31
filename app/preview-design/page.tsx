@@ -1,6 +1,7 @@
 import { GiftRegistry } from "@/component/GiftRegistry";
 import { LinkCard } from "@/component/LinkCard";
 import { RsvpForm } from "@/component/RsvpForm";
+import { Countdown } from "@/component/Countdown";
 import { getDisplayGiftCatalog } from "@/lib/gifts";
 import Image from "next/image";
 
@@ -12,6 +13,61 @@ export const metadata = {
 };
 
 const weddingDate = "20 de Junho de 2027";
+
+const fullNavItems = [
+  // { href: "#home", label: "Início" },
+  { href: "#bem-vindos", label: "Bem-vindos" },
+  { href: "#o-casal", label: "O casal" },
+  { href: "#dress-code", label: "Dress Code" },
+  { href: "#cerimonia-jantar", label: "Cerimônia & Jantar" },
+  // { href: "#rsvp", label: "Confirmar presença" },
+  { href: "#presentes", label: "Presentes" },
+  { href: "#momentos", label: "Momentos" },
+];
+
+const richContent = {
+  hero:
+    "Depois de tantos capítulos juntos, chegou o momento do nosso para sempre. Queremos compartilhar este sonho com quem mais amamos.",
+  welcome:
+    "Estamos muito felizes em compartilhar este momento tão especial com pessoas que fazem parte da nossa história. Depois de tantos anos caminhando juntos, chegou o dia de celebrarmos o nosso amor diante de Deus e ao lado de quem amamos.",
+  welcomeDetails: [
+    "Criamos este espaço para compartilhar um pouco da nossa trajetória e reunir todas as informações importantes sobre o casamento.",
+    "Cada presença será extremamente importante para nós. Esperamos que este dia seja leve, emocionante e inesquecível, não apenas para nós, mas também para todos que estarão vivendo esse sonho conosco.",
+  ],
+  story:
+    "Alguns encontros mudam completamente o rumo da nossa vida, e o nosso começou lá em 2020.",
+  storyDetails: [
+    "Desde então, crescemos juntos, amadurecemos, realizamos sonhos, enfrentamos mudanças e construímos, dia após dia, a nossa família e o nosso lar.",
+    "Entre conquistas, recomeços, quilômetros de distância e muitos planos compartilhados, entendemos que o amor está justamente nos pequenos momentos vividos lado a lado.",
+    "E agora, depois de tantos capítulos especiais, estamos prontos para viver o mais importante deles: o nosso casamento.",
+  ],
+  dressCodeIntro:
+    "Escolhemos com muito carinho o traje esporte fino para celebrar este momento tão especial ao nosso lado. O casamento acontecerá ao final da tarde, em junho, uma época em que as temperaturas costumam ser mais frias.",
+  dressCodeGroups: [
+    {
+      title: "Para elas",
+      text: "Vestidos midi ou longos, tecidos fluidos e tons suaves combinarão perfeitamente com a atmosfera do nosso grande dia. Casacos delicados e mangas longas também serão muito bem-vindos.",
+      avoid: "Evitem jeans, roupas muito curtas, decotes excessivos e salto desconfortável.",
+    },
+    {
+      title: "Para eles",
+      text: "Camisa, calça de alfaiataria e sapatos sociais são ótimas escolhas para a ocasião. Blazers e sobreposições sofisticadas também combinam com o clima do casamento.",
+      avoid: "Evitem jeans, bermudas e tênis esportivos.",
+    },
+  ],
+  dressCodeColors:
+    "Nossos padrinhos usarão tons de chumbo, nossas madrinhas estarão em lavanda, e o branco será reservado para a noiva. Pedimos, com carinho, que evitem essas tonalidades para que cada um tenha seu destaque especial neste dia tão importante.",
+  rsvp:
+    "Para nos auxiliar na organização do casamento, pedimos que confirme sua presença através do formulário abaixo. Informe seu nome, contato e se estará presente. Caso venha acompanhado, nos conte quantas pessoas serão ao todo.",
+  gifts:
+    "A presença de cada um de vocês já torna este dia ainda mais especial para nós. Criamos nossa lista de presentes apenas para aqueles que desejarem participar, de alguma forma, da construção do nosso novo lar e do início desta nova fase das nossas vidas.",
+  giftListIntro:
+    "Agora você pode juntar vários presentes em uma única compra, preencher seus dados e concluir tudo em um checkout único.",
+  moments: [
+    "Cada sorriso, abraço e momento vivido neste dia será extremamente especial para nós. Criamos este espaço para que vocês possam compartilhar todas as fotos e vídeos registrados durante o casamento.",
+    "Todos os arquivos enviados serão salvos diretamente em nossa pasta do Google Drive. Não deixe nenhum momento passar despercebido: queremos guardar cada memória deste dia inesquecível ao lado de vocês.",
+  ],
+};
 
 const cleanContent = {
   welcome:
@@ -29,7 +85,7 @@ const cleanContent = {
 const navItems = [
   { href: "#o-casal", label: "O casal" },
   { href: "#cerimonia", label: "Cerimônia" },
-  { href: "#rsvp", label: "RSVP" },
+  { href: "#rsvp", label: "Confirmar presença" },
   { href: "#presentes", label: "Presentes" },
   { href: "#momentos", label: "Momentos" },
 ];
@@ -57,6 +113,9 @@ function PreviewDivider({ className = "" }: { className?: string }) {
 
 function Ornament({ side }: { side: "left" | "right" }) {
   const isLeft = side === "left";
+  const ornamentSrc = isLeft
+    ? "/ornaments/lavanda-preto-branco.png"
+    : "/ornaments/oliveira-preto-branco.png";
 
   return (
     <div
@@ -65,17 +124,32 @@ function Ornament({ side }: { side: "left" | "right" }) {
       }`}
       aria-hidden="true"
     >
-      <Image
-        src={
-          isLeft
-            ? "/ornaments/lavanda-preto-branco.png"
-            : "/ornaments/oliveira-preto-branco.png"
-        }
-        alt=""
-        fill
-        sizes="144px"
-        className={`object-contain ${isLeft ? "object-left" : "object-right"}`}
-      />
+      {isLeft ? (
+        <>
+          <Image
+            src={ornamentSrc}
+            alt=""
+            fill
+            sizes="144px"
+            className="object-contain object-left"
+          />
+          <Image
+            src={ornamentSrc}
+            alt=""
+            fill
+            sizes="144px"
+            className="translate-x-8 translate-y-28 scale-90 object-contain object-left opacity-70"
+          />
+        </>
+      ) : (
+        <Image
+          src={ornamentSrc}
+          alt=""
+          fill
+          sizes="144px"
+          className="object-contain object-right"
+        />
+      )}
     </div>
   );
 }
@@ -107,22 +181,29 @@ function SectionHeader({
 }
 
 function InfoPanel({
+  id,
   kicker,
   title,
+  description,
   text,
   imageSrc,
   imageAlt,
   href,
 }: {
+  id?: string;
   kicker: string;
   title: string;
+  description?: string;
   text: string;
   imageSrc: string;
   imageAlt: string;
   href: string;
 }) {
   return (
-    <article className="grid overflow-hidden rounded-lg border border-[#d8ddcf] bg-[#fffefa]/80 shadow-sm md:grid-cols-[0.95fr_1.05fr]">
+    <article
+      id={id}
+      className="grid scroll-mt-[-65px] overflow-hidden rounded-lg border border-[#d8ddcf] bg-[#fffefa]/80 shadow-sm md:grid-cols-[0.95fr_1.05fr]"
+    >
       <div className="relative min-h-64">
         <Image
           src={imageSrc}
@@ -139,6 +220,11 @@ function InfoPanel({
         <h3 className="display-font mt-3 text-3xl font-semibold text-[#4f6146]">
           {title}
         </h3>
+        {description ? (
+          <p className="mt-4 text-sm leading-7 text-[#66745c]">
+            {description}
+          </p>
+        ) : null}
         <p className="mt-4 leading-7 text-[#66745c]">{text}</p>
         <a
           href={href}
@@ -157,20 +243,28 @@ export default async function PreviewDesignPage() {
   const giftCatalog = await getDisplayGiftCatalog();
 
   return (
-    <main className="relative isolate min-h-screen overflow-hidden bg-[#fffdf3] text-[#2f302d]">
-      <Ornament side="left" />
-      <Ornament side="right" />
+    <main className="design-preview-shell relative isolate min-h-screen overflow-hidden bg-[#fffdf3] text-[#2f302d]">
+      {/* <Ornament side="left" />
+      <Ornament side="right" /> */}
 
       <nav className="sticky top-0 z-40 border-b border-[#d8ddcf]/70 bg-[#fffdf3]/88 backdrop-blur">
         <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-5 sm:px-6">
           <a
             href="#home"
-            className="display-font text-2xl font-semibold italic text-[#4f6146]"
+            className="relative h-14 w-14 shrink-0 rounded-full border border-[#d8ddcf] bg-white/65 shadow-sm transition hover:bg-white"
+            aria-label="Ir para o inicio"
           >
-            Y &amp; V
+            <Image
+              src="/brand/monograma.png"
+              alt=""
+              fill
+              priority
+              sizes="56px"
+              className="object-contain p-1.5"
+            />
           </a>
-          <div className="hidden items-center gap-7 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#66745c] md:flex">
-            {navItems.map((item) => (
+          <div className="hidden items-center gap-5 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#66745c] xl:flex">
+            {fullNavItems.map((item) => (
               <a
                 key={item.href}
                 href={item.href}
@@ -180,12 +274,20 @@ export default async function PreviewDesignPage() {
               </a>
             ))}
           </div>
-          <a
-            href="#rsvp"
-            className="rounded-full bg-[#4f6146] px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.16em] text-[#fffdf3] transition hover:bg-[#b89543]"
-          >
-            RSVP
-          </a>
+          <div className="flex items-center gap-2">
+            <a
+              href="/admin"
+              className="hidden rounded-full border border-[#d8ddcf] px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#4f6146] transition hover:bg-white md:inline-flex"
+            >
+              Noivos
+            </a>
+            <a
+              href="#rsvp"
+              className="rounded-full bg-[#4f6146] px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#fffdf3] transition hover:bg-[#b89543]"
+            >
+              Confirmar presença
+            </a>
+          </div>
         </div>
       </nav>
 
@@ -205,10 +307,15 @@ export default async function PreviewDesignPage() {
             </h1>
           </div>
           <p className="max-w-md text-lg leading-8 text-[#66745c]">
-            Depois de tantos capítulos juntos, chegou o momento do nosso para
-            sempre. Queremos compartilhar este sonho com quem mais amamos.
+            {richContent.hero}
           </p>
-          <div className="flex flex-wrap gap-3">
+          <div className="max-w-lg pt-5">
+            <Countdown
+              targetISO="2027-06-20T16:00:00-03:00"
+              label="Faltam"
+            />
+          </div>
+          {/* <div className="flex flex-wrap gap-3">
             <a
               href="#rsvp"
               className="rounded-full bg-[#4f6146] px-7 py-3.5 text-sm font-semibold text-[#fffdf3] transition hover:bg-[#b89543]"
@@ -221,7 +328,21 @@ export default async function PreviewDesignPage() {
             >
               Ver detalhes
             </a>
-          </div>
+          </div> */}
+          {/* <div className="flex flex-wrap gap-3 text-xs font-semibold uppercase tracking-[0.14em]">
+            <a
+              href="/admin"
+              className="text-[#4f6146] underline decoration-[#b89543]/50 underline-offset-4 transition hover:text-[#b89543]"
+            >
+              Área dos noivos
+            </a>
+            <a
+              href="/cerimonial"
+              className="text-[#4f6146] underline decoration-[#b89543]/50 underline-offset-4 transition hover:text-[#b89543]"
+            >
+              Cerimonialista
+            </a>
+          </div> */}
         </div>
 
         <div className="relative order-1 mx-auto w-full max-w-[18rem] sm:max-w-sm lg:order-2 lg:max-w-md">
@@ -249,7 +370,7 @@ export default async function PreviewDesignPage() {
         </div>
       </section>
 
-      <section id="o-casal" className="relative z-10 px-5 py-20 sm:px-6">
+      <section id="bem-vindos" className="relative z-10 px-5 py-20 sm:px-6">
         <div className="mx-auto max-w-2xl text-center">
           <div className="mx-auto mb-6 flex items-center justify-center gap-4">
             <Image
@@ -270,7 +391,12 @@ export default async function PreviewDesignPage() {
           <h2 className="display-font text-5xl font-semibold text-[#4f6146]">
             Sejam bem-vindos
           </h2>
-          <p className="mt-6 leading-8 text-[#66745c]">{cleanContent.welcome}</p>
+          <div className="mt-6 space-y-5 leading-8 text-[#66745c]">
+            <p>{richContent.welcome}</p>
+            {richContent.welcomeDetails.map((paragraph) => (
+              <p key={paragraph}>{paragraph}</p>
+            ))}
+          </div>
           <p className="mt-6 display-font text-2xl italic text-[#b89543]">
             Com amor, Yas &amp; Vitor
           </p>
@@ -279,37 +405,47 @@ export default async function PreviewDesignPage() {
 
       <PreviewDivider className="relative z-10 py-6" />
 
-      <section className="relative z-10 bg-white/45 px-5 py-20 sm:px-6">
+      <section
+        id="o-casal"
+        className="relative z-10 scroll-mt-[-40px] bg-white/45 px-5 py-20 sm:px-6"
+      >
         <div className="mx-auto max-w-6xl">
           <SectionHeader
             kicker="Nossa história"
             title="O Casal"
-            text={cleanContent.story}
+            text={richContent.story}
           />
-          <div className="grid gap-4 sm:grid-cols-3">
-            {["/prewedding/01.jpg", "/prewedding/02.jpg", "/story/timeline.png"].map(
-              (src, index) => (
-                <div
-                  key={src}
-                  className="relative aspect-[4/5] overflow-hidden rounded-lg border border-[#d8ddcf] bg-white shadow-sm"
-                >
-                  <Image
-                    src={src}
-                    alt={`Momento do casal ${index + 1}`}
-                    fill
-                    sizes="(max-width: 640px) 100vw, 33vw"
-                    className="object-cover"
-                  />
-                </div>
-              ),
-            )}
+          <div className="mx-auto mb-12 grid max-w-5xl gap-4 md:grid-cols-3">
+            {richContent.storyDetails.map((paragraph) => (
+              <div
+                key={paragraph}
+                className="rounded-lg border border-[#d8ddcf] bg-[#fffefa]/82 p-5 text-sm leading-7 text-[#66745c] shadow-sm"
+              >
+                {paragraph}
+              </div>
+            ))}
+          </div>
+          <div className="mx-auto max-w-5xl overflow-hidden rounded-lg border border-[#d8ddcf] bg-[#fffefa]/88 p-3 shadow-sm sm:p-5">
+            <div className="relative aspect-[16/10] w-full">
+              <Image
+                src="/story/timeline.png"
+                alt="Nossa história"
+                fill
+                quality={100}
+                sizes="(max-width: 640px) 100vw, 1024px"
+                className="object-contain"
+              />
+            </div>
           </div>
         </div>
       </section>
 
       <PreviewDivider className="relative z-10 py-6" />
 
-      <section id="cerimonia" className="relative z-10 px-5 py-20 sm:px-6">
+      <section
+        id="cerimonia-jantar"
+        className="relative z-10 scroll-mt-[-65px] px-5 py-20 sm:px-6"
+      >
         <div className="mx-auto max-w-6xl">
           <SectionHeader
             kicker="Onde celebrar"
@@ -319,7 +455,9 @@ export default async function PreviewDesignPage() {
           <div className="grid gap-8">
             <InfoPanel
               kicker="Cerimônia"
+              id="cerimonia"
               title="Monte Alegre"
+              description="Disponibilizamos o endereço completo e o acesso pelo Google Maps para facilitar sua chegada à cerimônia."
               text={cleanContent.ceremonyAddress}
               imageSrc="/locations/capela.jpg"
               imageAlt="Capela da cerimônia"
@@ -327,7 +465,9 @@ export default async function PreviewDesignPage() {
             />
             <InfoPanel
               kicker="Jantar"
+              id="jantar"
               title="Casa Lucca"
+              description="Disponibilizamos o endereço completo e o acesso pelo Google Maps para facilitar sua chegada ao jantar."
               text={cleanContent.dinnerAddress}
               imageSrc="/locations/casa-lucca.png"
               imageAlt="Casa Lucca, local do jantar"
@@ -339,12 +479,15 @@ export default async function PreviewDesignPage() {
 
       <PreviewDivider className="relative z-10 py-6" />
 
-      <section className="relative z-10 bg-white/45 px-5 py-20 sm:px-6">
+      <section
+        id="dress-code"
+        className="relative z-10 scroll-mt-[-40px] bg-white/45 px-5 py-20 sm:px-6"
+      >
         <div className="mx-auto max-w-4xl">
           <SectionHeader
             kicker="Dress code"
             title="Traje esporte fino"
-            text="O casamento acontece no fim da tarde, em junho. Sugerimos looks elegantes e confortáveis para o clima frio."
+            text={richContent.dressCodeIntro}
           />
           <div className="overflow-hidden rounded-lg border border-[#d8ddcf] bg-[#fffefa]/85 shadow-sm">
             <div className="relative aspect-[16/9] w-full">
@@ -357,9 +500,26 @@ export default async function PreviewDesignPage() {
                 className="object-contain"
               />
             </div>
+            <div className="grid gap-4 px-6 pb-6 md:grid-cols-2">
+              {richContent.dressCodeGroups.map((group) => (
+                <div
+                  key={group.title}
+                  className="rounded-lg border border-[#d8ddcf] bg-white/70 p-5 text-left"
+                >
+                  <h3 className="display-font text-2xl font-semibold text-[#4f6146]">
+                    {group.title}
+                  </h3>
+                  <p className="mt-3 text-sm leading-7 text-[#66745c]">
+                    {group.text}
+                  </p>
+                  <p className="mt-3 text-sm font-semibold leading-7 text-[#4f6146]">
+                    {group.avoid}
+                  </p>
+                </div>
+              ))}
+            </div>
             <p className="px-6 pb-6 text-center leading-7 text-[#66745c]">
-              Pedimos, com carinho, que evitem tons de chumbo, lavanda e branco,
-              reservados aos padrinhos, madrinhas e à noiva.
+              {richContent.dressCodeColors}
             </p>
           </div>
         </div>
@@ -372,7 +532,7 @@ export default async function PreviewDesignPage() {
           <SectionHeader
             kicker="Confirme sua presença"
             title="Vamos celebrar?"
-            text="Sua confirmação é essencial para planejarmos cada detalhe com carinho."
+            text={richContent.rsvp}
           />
           <RsvpForm />
         </div>
@@ -385,8 +545,11 @@ export default async function PreviewDesignPage() {
           <SectionHeader
             kicker="Lista de presentes"
             title="Presentes"
-            text="Sua presença é o nosso maior presente, mas se desejar nos presentear, selecionamos algumas sugestões com carinho."
+            text={richContent.gifts}
           />
+          <p className="mx-auto mb-8 max-w-2xl text-center text-sm leading-7 text-[#66745c]">
+            {richContent.giftListIntro}
+          </p>
           <GiftRegistry gifts={giftCatalog} />
         </div>
       </section>
@@ -396,10 +559,13 @@ export default async function PreviewDesignPage() {
       <section id="momentos" className="relative z-10 px-5 py-20 sm:px-6">
         <div className="mx-auto max-w-2xl text-center">
           <SectionHeader
-            kicker="Memorias"
+            kicker="Memórias"
             title="Momentos"
-            text="Depois do casamento, vocês poderão compartilhar fotos e vídeos na nossa pasta."
+            text={richContent.moments[0]}
           />
+          <p className="mb-6 leading-7 text-[#66745c]">
+            {richContent.moments[1]}
+          </p>
           <LinkCard
             title="Envie suas fotos do casamento"
             description="Clique para abrir a pasta e fazer upload das suas fotos."

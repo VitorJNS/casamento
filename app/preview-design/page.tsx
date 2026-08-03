@@ -628,7 +628,6 @@ export default async function PreviewDesignPage() {
       <section id="momentos" className="relative z-10 px-5 py-20 sm:px-6">
         <div className="mx-auto max-w-2xl text-center">
           <SectionHeader
-            kicker="Memórias"
             title="Momentos"
             text={richContent.moments[0]}
           />

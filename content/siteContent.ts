@@ -154,7 +154,7 @@ Não deixe nenhum momento passar despercebido — queremos guardar cada memória
       title: "Fundo “vamos pedir iFood hoje mesmo”",
       description:
         "Nem só de amor vive um casal moderno.",
-      priceLabel: "R$ 150,00",
+      priceLabel: "R$ 200,00",
       infinityPay: "",
       imageSrc: "/presents/Fundo%20%E2%80%9Cvamos%20pedir%20iFood%20hoje%20mesmo%E2%80%9D.png",
     },
@@ -223,7 +223,7 @@ Não deixe nenhum momento passar despercebido — queremos guardar cada memória
       title: "Contribuição para noites frias de junho",
       description:
         "Ajude os noivos a investirem em mantinhas, conforto e chocolate quente.",
-      priceLabel: "R$ 150,00",
+      priceLabel: "R$ 250,00",
       infinityPay: "",
       imageSrc: "/presents/Contribui%C3%A7%C3%A3o%20para%20noites%20frias%20de%20junho.png",
     },

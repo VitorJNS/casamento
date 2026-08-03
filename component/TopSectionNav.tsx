@@ -163,7 +163,7 @@ export function TopSectionNav({ items }: TopSectionNavProps) {
       </div>
 
       {isOpen ? (
-        <div className="fixed inset-0 z-40 sm:hidden">
+        <div className="fixed inset-0 z-40 lg:hidden">
           <button
             type="button"
             onClick={closeMenu}
@@ -171,7 +171,7 @@ export function TopSectionNav({ items }: TopSectionNavProps) {
             aria-label="Fechar menu"
           />
 
-          <aside className="absolute right-0 top-0 h-full w-[82%] max-w-sm border-l border-zinc-200 bg-[rgb(var(--paper))] p-5 shadow-2xl">
+          <aside className="absolute right-0 top-0 flex h-full w-[86%] max-w-sm flex-col overflow-y-auto border-l border-zinc-200 bg-[rgb(var(--paper))] p-5 shadow-2xl">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.18em] text-zinc-500">
@@ -191,7 +191,7 @@ export function TopSectionNav({ items }: TopSectionNavProps) {
               </button>
             </div>
 
-            <nav className="mt-6 grid gap-2">
+            <nav className="mt-6 grid gap-2 pb-8">
               <a
                 href="/admin"
                 className="rounded-2xl px-4 py-3 text-sm font-semibold uppercase tracking-[0.08em] text-[rgb(var(--olive))] transition"

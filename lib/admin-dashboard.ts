@@ -6,7 +6,7 @@ import { ORDERS_TAG } from "@/lib/orders";
 import { getPresenceDashboardData, PRESENCE_TAG } from "@/lib/presence-dashboard";
 import { getPrisma, withPrismaRetry } from "@/lib/prisma";
 import {
-  ensureRsvpTable,
+  ensurePresenceTables,
   GUEST_LIST_TAG,
   listGuestListEntries,
   normalizeWhatsapp,
@@ -58,7 +58,7 @@ function normalizeGuestResponses(value: unknown) {
 export async function getAdminDashboardData() {
   return withPrismaRetry(async () => {
     const prisma = getPrisma();
-    await ensureRsvpTable();
+    await ensurePresenceTables();
 
   const [orders, paidOrders, paidAggregate, rsvpRows, presenceData] = await Promise.all([
     prisma.order.findMany({
@@ -210,7 +210,7 @@ export async function getAdminGuestsData() {
 const getAdminGuestsDataCached = unstable_cache(
   async () => withPrismaRetry(async () => {
   const prisma = getPrisma();
-  await ensureRsvpTable();
+  await ensurePresenceTables();
 
   const [rsvpRows, presenceData, guestListEntries] = await Promise.all([
     prisma.$queryRawUnsafe<RsvpRow[]>(`

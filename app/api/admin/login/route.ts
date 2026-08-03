@@ -2,17 +2,13 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import {
-  clearAdminSession,
   createAdminSession,
   validateAdminPassword,
 } from "@/lib/admin-auth";
-import {
-  clearCerimonialSession,
-  createCerimonialSession,
-  validateCerimonialPassword,
-} from "@/lib/cerimonial-auth";
+import { clearCerimonialSession } from "@/lib/cerimonial-auth";
 
 export const runtime = "nodejs";
+export const preferredRegion = "gru1";
 
 const loginSchema = z.object({
   password: z.string().min(1),
@@ -30,17 +26,6 @@ export async function POST(request: Request) {
         success: true,
         destination: "/admin/convidados",
         role: "admin",
-      });
-    }
-
-    if (validateCerimonialPassword(payload.password)) {
-      await clearAdminSession();
-      await createCerimonialSession();
-
-      return NextResponse.json({
-        success: true,
-        destination: "/cerimonial/dashboard",
-        role: "cerimonial",
       });
     }
 

@@ -3,22 +3,14 @@ import { redirect } from "next/navigation";
 import { AdminLoginForm } from "@/component/AdminLoginForm";
 import { LoggedAreaBackdrop } from "@/component/LoggedAreaBackdrop";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
-import { isCerimonialAuthenticated } from "@/lib/cerimonial-auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminLoginPage() {
-  const [adminAuthenticated, cerimonialAuthenticated] = await Promise.all([
-    isAdminAuthenticated(),
-    isCerimonialAuthenticated(),
-  ]);
+  const adminAuthenticated = await isAdminAuthenticated();
 
   if (adminAuthenticated) {
     redirect("/admin/convidados");
-  }
-
-  if (cerimonialAuthenticated) {
-    redirect("/cerimonial/dashboard");
   }
 
   return (

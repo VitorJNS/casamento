@@ -15,6 +15,7 @@ export type CerimonialSupplierView = {
   contactName: string | null;
   phone: string;
   email: string | null;
+  contractUrl: string | null;
   note: string | null;
   updatedAt: string;
 };
@@ -199,6 +200,7 @@ function EmptyState() {
 function SupplierCard({ supplier }: { supplier: CerimonialSupplierView }) {
   const whatsappHref = `https://wa.me/${supplier.phone.replace(/\D/g, "")}`;
   const emailHref = supplier.email ? `mailto:${supplier.email}` : null;
+  const contractHref = supplier.contractUrl?.trim() || null;
 
   return (
     <article className="rounded-[18px] border border-zinc-200 bg-white p-4 shadow-[0_10px_28px_rgba(24,24,27,0.05)]">
@@ -237,6 +239,11 @@ function SupplierCard({ supplier }: { supplier: CerimonialSupplierView }) {
         {emailHref ? (
           <ActionLink href={emailHref} label="Email">
             <MailIcon className="h-3.5 w-3.5" />
+          </ActionLink>
+        ) : null}
+        {contractHref ? (
+          <ActionLink href={contractHref} label="Contrato">
+            <FileIcon className="h-3.5 w-3.5" />
           </ActionLink>
         ) : null}
       </div>
@@ -386,6 +393,17 @@ function MailIcon({ className }: { className?: string }) {
     <SvgIcon className={className}>
       <rect x="3" y="5" width="18" height="14" rx="2" />
       <path d="m3 7 9 6 9-6" />
+    </SvgIcon>
+  );
+}
+
+function FileIcon({ className }: { className?: string }) {
+  return (
+    <SvgIcon className={className}>
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
+      <path d="M14 2v6h6" />
+      <path d="M8 13h8" />
+      <path d="M8 17h5" />
     </SvgIcon>
   );
 }

@@ -20,6 +20,7 @@ function mapSupplier(
     contactName: supplier.contact_name,
     phone: supplier.phone,
     email: supplier.email,
+    contractUrl: supplier.contract_url,
     note: supplier.note,
     updatedAt: toIsoString(supplier.updated_at),
   };

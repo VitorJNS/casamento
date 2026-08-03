@@ -12,11 +12,12 @@ export type AdminSupplier = {
   id: string;
   supplierName: string;
   category: string;
-  supplierStatus: "contratado" | "pendente" | "negociacao";
+  supplierStatus: "contratado" | "pendente";
   contactName: string | null;
   phone: string;
   email: string | null;
   contractValueCents: number | null;
+  contractUrl: string | null;
   amountPaidCents: number;
   nextPaymentDue: string | null;
   note: string | null;
@@ -33,6 +34,7 @@ type SupplierDraft = {
   phone: string;
   email: string;
   contractValue: string;
+  contractUrl: string;
   amountPaid: string;
   nextPaymentDue: string;
   note: string;
@@ -46,6 +48,7 @@ const emptyDraft: SupplierDraft = {
   phone: "",
   email: "",
   contractValue: "",
+  contractUrl: "",
   amountPaid: "",
   nextPaymentDue: "",
   note: "",
@@ -53,20 +56,60 @@ const emptyDraft: SupplierDraft = {
 
 const SUPPLIERS_PER_PAGE = 10;
 
+function normalizeSupplier(supplier: AdminSupplier): AdminSupplier {
+  return {
+    ...supplier,
+    contactName: supplier.contactName ?? "",
+    email: supplier.email ?? "",
+    contractUrl: supplier.contractUrl ?? "",
+    note: supplier.note ?? "",
+  };
+}
+
+function supplierToDraft(supplier: AdminSupplier): SupplierDraft {
+  return {
+    supplierName: supplier.supplierName,
+    category: supplier.category,
+    supplierStatus: supplier.supplierStatus,
+    contactName: supplier.contactName ?? "",
+    phone: supplier.phone,
+    email: supplier.email ?? "",
+    contractValue:
+      supplier.contractValueCents !== null ? formatPriceCents(supplier.contractValueCents) : "",
+    contractUrl: supplier.contractUrl ?? "",
+    amountPaid: supplier.amountPaidCents > 0 ? formatPriceCents(supplier.amountPaidCents) : "",
+    nextPaymentDue: toDateInputValue(supplier.nextPaymentDue),
+    note: supplier.note ?? "",
+  };
+}
+
+function toDateInputValue(value: string | null) {
+  if (!value) return "";
+  return value.slice(0, 10);
+}
+
 export function AdminSuppliersManager({
   initialSuppliers,
 }: {
   initialSuppliers: AdminSupplier[];
 }) {
-  const [suppliers, setSuppliers] = useState(initialSuppliers);
+  const [suppliers, setSuppliers] = useState(() =>
+    initialSuppliers.map(normalizeSupplier),
+  );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [supplierPendingDelete, setSupplierPendingDelete] =
     useState<AdminSupplier | null>(null);
+  const [editingSupplier, setEditingSupplier] = useState<AdminSupplier | null>(null);
   const [draft, setDraft] = useState<SupplierDraft>(emptyDraft);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+
+  const budgetTotalCents = suppliers.reduce(
+    (total, supplier) => total + (supplier.contractValueCents ?? 0),
+    0,
+  );
 
   const quickStats = [
     {
@@ -75,10 +118,8 @@ export function AdminSuppliersManager({
       tone: "text-[rgb(var(--lavender))]",
     },
     {
-      label: "Contratos assinados",
-      value: String(
-        suppliers.filter((supplier) => supplier.supplierStatus === "contratado").length,
-      ).padStart(2, "0"),
+      label: "Orçamento",
+      value: formatPriceCents(budgetTotalCents),
       tone: "text-[rgb(var(--olive))]",
     },
     {
@@ -91,13 +132,6 @@ export function AdminSuppliersManager({
         ).length,
       ).padStart(2, "0"),
       tone: "text-rose-500",
-    },
-    {
-      label: "Em negociacao",
-      value: String(
-        suppliers.filter((supplier) => supplier.supplierStatus === "negociacao").length,
-      ).padStart(2, "0"),
-      tone: "text-zinc-700",
     },
   ];
 
@@ -113,7 +147,7 @@ export function AdminSuppliersManager({
     setPage((current) => Math.min(current, totalPages));
   }, [totalPages]);
 
-  async function handleCreate(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSave(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const validationMessage = validateSupplierDraft(draft);
 
@@ -126,8 +160,12 @@ export function AdminSuppliersManager({
     setErrorMessage(null);
 
     try {
-      const response = await fetch("/api/admin/suppliers", {
-        method: "POST",
+      const response = await fetch(
+        editingSupplier
+          ? `/api/admin/suppliers/${editingSupplier.id}`
+          : "/api/admin/suppliers",
+        {
+        method: editingSupplier ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           supplierName: draft.supplierName,
@@ -137,32 +175,41 @@ export function AdminSuppliersManager({
           phone: draft.phone,
           email: draft.email,
           contractValueCents: toCentsOrNull(draft.contractValue),
+          contractUrl: draft.contractUrl,
           amountPaidCents: toCentsOrZero(draft.amountPaid),
           nextPaymentDue: draft.nextPaymentDue,
           note: draft.note,
         }),
-      });
+        },
+      );
 
       const data = await response.json();
 
       if (!response.ok) {
         throw new Error(
-          data?.error?.message ?? "Nao foi possivel cadastrar o fornecedor.",
+          data?.error?.message ?? "Nao foi possivel salvar o fornecedor.",
         );
       }
 
       setSuppliers((current) =>
-        [...current, data.supplier].sort((a, b) =>
-          a.supplierName.localeCompare(b.supplierName, "pt-BR"),
-        ),
+        (
+          editingSupplier
+            ? current.map((supplier) =>
+                supplier.id === editingSupplier.id
+                  ? normalizeSupplier(data.supplier)
+                  : supplier,
+              )
+            : [...current, normalizeSupplier(data.supplier)]
+        ).sort((a, b) => a.supplierName.localeCompare(b.supplierName, "pt-BR")),
       );
       setDraft(emptyDraft);
+      setEditingSupplier(null);
       setIsModalOpen(false);
     } catch (error) {
       setErrorMessage(
         error instanceof Error
           ? error.message
-          : "Nao foi possivel cadastrar o fornecedor.",
+          : "Nao foi possivel salvar o fornecedor.",
       );
     } finally {
       setIsSaving(false);
@@ -203,8 +250,17 @@ export function AdminSuppliersManager({
     }
   }
 
-  function openModal() {
+  function openCreateModal() {
     setErrorMessage(null);
+    setEditingSupplier(null);
+    setDraft(emptyDraft);
+    setIsModalOpen(true);
+  }
+
+  function openEditModal(supplier: AdminSupplier) {
+    setErrorMessage(null);
+    setEditingSupplier(supplier);
+    setDraft(supplierToDraft(supplier));
     setIsModalOpen(true);
   }
 
@@ -249,7 +305,7 @@ export function AdminSuppliersManager({
 
         <button
           type="button"
-          onClick={openModal}
+          onClick={openCreateModal}
           className="btn-primary justify-center rounded-full px-5 py-3 text-sm font-semibold max-sm:w-full"
         >
           <PlusUserIcon className="h-4 w-4" />
@@ -262,6 +318,7 @@ export function AdminSuppliersManager({
           <SupplierCard
             key={supplier.id}
             supplier={supplier}
+            onEdit={() => openEditModal(supplier)}
             onDelete={() => {
               setErrorMessage(null);
               setSupplierPendingDelete(supplier);
@@ -287,16 +344,18 @@ export function AdminSuppliersManager({
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <h2 className="text-2xl font-semibold tracking-[-0.04em] text-zinc-950 sm:text-[2rem]">
-                  Adicionar fornecedor
+                  {editingSupplier ? "Editar fornecedor" : "Adicionar fornecedor"}
                 </h2>
                 <p className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 sm:leading-7">
-                  Cadastre o parceiro com dados de contato, contrato e pagamentos.
+                  {editingSupplier
+                    ? "Atualize dados de contato, contrato, pagamentos e observacoes."
+                    : "Cadastre o parceiro com dados de contato, contrato e pagamentos."}
                 </p>
               </div>
 
             </div>
 
-            <form onSubmit={handleCreate} className="mt-4 grid gap-3 md:grid-cols-2">
+            <form onSubmit={handleSave} className="mt-4 grid gap-3 md:grid-cols-2">
               <Field
                 value={draft.supplierName}
                 onChange={(value) => setDraft((current) => ({ ...current, supplierName: value }))}
@@ -325,17 +384,23 @@ export function AdminSuppliersManager({
                 onChange={(value) => setDraft((current) => ({ ...current, phone: value }))}
                 placeholder="Telefone ou WhatsApp"
               />
-              <Field
+              {/* <Field
                 value={draft.email}
                 onChange={(value) => setDraft((current) => ({ ...current, email: value }))}
                 placeholder="Email"
                 type="email"
-              />
+              /> */}
               <Field
                 value={draft.contractValue}
                 onChange={(value) => setDraft((current) => ({ ...current, contractValue: value }))}
                 placeholder="Valor do contrato"
                 inputMode="numeric"
+              />
+              <Field
+                value={draft.contractUrl ?? ""}
+                onChange={(value) => setDraft((current) => ({ ...current, contractUrl: value }))}
+                placeholder="Link do contrato"
+                type="url"
               />
               <Field
                 value={draft.amountPaid}
@@ -372,12 +437,18 @@ export function AdminSuppliersManager({
                   disabled={isSaving}
                   className="btn-primary rounded-full px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60 max-sm:flex-1"
                 >
-                  {isSaving ? "Salvando..." : "Salvar fornecedor"}
+                  {isSaving
+                    ? "Salvando..."
+                    : editingSupplier
+                      ? "Salvar alteracoes"
+                      : "Salvar fornecedor"}
                 </button>
                 <button
                   type="button"
                   onClick={() => {
                     setIsModalOpen(false);
+                    setEditingSupplier(null);
+                    setDraft(emptyDraft);
                     setErrorMessage(null);
                   }}
                   className="rounded-full border border-zinc-300 px-4 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 max-sm:flex-1"
@@ -437,9 +508,11 @@ export function AdminSuppliersManager({
 
 function SupplierCard({
   supplier,
+  onEdit,
   onDelete,
 }: {
   supplier: AdminSupplier;
+  onEdit: () => void;
   onDelete: () => void;
 }) {
   const initials = supplier.supplierName
@@ -451,6 +524,7 @@ function SupplierCard({
 
   const whatsappHref = `https://wa.me/${supplier.phone.replace(/\D/g, "")}`;
   const emailHref = supplier.email ? `mailto:${supplier.email}` : null;
+  const contractHref = supplier.contractUrl?.trim() || null;
   const contractValueLabel =
     supplier.contractValueCents !== null
       ? formatPriceCents(supplier.contractValueCents)
@@ -481,14 +555,24 @@ function SupplierCard({
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={onDelete}
-          aria-label={`Excluir ${supplier.supplierName}`}
-          className="rounded-full border border-zinc-200 p-1.5 text-zinc-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
-        >
-          <TrashIcon className="h-3.5 w-3.5" />
-        </button>
+        <div className="flex shrink-0 gap-1.5">
+          <button
+            type="button"
+            onClick={onEdit}
+            aria-label={`Editar ${supplier.supplierName}`}
+            className="rounded-full border border-zinc-200 p-1.5 text-zinc-500 transition hover:border-[rgb(var(--lavender)/0.45)] hover:bg-[rgb(var(--lavender)/0.12)] hover:text-[rgb(var(--olive))]"
+          >
+            <PencilIcon className="h-3.5 w-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={onDelete}
+            aria-label={`Excluir ${supplier.supplierName}`}
+            className="rounded-full border border-zinc-200 p-1.5 text-zinc-500 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
+          >
+            <TrashIcon className="h-3.5 w-3.5" />
+          </button>
+        </div>
       </div>
 
       <div className="mt-3 flex flex-wrap gap-3 text-xs text-zinc-600">
@@ -498,6 +582,11 @@ function SupplierCard({
         {emailHref ? (
           <ActionLink href={emailHref} label="Email">
             <MailIcon className="h-3.5 w-3.5" />
+          </ActionLink>
+        ) : null}
+        {contractHref ? (
+          <ActionLink href={contractHref} label="Contrato">
+            <FileIcon className="h-3.5 w-3.5" />
           </ActionLink>
         ) : null}
       </div>
@@ -618,7 +707,7 @@ function Field({
   return (
     <input
       type={type}
-      value={value}
+      value={value ?? ""}
       onChange={(event) => onChange(event.target.value)}
       onBlur={(event) => {
         if (inputMode === "numeric") {
@@ -647,13 +736,12 @@ function StatusSelector({
   }> = [
     { value: "contratado", label: "Contratado" },
     { value: "pendente", label: "Pendente" },
-    { value: "negociacao", label: "Negociacao" },
   ];
 
   return (
     <div className="flex flex-col gap-2 text-sm text-zinc-700">
       <span className="font-medium">Status</span>
-      <div className="grid grid-cols-3 gap-1 rounded-2xl border border-zinc-200 bg-zinc-100 p-1">
+      <div className="grid grid-cols-2 gap-1 rounded-2xl border border-zinc-200 bg-zinc-100 p-1">
         {options.map((option) => {
           const isSelected = value === option.value;
 
@@ -679,13 +767,11 @@ function StatusSelector({
 
 function getStatusLabel(status: AdminSupplier["supplierStatus"]) {
   if (status === "contratado") return "Contratado";
-  if (status === "negociacao") return "Em negociacao";
   return "Pendente";
 }
 
 function getStatusTone(status: AdminSupplier["supplierStatus"]): "green" | "amber" | "zinc" {
   if (status === "contratado") return "green";
-  if (status === "negociacao") return "amber";
   return "zinc";
 }
 
@@ -735,6 +821,7 @@ function validateSupplierDraft(draft: SupplierDraft) {
   const phoneDigits = draft.phone.replace(/\D/g, "");
   const email = draft.email.trim();
   const contractValue = draft.contractValue.trim();
+  const contractUrl = draft.contractUrl.trim();
   const amountPaid = draft.amountPaid.trim();
   const note = draft.note.trim();
   const contractValueCents = contractValue ? toCentsOrNull(contractValue) : null;
@@ -758,6 +845,10 @@ function validateSupplierDraft(draft: SupplierDraft) {
 
   if (contractValue && contractValueCents === null) {
     errors.push("Valor do contrato: use um valor em reais, por exemplo 1500,00.");
+  }
+
+  if (contractUrl && !/^https?:\/\/\S+$/i.test(contractUrl)) {
+    errors.push("Link do contrato: informe um link com http:// ou https://.");
   }
 
   if (amountPaid && amountPaidCents === null) {
@@ -847,6 +938,26 @@ function MailIcon({ className }: { className?: string }) {
     <SvgIcon className={className}>
       <rect x="3" y="5" width="18" height="14" rx="2" />
       <path d="m3 7 9 6 9-6" />
+    </SvgIcon>
+  );
+}
+
+function FileIcon({ className }: { className?: string }) {
+  return (
+    <SvgIcon className={className}>
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
+      <path d="M14 2v6h6" />
+      <path d="M8 13h8" />
+      <path d="M8 17h5" />
+    </SvgIcon>
+  );
+}
+
+function PencilIcon({ className }: { className?: string }) {
+  return (
+    <SvgIcon className={className}>
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
     </SvgIcon>
   );
 }

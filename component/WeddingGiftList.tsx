@@ -12,6 +12,7 @@ type WeddingGiftListProps = {
   onPageChange: (page: number) => void;
   cartQuantity: number;
   cartSubtotalLabel: string;
+  introText?: string;
   onOpenCart: () => void;
   getQuantityInCart: (giftId: string) => number;
   onAddToCart: (giftId: string) => void;
@@ -21,11 +22,12 @@ type WeddingGiftListProps = {
 
 export function WeddingGiftList({
   gifts,
-  itemsPerPage = 8,
+  itemsPerPage = 10,
   page,
   onPageChange,
   cartQuantity,
   cartSubtotalLabel,
+  introText,
   onOpenCart,
   getQuantityInCart,
   onAddToCart,
@@ -82,6 +84,11 @@ export function WeddingGiftList({
             <p className="mt-1 text-sm text-zinc-600">
               Mostrando {startItem}-{endItem} de {sortedGifts.length} presentes
             </p>
+            {introText ? (
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-[#66745c]">
+                {introText}
+              </p>
+            ) : null}
           </div>
 
           <div className="flex w-full items-center gap-3 sm:w-auto sm:flex-row sm:items-center">
@@ -136,25 +143,25 @@ export function WeddingGiftList({
             <button
               type="button"
               onClick={onOpenCart}
-              className="hidden items-center justify-between bg-[rgb(var(--olive))] px-4 py-3 text-left text-white shadow-sm transition hover:opacity-95 sm:flex sm:min-w-[250px] sm:rounded-full"
+              className="hidden h-[42px] w-[190px] items-center justify-between rounded-full bg-[rgb(var(--olive))] px-3 py-2 text-left text-white shadow-sm transition hover:opacity-95 sm:flex"
             >
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/75">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/75">
                   Ver carrinho
                 </p>
-                <p className="mt-1 text-sm font-semibold">
+                <p className="text-xs font-semibold leading-none">
                   {cartQuantity > 0
                     ? `${cartQuantity} ${cartQuantity === 1 ? "item" : "itens"}`
                     : "Nenhum item"}
                 </p>
               </div>
-              <p className="text-sm font-semibold">{cartSubtotalLabel}</p>
+              <p className="text-xs font-semibold">{cartSubtotalLabel}</p>
             </button>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
         {visibleGifts.map((gift) => (
           <WeddingGiftCard
             key={gift.id}

@@ -38,7 +38,13 @@ function readCartStorage(): CartItem[] {
   }
 }
 
-export function GiftRegistry({ gifts }: { gifts: DisplayGift[] }) {
+export function GiftRegistry({
+  gifts,
+  introText,
+}: {
+  gifts: DisplayGift[];
+  introText?: string;
+}) {
   const [page, setPage] = useState(1);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -485,6 +491,7 @@ export function GiftRegistry({ gifts }: { gifts: DisplayGift[] }) {
           onPageChange={setPage}
           cartQuantity={cartQuantity}
           cartSubtotalLabel={cartSubtotalLabel}
+          introText={introText}
           onOpenCart={() => setModalOpen(true)}
           getQuantityInCart={(giftId) =>
             cart.find((item) => item.giftId === giftId)?.quantity ?? 0

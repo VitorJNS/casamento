@@ -570,10 +570,7 @@ export default async function PreviewDesignPage() {
             title="Presentes"
             text={richContent.gifts}
           />
-          <p className="mx-auto mb-8 max-w-2xl text-center text-sm leading-7 text-[#66745c]">
-            {richContent.giftListIntro}
-          </p>
-          <GiftRegistry gifts={giftCatalog} />
+          <GiftRegistry gifts={giftCatalog} introText={richContent.giftListIntro} />
         </div>
       </section>
 

@@ -485,13 +485,17 @@ export function GiftRegistry({
   return (
     <>
       <div className={cartQuantity > 0 ? "pb-24 sm:pb-0" : undefined}>
+        {introText ? (
+          <p className="mx-auto mb-9 max-w-2xl text-center text-sm leading-7 text-[#66745c]">
+            {introText}
+          </p>
+        ) : null}
         <WeddingGiftList
           gifts={gifts}
           page={page}
           onPageChange={setPage}
           cartQuantity={cartQuantity}
           cartSubtotalLabel={cartSubtotalLabel}
-          introText={introText}
           onOpenCart={() => setModalOpen(true)}
           getQuantityInCart={(giftId) =>
             cart.find((item) => item.giftId === giftId)?.quantity ?? 0

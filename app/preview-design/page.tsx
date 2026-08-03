@@ -165,15 +165,19 @@ function Ornament({ side }: { side: "left" | "right" }) {
 function SectionHeader({
   kicker,
   title,
+  subtitle,
   text,
   titleClassName = "",
+  subtitleClassName = "",
   textClassName = "",
   titleStyle,
 }: {
   kicker?: string;
   title: string;
+  subtitle?: string;
   text?: string;
   titleClassName?: string;
+  subtitleClassName?: string;
   textClassName?: string;
   titleStyle?: React.CSSProperties;
 }) {
@@ -190,9 +194,44 @@ function SectionHeader({
       >
         {title}
       </h2>
+      {subtitle ? (
+        <p
+          className={`display-font mt-2 text-2xl font-semibold text-[#b19cd9] sm:text-3xl ${subtitleClassName}`.trim()}
+        >
+          {subtitle}
+        </p>
+      ) : null}
       {text ? (
         <p className={`mt-4 leading-7 text-[#66745c] ${textClassName}`.trim()}>{text}</p>
       ) : null}
+    </div>
+  );
+}
+
+function GiftRegistryHeading() {
+  return (
+    <div className="mx-auto mb-11 max-w-3xl text-center">
+      <Image
+        src="/ornaments/presentes-top-ornament.png"
+        alt=""
+        width={360}
+        height={120}
+        className="mx-auto mb-[-0.35rem] h-20 w-[18rem] object-contain sm:h-24 sm:w-[24rem]"
+        priority
+      />
+      <h2 className="display-font text-[4.7rem] font-semibold leading-[0.86] text-[#4f6146] sm:text-[6.2rem]">
+        Presentes
+      </h2>
+      <p className="display-font mt-5 text-[2.25rem] font-semibold leading-none text-[#b19cd9] sm:text-[3.15rem]">
+        Lista de presentes
+      </p>
+      <div className="mt-5 flex items-center justify-center gap-4" aria-hidden="true">
+        <span className="h-px w-36 bg-[#c9a65a] sm:w-44" />
+        <span className="display-font -mt-1 text-2xl leading-none text-[#b89543]">
+          ♥
+        </span>
+        <span className="h-px w-36 bg-[#c9a65a] sm:w-44" />
+      </div>
     </div>
   );
 }
@@ -563,13 +602,23 @@ export default async function PreviewDesignPage() {
 
       <PreviewDivider className="relative z-10 py-6" />
 
-      <section id="presentes" className="relative z-10 bg-white/45 px-5 py-20 sm:px-6">
-        <div className="mx-auto max-w-6xl">
-          <SectionHeader
-            kicker="Lista de presentes"
-            title="Presentes"
-            text={richContent.gifts}
-          />
+      <section id="presentes" className="relative z-10 overflow-hidden bg-[#fffefa]/55 px-5 py-20 sm:px-6">
+        {/* <Image
+          src="/ornaments/lavanda-preto-branco.png"
+          alt=""
+          width={260}
+          height={420}
+          className="pointer-events-none absolute left-0 top-0 hidden -translate-x-16 -translate-y-8 rotate-[-10deg] opacity-25 lg:block"
+        /> */}
+        <Image
+          src="/ornaments/oliveira-preto-branco.png"
+          alt=""
+          width={220}
+          height={420}
+          className="pointer-events-none absolute right-0 bottom-10 hidden translate-x-14 opacity-[0.18] lg:block"
+        />
+        <div className="relative mx-auto max-w-7xl">
+          <GiftRegistryHeading />
           <GiftRegistry gifts={giftCatalog} introText={richContent.giftListIntro} />
         </div>
       </section>

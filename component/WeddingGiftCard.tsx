@@ -26,14 +26,14 @@ export function WeddingGiftCard({
   onDecreaseCartItem,
 }: WeddingGiftCardProps) {
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-[18px] border border-zinc-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md sm:rounded-[22px]">
-      <div className="relative aspect-[4/3] border-b border-zinc-200">
+    <article className="group flex h-full flex-col">
+      <div className="relative aspect-[4/3] overflow-hidden rounded-lg border border-[#ded6c5] bg-[#f8f5ed]">
         {imageSrc ? (
           <Image
             src={imageSrc}
             alt={title}
             fill
-            className="object-cover transition duration-500 group-hover:scale-[1.02]"
+            className="object-cover transition duration-500 group-hover:scale-[1.025]"
             sizes="(max-width: 640px) 50vw, (max-width: 1280px) 25vw, 20vw"
           />
         ) : (
@@ -47,63 +47,58 @@ export function WeddingGiftCard({
         )}
       </div>
 
-      <div className="flex flex-1 flex-col p-2.5 sm:p-3">
-        <div className="min-h-12 sm:min-h-14">
+      <div className="flex flex-1 flex-col pt-3">
+        <div className="min-h-12 sm:min-h-[4.25rem]">
           {category ? (
-            <p className="hidden text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-500 sm:block">
+            <p className="hidden text-[10px] font-semibold uppercase tracking-[0.18em] text-[#9b8f75] sm:block">
               {category}
             </p>
           ) : null}
-          <h3 className="mt-1 line-clamp-2 text-center text-[0.96rem] font-medium leading-6 text-zinc-900 sm:mt-1 sm:text-left sm:text-base sm:font-semibold sm:leading-6">
+          <h3 className="line-clamp-2 text-[0.95rem] font-medium leading-5 text-[#2f352b] sm:text-base">
             {title}
           </h3>
         </div>
 
-        <p className="mt-1 hidden line-clamp-2 min-h-9 text-xs leading-5 text-zinc-600 sm:block">
+        <p className="mt-1 hidden line-clamp-2 min-h-10 text-xs leading-5 text-[#6d705f] sm:block">
           {description}
         </p>
 
-        <div className="mt-2 flex items-center justify-center sm:mt-4">
-          <div
-            className="text-center text-[0.98rem] font-semibold text-[rgb(var(--olive))] sm:px-3 sm:text-base sm:text-zinc-900"
-            style={{
-              backgroundColor: "transparent",
-            }}
-          >
+        <div className="mt-auto flex items-center pt-2 sm:pt-3">
+          <div className="text-[0.95rem] font-semibold text-[rgb(var(--olive))]">
             {priceLabel}
           </div>
         </div>
 
-        <div className="mt-auto pt-3 sm:pt-4">
+        <div className="h-10 pt-3">
           {quantityInCart > 0 ? (
-            <div className="flex items-center justify-center gap-2 rounded-[14px] border border-zinc-200 bg-zinc-50 px-3 py-2.5 sm:gap-3 sm:rounded-full sm:bg-transparent sm:px-0 sm:py-0">
+            <div className="flex h-10 items-center justify-between rounded-lg border border-[rgb(var(--olive))/0.35] bg-[#fffefa]/85 px-2">
               <button
                 type="button"
                 aria-label="Diminuir quantidade"
                 onClick={() => onDecreaseCartItem(id)}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-zinc-300 bg-white text-zinc-500 shadow-sm transition hover:border-zinc-400 hover:text-zinc-800 sm:h-10 sm:w-10"
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#d8ddcf] bg-white text-base leading-none text-[#66745c] transition hover:border-[rgb(var(--olive))]"
               >
-                <span className="-mt-0.5 text-[1.4rem] leading-none sm:text-[1.7rem]">-</span>
+                <span className="-mt-0.5">-</span>
               </button>
-              <span className="min-w-6 text-center text-sm font-semibold text-zinc-900 sm:min-w-7 sm:text-base">
+              <span className="min-w-6 text-center text-sm font-semibold text-[#2f352b]">
                 {quantityInCart}
               </span>
               <button
                 type="button"
                 aria-label="Aumentar quantidade"
                 onClick={() => onIncreaseCartItem(id)}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-zinc-300 bg-white text-[rgb(var(--olive))] shadow-sm transition hover:border-[rgb(var(--olive))/0.45] hover:bg-[rgb(var(--olive))/0.08] sm:h-10 sm:w-10"
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#d8ddcf] bg-white text-base leading-none text-[rgb(var(--olive))] transition hover:border-[rgb(var(--olive))] hover:bg-[rgb(var(--olive))/0.08]"
               >
-                <span className="-mt-0.5 text-[1.4rem] leading-none sm:text-[1.7rem]">+</span>
+                <span className="-mt-0.5">+</span>
               </button>
             </div>
           ) : (
             <button
               type="button"
               onClick={() => onAddToCart(id)}
-              className="btn-primary flex w-full items-center justify-center rounded-[12px] px-4 py-2.5 text-sm font-semibold transition sm:rounded-full sm:py-3"
+              className="flex h-10 w-full items-center justify-center rounded-lg border border-[rgb(var(--olive))/0.65] bg-[#fffefa]/80 px-3 text-sm font-medium text-[rgb(var(--olive))] transition hover:bg-[rgb(var(--olive))/0.08]"
             >
-              Adicionar ao carrinho
+              Adicionar
             </button>
           )}
         </div>

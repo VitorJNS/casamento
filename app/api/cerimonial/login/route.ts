@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { clearAdminSession } from "@/lib/admin-auth";
 import {
   createCerimonialSession,
   validateCerimonialPassword,
 } from "@/lib/cerimonial-auth";
 
 export const runtime = "nodejs";
+export const preferredRegion = "gru1";
 
 const loginSchema = z.object({
   password: z.string().min(1),
@@ -28,6 +30,7 @@ export async function POST(request: Request) {
       );
     }
 
+    await clearAdminSession();
     await createCerimonialSession();
     return NextResponse.json({ success: true });
   } catch (error) {

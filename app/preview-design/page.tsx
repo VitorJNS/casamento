@@ -4,6 +4,7 @@ import { RsvpForm } from "@/component/RsvpForm";
 import { Countdown } from "@/component/Countdown";
 import { PreviewNavScrollController } from "@/component/PreviewNavScrollController";
 import { PreviewTopNav } from "@/component/PreviewTopNav";
+import { TimelineImagePreview } from "@/component/TimelineImagePreview";
 import { getDisplayGiftCatalog } from "@/lib/gifts";
 import Image from "next/image";
 
@@ -19,7 +20,7 @@ const weddingDate = "20 de Junho de 2027";
 const fullNavItems = [
   // { href: "#home", label: "Início" },
   { href: "#bem-vindos", label: "Bem-vindos" },
-  { href: "#o-casal", label: "O casal" },
+  { href: "#o-casal", label: "Nossa Historia" },
   { href: "#dress-code", label: "Dress Code" },
   { href: "#cerimonia-jantar", label: "Cerimônia & Jantar" },
   // { href: "#rsvp", label: "Confirmar presença" },
@@ -47,15 +48,20 @@ const richContent = {
     "Escolhemos com muito carinho o traje esporte fino para celebrar este momento tão especial ao nosso lado. O casamento acontecerá ao final da tarde, em junho, uma época em que as temperaturas costumam ser mais frias.",
   dressCodeGroups: [
     {
-      title: "Para elas",
-      text: "Vestidos midi ou longos, tecidos fluidos e tons suaves combinarão perfeitamente com a atmosfera do nosso grande dia. Casacos delicados e mangas longas também serão muito bem-vindos.",
-      avoid: "Evitem jeans, roupas muito curtas, decotes excessivos e salto desconfortável.",
-    },
-    {
       title: "Para eles",
       text: "Camisa, calça de alfaiataria e sapatos sociais são ótimas escolhas para a ocasião. Blazers e sobreposições sofisticadas também combinam com o clima do casamento.",
-      avoid: "Evitem jeans, bermudas e tênis esportivos.",
+      avoidItems: ["Jeans", "Bermudas", "Tênis esportivos"],
     },
+    {
+      title: "Para elas",
+      text: "Vestidos midi ou longos, tecidos fluidos e tons suaves combinarão perfeitamente com a atmosfera do nosso grande dia. Casacos delicados e mangas longas também serão muito bem-vindos.",
+      avoidItems: [
+        "Jeans",
+        "Roupas muito curtas",
+        "Decotes excessivos",
+        "Salto desconfortável",
+      ],
+    }
   ],
   dressCodeColors:
     "Nossos padrinhos usarão tons de chumbo, nossas madrinhas estarão em lavanda, e o branco será reservado para a noiva. Pedimos, com carinho, que evitem essas tonalidades para que cada um tenha seu destaque especial neste dia tão importante.",
@@ -85,7 +91,7 @@ const cleanContent = {
 };
 
 const navItems = [
-  { href: "#o-casal", label: "O casal" },
+  { href: "#o-casal", label: "Nossa Historia" },
   { href: "#cerimonia", label: "Cerimônia" },
   { href: "#rsvp", label: "Confirmar presença" },
   { href: "#presentes", label: "Presentes" },
@@ -160,10 +166,16 @@ function SectionHeader({
   kicker,
   title,
   text,
+  titleClassName = "",
+  textClassName = "",
+  titleStyle,
 }: {
   kicker?: string;
   title: string;
   text?: string;
+  titleClassName?: string;
+  textClassName?: string;
+  titleStyle?: React.CSSProperties;
 }) {
   return (
     <div className="mx-auto mb-12 max-w-2xl text-center">
@@ -172,11 +184,14 @@ function SectionHeader({
           {kicker}
         </p>
       ) : null}
-      <h2 className="display-font text-4xl font-semibold text-[#4f6146] sm:text-5xl">
+      <h2
+        className={`display-font text-4xl font-semibold text-[#4f6146] sm:text-5xl ${titleClassName}`.trim()}
+        style={titleStyle}
+      >
         {title}
       </h2>
       {text ? (
-        <p className="mt-4 leading-7 text-[#66745c]">{text}</p>
+        <p className={`mt-4 leading-7 text-[#66745c] ${textClassName}`.trim()}>{text}</p>
       ) : null}
     </div>
   );
@@ -415,35 +430,27 @@ export default async function PreviewDesignPage() {
 
       <section
         id="o-casal"
-        className="relative z-10 scroll-mt-[-40px] bg-white/45 px-5 py-20 sm:px-6"
+        className="relative z-10 scroll-mt-24 bg-white/45 px-5 py-20 sm:px-6"
       >
         <div className="mx-auto max-w-6xl">
           <SectionHeader
-            kicker="Nossa história"
-            title="O Casal"
+            title="Nossa Historia"
             text={richContent.story}
+            textClassName="whitespace-nowrap text-[clamp(0.69rem,2.45vw,1rem)] sm:text-base"
           />
-          <div className="mx-auto mb-12 grid max-w-5xl gap-4 md:grid-cols-3">
-            {richContent.storyDetails.map((paragraph) => (
-              <div
-                key={paragraph}
-                className="rounded-lg border border-[#d8ddcf] bg-[#fffefa]/82 p-5 text-sm leading-7 text-[#66745c] shadow-sm"
-              >
-                {paragraph}
-              </div>
-            ))}
-          </div>
-          <div className="mx-auto max-w-5xl overflow-hidden rounded-lg border border-[#d8ddcf] bg-[#fffefa]/88 p-3 shadow-sm sm:p-5">
-            <div className="relative aspect-[16/10] w-full">
-              <Image
-                src="/story/timeline.png"
-                alt="Nossa história"
-                fill
-                quality={100}
-                sizes="(max-width: 640px) 100vw, 1024px"
-                className="object-contain"
-              />
+          <div className="mx-auto max-w-5xl overflow-hidden rounded-lg border border-[#d8ddcf] bg-[#fffefa]/82 p-5 text-sm leading-7 text-[#66745c] shadow-sm sm:p-6">
+            <div className="space-y-4">
+              {richContent.storyDetails.map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
             </div>
+
+            <div className="my-6 h-px bg-[#d8ddcf]/80" />
+
+            <TimelineImagePreview
+              src="/story/timeline-full.png"
+              alt="Nossa historia"
+            />
           </div>
         </div>
       </section>
@@ -452,20 +459,18 @@ export default async function PreviewDesignPage() {
 
       <section
         id="cerimonia-jantar"
-        className="relative z-10 scroll-mt-[-65px] px-5 py-20 sm:px-6"
+        className="relative z-10 scroll-mt-24 px-5 py-20 sm:px-6"
       >
         <div className="mx-auto max-w-6xl">
           <SectionHeader
-            kicker="Onde celebrar"
             title="Cerimônia & Jantar"
-            text="Reunimos os endereços completos para facilitar sua chegada."
+            text="Abaixo, disponibilizamos o endereço completo e o link para acesso pelo Google Maps, para facilitar sua chegada a cerimonia e ao jantat"
           />
           <div className="grid gap-8">
             <InfoPanel
               kicker="Cerimônia"
               id="cerimonia"
-              title="Monte Alegre"
-              description="Disponibilizamos o endereço completo e o acesso pelo Google Maps para facilitar sua chegada à cerimônia."
+              title="Capela Monte Alegre - São Pedro"
               text={cleanContent.ceremonyAddress}
               imageSrc="/locations/capela.jpg"
               imageAlt="Capela da cerimônia"
@@ -475,7 +480,6 @@ export default async function PreviewDesignPage() {
               kicker="Jantar"
               id="jantar"
               title="Casa Lucca"
-              description="Disponibilizamos o endereço completo e o acesso pelo Google Maps para facilitar sua chegada ao jantar."
               text={cleanContent.dinnerAddress}
               imageSrc="/locations/casa-lucca.png"
               imageAlt="Casa Lucca, local do jantar"
@@ -495,6 +499,12 @@ export default async function PreviewDesignPage() {
           <SectionHeader
             kicker="Dress code"
             title="Traje esporte fino"
+            titleClassName="dress-code-title text-5xl sm:text-6xl"
+            titleStyle={{
+              fontFamily: "var(--font-great-vibes), cursive",
+              fontWeight: 400,
+              letterSpacing: 0,
+            }}
             text={richContent.dressCodeIntro}
           />
           <div className="overflow-hidden rounded-lg border border-[#d8ddcf] bg-[#fffefa]/85 shadow-sm">
@@ -520,13 +530,18 @@ export default async function PreviewDesignPage() {
                   <p className="mt-3 text-sm leading-7 text-[#66745c]">
                     {group.text}
                   </p>
-                  <p className="mt-3 text-sm font-semibold leading-7 text-[#4f6146]">
-                    {group.avoid}
-                  </p>
+                  <div className="mt-4 text-sm font-semibold leading-7 text-[#4f6146]">
+                    <p>Evitem:</p>
+                    <ul className="mt-2 list-disc space-y-1 pl-5">
+                      {group.avoidItems.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
               ))}
             </div>
-            <p className="px-6 pb-6 text-center leading-7 text-[#66745c]">
+            <p className="px-6 pb-6 font-semibold text-center leading-7 text-[#66745c]">
               {richContent.dressCodeColors}
             </p>
           </div>

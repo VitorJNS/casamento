@@ -198,7 +198,7 @@ export function RsvpForm() {
               }))
             }
             className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28]"
-            placeholder="Quem esta respondendo"
+            placeholder="Quem está respondendo"
           />
         </label>
 
@@ -206,22 +206,29 @@ export function RsvpForm() {
           <span className="mb-1.5 block text-sm font-medium text-zinc-700">
             WhatsApp
           </span>
-          <input
-            value={contactState.whatsapp}
-            onChange={(event) =>
-              setContactState((current) => ({
-                ...current,
-                whatsapp: event.target.value,
-              }))
-            }
-            className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28]"
-            placeholder="Digite seu WhatsApp para localizar sua familia ou grupo"
-          />
+          <div className="relative">
+            {!contactState.whatsapp ? (
+              <span className="pointer-events-none absolute inset-x-3 top-1/2 -translate-y-1/2 whitespace-nowrap text-[clamp(0.58rem,2.05vw,0.78rem)] leading-none text-zinc-400 sm:inset-x-4">
+                Digite seu WhatsApp para localizar sua família ou grupo
+              </span>
+            ) : null}
+            <input
+              value={contactState.whatsapp}
+              onChange={(event) =>
+                setContactState((current) => ({
+                  ...current,
+                  whatsapp: event.target.value,
+                }))
+              }
+              className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28]"
+              placeholder=""
+            />
+          </div>
         </label>
 
         <label className="block">
           <span className="mb-1.5 block text-sm font-medium text-zinc-700">
-            Email para receber a confirmacao
+            Email para receber a confirmação
           </span>
           <input
             type="email"
@@ -378,7 +385,7 @@ export function RsvpForm() {
             }
             rows={4}
             className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28]"
-            placeholder="Se quiser, deixe um recado carinhoso para a gente."
+            placeholder="Se quiser, deixe um recado carinhoso para nós."
           />
         </label>
       </div>

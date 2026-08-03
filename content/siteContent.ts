@@ -13,7 +13,7 @@ Esperamos que este dia seja leve, emocionante e inesquecível — não apenas pa
 Com amor,
 Yas & Vitor`,
 
-  storyTitle: "O Casal",
+  storyTitle: "Nossa Historia",
   storyText: `Alguns encontros mudam completamente o rumo da nossa vida — e o nosso começou lá em 2020.
 
 Desde então, crescemos juntos, amadurecemos, realizamos sonhos, enfrentamos mudanças e construímos, dia após dia, a nossa família e o nosso lar.
@@ -30,7 +30,7 @@ E agora, depois de tantos capítulos especiais, estamos prontos para viver o mai
     alt: "Retrato do noivo",
   },
   storyTimelineImage: {
-    src: "/story/timeline.png",
+    src: "/story/timeline-full.png",
     alt: "Linha do tempo da história do casal",
   },
 

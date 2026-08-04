@@ -52,8 +52,7 @@ const supplierSchema = z
     contractUrl: z
       .string()
       .trim()
-      .url("Link do contrato: informe uma URL valida.")
-      .max(500, "Link do contrato: use no maximo 500 caracteres.")
+      .max(1000, "Link do contrato: use no maximo 1000 caracteres.")
       .optional()
       .or(z.literal("")),
     amountPaidCents: z.number().int().min(0).default(0),

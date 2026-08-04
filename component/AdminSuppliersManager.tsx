@@ -35,6 +35,7 @@ type SupplierDraft = {
   email: string;
   contractValue: string;
   contractUrl: string;
+  contractFilename: string;
   amountPaid: string;
   nextPaymentDue: string;
   note: string;
@@ -49,6 +50,7 @@ const emptyDraft: SupplierDraft = {
   email: "",
   contractValue: "",
   contractUrl: "",
+  contractFilename: "",
   amountPaid: "",
   nextPaymentDue: "",
   note: "",
@@ -77,6 +79,7 @@ function supplierToDraft(supplier: AdminSupplier): SupplierDraft {
     contractValue:
       supplier.contractValueCents !== null ? formatPriceCents(supplier.contractValueCents) : "",
     contractUrl: supplier.contractUrl ?? "",
+    contractFilename: getContractFilename(supplier.contractUrl),
     amountPaid: supplier.amountPaidCents > 0 ? formatPriceCents(supplier.amountPaidCents) : "",
     nextPaymentDue: toDateInputValue(supplier.nextPaymentDue),
     note: supplier.note ?? "",
@@ -86,6 +89,17 @@ function supplierToDraft(supplier: AdminSupplier): SupplierDraft {
 function toDateInputValue(value: string | null) {
   if (!value) return "";
   return value.slice(0, 10);
+}
+
+async function readJsonResponse(response: Response) {
+  const text = await response.text();
+  if (!text) return null;
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
 }
 
 export function AdminSuppliersManager({
@@ -102,6 +116,7 @@ export function AdminSuppliersManager({
   const [editingSupplier, setEditingSupplier] = useState<AdminSupplier | null>(null);
   const [draft, setDraft] = useState<SupplierDraft>(emptyDraft);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingContract, setIsUploadingContract] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -183,7 +198,7 @@ export function AdminSuppliersManager({
         },
       );
 
-      const data = await response.json();
+      const data = await readJsonResponse(response);
 
       if (!response.ok) {
         throw new Error(
@@ -227,7 +242,7 @@ export function AdminSuppliersManager({
         method: "DELETE",
       });
 
-      const data = await response.json();
+      const data = await readJsonResponse(response);
 
       if (!response.ok) {
         throw new Error(
@@ -247,6 +262,58 @@ export function AdminSuppliersManager({
       );
     } finally {
       setIsDeleting(false);
+    }
+  }
+
+  async function handleContractFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) return;
+
+    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+      setErrorMessage("Contrato: envie um arquivo PDF.");
+      return;
+    }
+
+    if (file.size > 4.5 * 1024 * 1024) {
+      setErrorMessage("Contrato: envie um PDF de ate 4,5 MB.");
+      return;
+    }
+
+    setIsUploadingContract(true);
+    setErrorMessage(null);
+
+    try {
+      const response = await fetch(
+        `/api/admin/suppliers/contracts/upload?filename=${encodeURIComponent(file.name)}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": file.type || "application/pdf" },
+          body: file,
+        },
+      );
+      const data = await readJsonResponse(response);
+
+      if (!response.ok) {
+        throw new Error(
+          data?.error?.message ?? "Nao foi possivel anexar o contrato.",
+        );
+      }
+
+      setDraft((current) => ({
+        ...current,
+        contractUrl: data.contractUrl,
+        contractFilename: file.name,
+      }));
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel anexar o contrato.",
+      );
+    } finally {
+      setIsUploadingContract(false);
     }
   }
 
@@ -398,10 +465,46 @@ export function AdminSuppliersManager({
               />
               <Field
                 value={draft.contractUrl ?? ""}
-                onChange={(value) => setDraft((current) => ({ ...current, contractUrl: value }))}
-                placeholder="Link do contrato"
-                type="url"
+                onChange={(value) =>
+                  setDraft((current) => ({
+                    ...current,
+                    contractUrl: value,
+                    contractFilename: "",
+                  }))
+                }
+                placeholder="Link do contrato ou arquivo anexado"
               />
+              <div className="md:col-span-2 rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-medium text-zinc-800">
+                      Anexar contrato em PDF
+                    </p>
+                    <p className="mt-1 text-xs leading-5 text-zinc-600">
+                      O arquivo fica privado na Vercel Blob e abre apenas para usuarios logados.
+                    </p>
+                  </div>
+                  <label className="inline-flex cursor-pointer items-center justify-center rounded-full border border-zinc-300 bg-white px-4 py-2 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-100">
+                    {isUploadingContract ? "Enviando..." : "Procurar arquivo"}
+                    <input
+                      type="file"
+                      accept="application/pdf"
+                      disabled={isUploadingContract}
+                      onChange={handleContractFileChange}
+                      className="sr-only"
+                    />
+                  </label>
+                </div>
+                {draft.contractUrl ? (
+                  <p className="mt-2 break-all text-xs text-[rgb(var(--olive))]">
+                    Contrato anexado: {draft.contractFilename || getContractFilename(draft.contractUrl)}
+                  </p>
+                ) : (
+                  <p className="mt-2 text-xs text-zinc-500">
+                    Nenhum contrato anexado ate o momento.
+                  </p>
+                )}
+              </div>
               <Field
                 value={draft.amountPaid}
                 onChange={(value) => setDraft((current) => ({ ...current, amountPaid: value }))}
@@ -434,7 +537,7 @@ export function AdminSuppliersManager({
               <div className="sticky bottom-0 -mx-4 -mb-4 flex flex-wrap gap-3 border-t border-zinc-100 bg-white/95 px-4 py-3 backdrop-blur md:col-span-2 sm:static sm:m-0 sm:border-t-0 sm:bg-transparent sm:p-0">
                 <button
                   type="submit"
-                  disabled={isSaving}
+                  disabled={isSaving || isUploadingContract}
                   className="btn-primary rounded-full px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60 max-sm:flex-1"
                 >
                   {isSaving
@@ -524,7 +627,7 @@ function SupplierCard({
 
   const whatsappHref = `https://wa.me/${supplier.phone.replace(/\D/g, "")}`;
   const emailHref = supplier.email ? `mailto:${supplier.email}` : null;
-  const contractHref = supplier.contractUrl?.trim() || null;
+  const contractHref = getContractHref(supplier.contractUrl);
   const contractValueLabel =
     supplier.contractValueCents !== null
       ? formatPriceCents(supplier.contractValueCents)
@@ -585,7 +688,7 @@ function SupplierCard({
           </ActionLink>
         ) : null}
         {contractHref ? (
-          <ActionLink href={contractHref} label="Contrato">
+          <ActionLink href={contractHref} label="Ver contrato">
             <FileIcon className="h-3.5 w-3.5" />
           </ActionLink>
         ) : null}
@@ -652,8 +755,8 @@ function ActionLink({
   return (
     <a
       href={href}
-      target={href.startsWith("http") ? "_blank" : undefined}
-      rel={href.startsWith("http") ? "noreferrer" : undefined}
+      target={shouldOpenInNewTab(href) ? "_blank" : undefined}
+      rel={shouldOpenInNewTab(href) ? "noreferrer" : undefined}
       className="inline-flex items-center gap-2 transition hover:text-zinc-900"
     >
       {children}
@@ -847,8 +950,8 @@ function validateSupplierDraft(draft: SupplierDraft) {
     errors.push("Valor do contrato: use um valor em reais, por exemplo 1500,00.");
   }
 
-  if (contractUrl && !/^https?:\/\/\S+$/i.test(contractUrl)) {
-    errors.push("Link do contrato: informe um link com http:// ou https://.");
+  if (contractUrl && !isValidContractReference(contractUrl)) {
+    errors.push("Link do contrato: informe um link com http://, https:// ou anexe um PDF.");
   }
 
   if (amountPaid && amountPaidCents === null) {
@@ -887,6 +990,34 @@ function formatCurrencyInput(value: string) {
   } catch {
     return value;
   }
+}
+
+function getContractHref(contractUrl: string | null) {
+  const value = contractUrl?.trim();
+  if (!value) return null;
+  if (/^https?:\/\//i.test(value)) return value;
+  return `/api/suppliers/contracts/view?pathname=${encodeURIComponent(value)}`;
+}
+
+function getContractFilename(contractUrl: string | null) {
+  const value = contractUrl?.trim();
+  if (!value) return "";
+
+  try {
+    const pathname = /^https?:\/\//i.test(value) ? new URL(value).pathname : value;
+    const filename = decodeURIComponent(pathname.split("/").pop() ?? "");
+    return filename.replace(/^[0-9a-f-]{36}-/i, "") || "arquivo.pdf";
+  } catch {
+    return "arquivo.pdf";
+  }
+}
+
+function shouldOpenInNewTab(href: string) {
+  return href.startsWith("http") || href.startsWith("/api/suppliers/contracts/view");
+}
+
+function isValidContractReference(value: string) {
+  return /^https?:\/\/\S+$/i.test(value) || value.startsWith("supplier-contracts/");
 }
 
 function SvgIcon({
@@ -973,3 +1104,4 @@ function TrashIcon({ className }: { className?: string }) {
     </SvgIcon>
   );
 }
+

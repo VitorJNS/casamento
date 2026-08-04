@@ -200,7 +200,7 @@ function EmptyState() {
 function SupplierCard({ supplier }: { supplier: CerimonialSupplierView }) {
   const whatsappHref = `https://wa.me/${supplier.phone.replace(/\D/g, "")}`;
   const emailHref = supplier.email ? `mailto:${supplier.email}` : null;
-  const contractHref = supplier.contractUrl?.trim() || null;
+  const contractHref = getContractHref(supplier.contractUrl);
 
   return (
     <article className="rounded-[18px] border border-zinc-200 bg-white p-4 shadow-[0_10px_28px_rgba(24,24,27,0.05)]">
@@ -242,7 +242,7 @@ function SupplierCard({ supplier }: { supplier: CerimonialSupplierView }) {
           </ActionLink>
         ) : null}
         {contractHref ? (
-          <ActionLink href={contractHref} label="Contrato">
+          <ActionLink href={contractHref} label="Ver contrato">
             <FileIcon className="h-3.5 w-3.5" />
           </ActionLink>
         ) : null}
@@ -288,14 +288,25 @@ function ActionLink({
   return (
     <a
       href={href}
-      target={href.startsWith("http") ? "_blank" : undefined}
-      rel={href.startsWith("http") ? "noreferrer" : undefined}
+      target={shouldOpenInNewTab(href) ? "_blank" : undefined}
+      rel={shouldOpenInNewTab(href) ? "noreferrer" : undefined}
       className="inline-flex items-center gap-2 transition hover:text-zinc-900"
     >
       {children}
       <span>{label}</span>
     </a>
   );
+}
+
+function getContractHref(contractUrl: string | null) {
+  const value = contractUrl?.trim();
+  if (!value) return null;
+  if (/^https?:\/\//i.test(value)) return value;
+  return `/api/suppliers/contracts/view?pathname=${encodeURIComponent(value)}`;
+}
+
+function shouldOpenInNewTab(href: string) {
+  return href.startsWith("http") || href.startsWith("/api/suppliers/contracts/view");
 }
 
 function Badge({

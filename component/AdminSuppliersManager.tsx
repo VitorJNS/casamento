@@ -463,17 +463,6 @@ export function AdminSuppliersManager({
                 placeholder="Valor do contrato"
                 inputMode="numeric"
               />
-              <Field
-                value={draft.contractUrl ?? ""}
-                onChange={(value) =>
-                  setDraft((current) => ({
-                    ...current,
-                    contractUrl: value,
-                    contractFilename: "",
-                  }))
-                }
-                placeholder="Link do contrato ou arquivo anexado"
-              />
               <div className="md:col-span-2 rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
@@ -951,7 +940,7 @@ function validateSupplierDraft(draft: SupplierDraft) {
   }
 
   if (contractUrl && !isValidContractReference(contractUrl)) {
-    errors.push("Link do contrato: informe um link com http://, https:// ou anexe um PDF.");
+    errors.push("Contrato: anexe um arquivo PDF valido.");
   }
 
   if (amountPaid && amountPaidCents === null) {

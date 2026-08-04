@@ -43,6 +43,12 @@ function getStatusClasses(status: PresenceGuest["status"]) {
   return "border-amber-200 bg-amber-50 text-amber-700";
 }
 
+function getStatusDotClasses(status: PresenceGuest["status"]) {
+  if (status === "confirmed") return "bg-emerald-600";
+  if (status === "declined") return "bg-rose-600";
+  return "bg-amber-500";
+}
+
 function getFamilyLabel(guest: PresenceGuest) {
   if (guest.familyLabel) return guest.familyLabel;
   if (guest.householdMembers.length <= 1) return "Sem grupo vinculado";
@@ -299,10 +305,10 @@ export function GuestListManager({
             return (
               <article
                 key={guest.id}
-                className="flex min-h-[14.5rem] flex-col rounded-[18px] border border-zinc-200 bg-[rgb(var(--paper))] p-3"
+                className="flex min-h-[20rem] flex-col overflow-hidden rounded-[22px] border border-zinc-200 bg-[rgb(var(--paper))] shadow-[0_14px_40px_rgba(24,24,27,0.04)]"
               >
                 {isEditing ? (
-                  <div className="grid gap-3 md:grid-cols-2">
+                  <div className="grid gap-3 p-4 md:grid-cols-2">
                     <Field
                       label="Nome"
                       value={editingDraft.guestName}
@@ -370,80 +376,103 @@ export function GuestListManager({
                   </div>
                 ) : (
                   <>
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <div>
-                        <h3 className="text-base font-semibold text-zinc-900">{guest.guestName}</h3>
-                        <p className="mt-0.5 text-xs text-zinc-600">{guest.whatsapp}</p>
-                        <p className="mt-0.5 text-xs text-zinc-500">{getFamilyLabel(guest)}</p>
+                    <div className="grid gap-4 p-4 sm:grid-cols-[minmax(0,1fr)_auto]">
+                      <div className="min-w-0">
+                        <h3 className="truncate text-2xl font-semibold tracking-[-0.03em] text-zinc-950">
+                          {guest.guestName}
+                        </h3>
+                        <p className="mt-3 flex min-w-0 items-center gap-2 text-sm text-zinc-700">
+                          <PhoneIcon className="h-4 w-4 shrink-0 text-[rgb(var(--olive))]" />
+                          <span className="truncate">{guest.whatsapp}</span>
+                        </p>
+                        <p className="mt-2 flex min-w-0 items-center gap-2 text-sm text-zinc-600">
+                          <UsersIcon className="h-4 w-4 shrink-0 text-[rgb(var(--lavender))]" />
+                          <span className="truncate">{getFamilyLabel(guest)}</span>
+                        </p>
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <span
-                          className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] ${getStatusClasses(guest.status)}`}
-                        >
-                          {getStatusLabel(guest.status)}
-                        </span>
+                      <div className="flex flex-wrap items-start justify-start gap-2 sm:justify-end">
                         <button
                           type="button"
                           onClick={() => startEdit(guest)}
-                          className="rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-700 transition hover:bg-zinc-50"
+                          className="flex min-h-11 items-center gap-2 rounded-2xl border border-zinc-300 bg-white px-3.5 py-2 text-xs font-semibold text-[rgb(var(--olive))] transition hover:bg-zinc-50"
                         >
+                          <PencilIcon className="h-4 w-4" />
                           Editar
                         </button>
                         <button
                           type="button"
                           onClick={() => handleDeactivate(guest.id)}
                           disabled={isSaving || removingId !== null}
-                          className="rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-700 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60"
+                          className="flex min-h-11 items-center gap-2 rounded-2xl border border-zinc-300 bg-white px-3.5 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60"
                         >
+                          <TrashIcon className="h-4 w-4" />
                           {removingId === guest.id ? "Removendo..." : "Remover"}
                         </button>
                       </div>
                     </div>
 
-                    <div className="mt-3 grid gap-1.5 text-xs text-zinc-700 sm:grid-cols-2">
-                      <p>
-                        <span className="font-medium text-zinc-900">Status:</span>{" "}
-                        {getStatusLabel(guest.status)}
-                      </p>
-                      <p>
-                        <span className="font-medium text-zinc-900">Tipo:</span>{" "}
-                        {guest.isChild ? "Crianca" : "Adulto"}
-                      </p>
-                      <p>
-                        <span className="font-medium text-zinc-900">Resposta:</span>{" "}
-                        {guest.respondedAt
-                          ? formatDisplayDateTime(guest.respondedAt)
-                          : "Ainda nao respondeu"}
-                      </p>
+                    <div className="grid border-y border-zinc-200 bg-white/70 text-sm text-zinc-700 sm:grid-cols-3">
+                      <div className="px-4 py-4 sm:border-r sm:border-zinc-200">
+                        <span className="block font-semibold text-zinc-500">
+                          Status
+                        </span>
+                        <span className="mt-2 flex items-center gap-2 font-medium text-zinc-950">
+                          <span
+                            className={`h-2 w-2 rounded-full ${getStatusDotClasses(guest.status)}`}
+                          />
+                          {getStatusLabel(guest.status)}
+                        </span>
+                      </div>
+                      <div className="px-4 py-4 sm:border-r sm:border-zinc-200">
+                        <span className="block font-semibold text-zinc-500">
+                          Tipo
+                        </span>
+                        <span className="mt-2 block font-medium text-zinc-950">
+                          {guest.isChild ? "Crianca" : "Adulto"}
+                        </span>
+                      </div>
+                      <div className="px-4 py-4">
+                        <span className="block font-semibold text-zinc-500">
+                          Resposta
+                        </span>
+                        <span className="mt-2 block truncate font-medium text-zinc-950">
+                          {guest.respondedAt
+                            ? formatDisplayDateTime(guest.respondedAt)
+                            : "Ainda nao respondeu"}
+                        </span>
+                      </div>
                     </div>
 
-                    <div className="mt-3 min-h-[3.75rem]">
-                      <p className="text-xs font-medium text-zinc-900">Mesmo grupo:</p>
+                    <div className="min-h-[5.75rem] px-4 py-4">
+                      <p className="text-sm font-semibold text-zinc-600">Mesmo grupo</p>
                       {guest.householdMembers.length > 1 ? (
-                        <ul className="mt-2 flex flex-wrap gap-1.5">
+                        <ul className="mt-3 flex flex-wrap gap-2">
                           {guest.householdMembers.map((name) => (
                             <li
                               key={`${guest.id}-${name}`}
-                              className={`rounded-full border px-2.5 py-1 text-xs ${
+                              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium ${
                                 name === guest.guestName
-                                  ? "border-[rgb(var(--olive))] bg-white text-zinc-900"
-                                  : "border-zinc-200 bg-white text-zinc-700"
+                                  ? "border-[rgb(var(--olive))] bg-white text-[rgb(var(--olive))]"
+                                  : "border-[rgb(var(--lavender))/0.35] bg-[rgb(var(--lavender))/0.12] text-zinc-700"
                               }`}
                             >
+                              <UsersIcon className="h-3.5 w-3.5" />
                               {name}
                             </li>
                           ))}
                         </ul>
                       ) : (
-                        <p className="mt-2 text-xs text-zinc-500">Sem grupo vinculado</p>
+                        <p className="mt-3 text-sm text-zinc-500">Sem grupo vinculado</p>
                       )}
                     </div>
 
-                    <p className="mt-auto pt-3 line-clamp-2 text-xs text-zinc-700">
-                      <span className="font-medium text-zinc-900">Obs:</span>{" "}
-                      {guest.responseNote || guest.note || "Nenhuma"}
-                    </p>
+                    <div className="mt-auto border-t border-zinc-200 px-4 py-4">
+                      <p className="line-clamp-2 text-sm text-zinc-700">
+                        <span className="font-semibold text-zinc-900">Obs:</span>{" "}
+                        {guest.responseNote || guest.note || "Nenhuma"}
+                      </p>
+                    </div>
                   </>
                 )}
               </article>
@@ -583,5 +612,70 @@ function Field({
         placeholder={placeholder}
       />
     </label>
+  );
+}
+
+function SvgIcon({
+  className,
+  viewBox = "0 0 24 24",
+  children,
+}: {
+  className?: string;
+  viewBox?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <svg
+      className={className}
+      viewBox={viewBox}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {children}
+    </svg>
+  );
+}
+
+function PhoneIcon({ className }: { className?: string }) {
+  return (
+    <SvgIcon className={className}>
+      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.35 1.9.66 2.8a2 2 0 0 1-.45 2.11L8.05 9.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.31 1.84.53 2.8.66A2 2 0 0 1 22 16.92Z" />
+    </SvgIcon>
+  );
+}
+
+function UsersIcon({ className }: { className?: string }) {
+  return (
+    <SvgIcon className={className}>
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <path d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </SvgIcon>
+  );
+}
+
+function PencilIcon({ className }: { className?: string }) {
+  return (
+    <SvgIcon className={className}>
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </SvgIcon>
+  );
+}
+
+function TrashIcon({ className }: { className?: string }) {
+  return (
+    <SvgIcon className={className}>
+      <path d="M3 6h18" />
+      <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+      <path d="M19 6 18 20a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+      <path d="M10 11v6" />
+      <path d="M14 11v6" />
+    </SvgIcon>
   );
 }

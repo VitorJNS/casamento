@@ -97,7 +97,7 @@ export function CerimonialLoginForm() {
         </button>
 
         <a
-          href="/preview-design"
+          href="/"
           className="inline-flex rounded-full border border-[#d8ddcf] px-4 py-2 text-sm font-medium text-[#66745c] transition hover:bg-white hover:text-[#4f6146] max-sm:w-full max-sm:justify-center"
         >
           Voltar para o site

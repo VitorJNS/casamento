@@ -2,10 +2,28 @@ import { z } from "zod";
 
 import { getServerEnv, getSiteUrl } from "@/lib/env";
 
-const createCheckoutResponseSchema = z.object({
-  url: z.string().url(),
-  slug: z.string().optional(),
-});
+const createCheckoutResponseSchema = z
+  .object({
+    url: z.string().url().optional(),
+    checkout_url: z.string().url().optional(),
+    slug: z.string().optional(),
+  })
+  .transform((data, context) => {
+    const checkoutUrl = data.url ?? data.checkout_url;
+
+    if (!checkoutUrl) {
+      context.addIssue({
+        code: "custom",
+        message: "InfinitePay respondeu sem a URL do checkout.",
+      });
+      return z.NEVER;
+    }
+
+    return {
+      checkoutUrl,
+      slug: data.slug ?? null,
+    };
+  });
 
 const paymentCheckResponseSchema = z
   .object({
@@ -25,6 +43,19 @@ export type InfinitePayCheckoutItem = {
   description: string;
 };
 
+function isPublicHttpsUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return (
+      url.protocol === "https:" &&
+      url.hostname !== "localhost" &&
+      url.hostname !== "127.0.0.1"
+    );
+  } catch {
+    return false;
+  }
+}
+
 export async function createInfinitePayCheckoutLink(input: {
   orderPublicId: string;
   orderNsu: string;
@@ -35,6 +66,7 @@ export async function createInfinitePayCheckoutLink(input: {
   const env = getServerEnv();
   const siteUrl = getSiteUrl();
   const webhookToken = env.INFINITEPAY_WEBHOOK_SECRET;
+  const shouldSendReturnUrls = isPublicHttpsUrl(siteUrl);
   const webhookUrl = webhookToken
     ? `${siteUrl}/api/payments/infinitepay/webhook?token=${encodeURIComponent(webhookToken)}`
     : `${siteUrl}/api/payments/infinitepay/webhook`;
@@ -47,8 +79,10 @@ export async function createInfinitePayCheckoutLink(input: {
     body: JSON.stringify({
       handle: env.INFINITEPAY_HANDLE,
       order_nsu: input.orderNsu,
-      redirect_url: `${siteUrl}/pagamento/sucesso?orderId=${encodeURIComponent(input.orderPublicId)}`,
-      webhook_url: webhookUrl,
+      redirect_url: shouldSendReturnUrls
+        ? `${siteUrl}/pagamento/sucesso?orderId=${encodeURIComponent(input.orderPublicId)}`
+        : undefined,
+      webhook_url: shouldSendReturnUrls ? webhookUrl : undefined,
       customer: {
         name: input.guestName,
         email: input.guestEmail,
@@ -73,8 +107,8 @@ export async function createInfinitePayCheckoutLink(input: {
   }
 
   return {
-    checkoutUrl: parsed.data.url,
-    slug: parsed.data.slug ?? null,
+    checkoutUrl: parsed.data.checkoutUrl,
+    slug: parsed.data.slug,
   };
 }
 

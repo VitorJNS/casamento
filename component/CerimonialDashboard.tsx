@@ -337,7 +337,7 @@ export function CerimonialDashboard({ guests, summary }: CerimonialDashboardProp
           helper={
             summary.declinedGuests === 1
               ? "1 resposta negativa registrada."
-              : `${summary.declinedGuests} respostas negativas registradas.`
+              : `${summary.declinedGuests} adultos.`
           }
         />
         <MetricCard label="Faltam responder" value={summary.pendingGuests} />

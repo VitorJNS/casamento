@@ -6,7 +6,9 @@ import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { toIsoString, toIsoStringOrNull } from "@/lib/date";
 import { getPrisma, withPrismaRetry } from "@/lib/prisma";
 import {
+  ensureSupplierContractUrlColumn,
   ensureSuppliersTable,
+  isMissingSupplierContractUrlColumn,
   SUPPLIERS_TAG,
   type SupplierEntryRow,
 } from "@/lib/suppliers-store";
@@ -47,6 +49,12 @@ const supplierSchema = z
       .optional()
       .or(z.literal("")),
     contractValueCents: z.number().int().min(0).nullable().optional(),
+    contractUrl: z
+      .string()
+      .trim()
+      .max(1000, "Link do contrato: use no maximo 1000 caracteres.")
+      .optional()
+      .or(z.literal("")),
     amountPaidCents: z.number().int().min(0).default(0),
     nextPaymentDue: z
       .string()
@@ -83,6 +91,7 @@ function mapSupplier(row: SupplierEntryRow) {
     phone: row.phone,
     email: row.email,
     contractValueCents: row.contract_value_cents,
+    contractUrl: row.contract_url,
     amountPaidCents: row.amount_paid_cents,
     nextPaymentDue: toIsoStringOrNull(row.next_payment_due),
     note: row.note,
@@ -90,6 +99,148 @@ function mapSupplier(row: SupplierEntryRow) {
     createdAt: toIsoString(row.created_at),
     updatedAt: toIsoString(row.updated_at),
   };
+}
+
+async function insertSupplier(payload: z.infer<typeof supplierSchema>, id: string) {
+  const prisma = getPrisma();
+
+  try {
+    await withPrismaRetry(() =>
+      prisma.$executeRawUnsafe(
+        `
+          INSERT INTO cerimonial_suppliers (
+            id,
+            supplier_name,
+            category,
+            supplier_status,
+            contact_name,
+            phone,
+            email,
+            contract_value_cents,
+            contract_url,
+            amount_paid_cents,
+            next_payment_due,
+            note,
+            updated_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11::date, $12, CURRENT_TIMESTAMP)
+        `,
+        id,
+        payload.supplierName,
+        payload.category,
+        payload.supplierStatus,
+        payload.contactName || null,
+        payload.phone,
+        payload.email || null,
+        payload.contractValueCents ?? null,
+        payload.contractUrl || null,
+        payload.amountPaidCents,
+        payload.nextPaymentDue || null,
+        payload.note || null,
+      ),
+    );
+  } catch (error) {
+    if (!isMissingSupplierContractUrlColumn(error)) {
+      throw error;
+    }
+
+    await ensureSupplierContractUrlColumn();
+    await withPrismaRetry(() =>
+      prisma.$executeRawUnsafe(
+        `
+          INSERT INTO cerimonial_suppliers (
+            id,
+            supplier_name,
+            category,
+            supplier_status,
+            contact_name,
+            phone,
+            email,
+            contract_value_cents,
+            contract_url,
+            amount_paid_cents,
+            next_payment_due,
+            note,
+            updated_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11::date, $12, CURRENT_TIMESTAMP)
+        `,
+        id,
+        payload.supplierName,
+        payload.category,
+        payload.supplierStatus,
+        payload.contactName || null,
+        payload.phone,
+        payload.email || null,
+        payload.contractValueCents ?? null,
+        payload.contractUrl || null,
+        payload.amountPaidCents,
+        payload.nextPaymentDue || null,
+        payload.note || null,
+      ),
+    );
+  }
+}
+
+async function findSupplierById(id: string) {
+  const prisma = getPrisma();
+
+  try {
+    return await withPrismaRetry(() =>
+      prisma.$queryRawUnsafe<SupplierEntryRow[]>(
+        `
+          SELECT
+            id,
+            supplier_name,
+            category,
+            supplier_status,
+            contact_name,
+            phone,
+            email,
+            contract_value_cents,
+            contract_url,
+            amount_paid_cents,
+            next_payment_due,
+            note,
+            is_active,
+            created_at,
+            updated_at
+          FROM cerimonial_suppliers
+          WHERE id = $1
+        `,
+        id,
+      ),
+    );
+  } catch (error) {
+    if (!isMissingSupplierContractUrlColumn(error)) {
+      throw error;
+    }
+
+    await ensureSupplierContractUrlColumn().catch(() => undefined);
+    return withPrismaRetry(() =>
+      prisma.$queryRawUnsafe<SupplierEntryRow[]>(
+        `
+          SELECT
+            id,
+            supplier_name,
+            category,
+            supplier_status,
+            contact_name,
+            phone,
+            email,
+            contract_value_cents,
+            NULL AS contract_url,
+            amount_paid_cents,
+            next_payment_due,
+            note,
+            is_active,
+            created_at,
+            updated_at
+          FROM cerimonial_suppliers
+          WHERE id = $1
+        `,
+        id,
+      ),
+    );
+  }
 }
 
 async function requireAdminApiAuth() {
@@ -117,65 +268,11 @@ export async function POST(request: Request) {
   try {
     const payload = supplierSchema.parse(await request.json());
     await ensureSuppliersTable();
-    const prisma = getPrisma();
     const id = `supplier_${crypto.randomUUID().replace(/-/g, "")}`;
 
-    await withPrismaRetry(() =>
-      prisma.$executeRawUnsafe(
-      `
-        INSERT INTO cerimonial_suppliers (
-          id,
-          supplier_name,
-          category,
-          supplier_status,
-          contact_name,
-          phone,
-          email,
-          contract_value_cents,
-          amount_paid_cents,
-          next_payment_due,
-          note,
-          updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::date, $11, CURRENT_TIMESTAMP)
-      `,
-      id,
-      payload.supplierName,
-      payload.category,
-      payload.supplierStatus,
-      payload.contactName || null,
-      payload.phone,
-      payload.email || null,
-      payload.contractValueCents ?? null,
-      payload.amountPaidCents,
-      payload.nextPaymentDue || null,
-      payload.note || null,
-      ),
-    );
+    await insertSupplier(payload, id);
 
-    const [created] = await withPrismaRetry(() =>
-      prisma.$queryRawUnsafe<SupplierEntryRow[]>(
-      `
-        SELECT
-          id,
-          supplier_name,
-          category,
-          supplier_status,
-          contact_name,
-          phone,
-          email,
-          contract_value_cents,
-          amount_paid_cents,
-          next_payment_due,
-          note,
-          is_active,
-          created_at,
-          updated_at
-        FROM cerimonial_suppliers
-        WHERE id = $1
-      `,
-      id,
-      ),
-    );
+    const [created] = await findSupplierById(id);
 
     revalidateTag(SUPPLIERS_TAG, { expire: 0 });
     return NextResponse.json({ supplier: mapSupplier(created) });

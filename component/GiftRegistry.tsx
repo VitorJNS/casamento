@@ -38,7 +38,13 @@ function readCartStorage(): CartItem[] {
   }
 }
 
-export function GiftRegistry({ gifts }: { gifts: DisplayGift[] }) {
+export function GiftRegistry({
+  gifts,
+  introText,
+}: {
+  gifts: DisplayGift[];
+  introText?: string;
+}) {
   const [page, setPage] = useState(1);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -479,6 +485,11 @@ export function GiftRegistry({ gifts }: { gifts: DisplayGift[] }) {
   return (
     <>
       <div className={cartQuantity > 0 ? "pb-24 sm:pb-0" : undefined}>
+        {introText ? (
+          <p className="mx-auto mb-9 max-w-2xl text-center text-sm leading-7 text-[#66745c]">
+            {introText}
+          </p>
+        ) : null}
         <WeddingGiftList
           gifts={gifts}
           page={page}

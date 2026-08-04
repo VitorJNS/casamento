@@ -41,7 +41,7 @@ export function Countdown({ targetISO, label = "Depois de tantos capítulos junt
         {!finished ? (
         <>
             <p
-            className="text-xs tracking-[0.16em] uppercase sm:text-sm sm:tracking-[0.18em]"
+            className="text-center text-xs tracking-[0.16em] uppercase sm:text-sm sm:tracking-[0.18em]"
             style={{ color: "rgb(var(--olive))" }}
             >
             {label}

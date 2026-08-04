@@ -195,9 +195,8 @@ export default async function Home() {
 
       <Section id="lista-de-presentes" title={siteContent.pixTitle}>
         <p className="mb-4">{siteContent.pixText}</p>
-        <p className="mb-5 text-sm text-zinc-600">{siteContent.giftListIntro}</p>
 
-        <GiftRegistry gifts={giftCatalog} />
+        <GiftRegistry gifts={giftCatalog} introText={siteContent.giftListIntro} />
       </Section>
       <SectionDivider />
 

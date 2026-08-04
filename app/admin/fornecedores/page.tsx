@@ -23,6 +23,7 @@ function mapSupplier(
     phone: supplier.phone,
     email: supplier.email,
     contractValueCents: supplier.contract_value_cents,
+    contractUrl: supplier.contract_url,
     amountPaidCents: supplier.amount_paid_cents,
     nextPaymentDue: toIsoStringOrNull(supplier.next_payment_due),
     note: supplier.note,

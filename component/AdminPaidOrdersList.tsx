@@ -13,6 +13,7 @@ export type PaidOrder = {
   publicId: string;
   guestName: string;
   guestEmail: string;
+  guestMessage: string | null;
   subtotalLabel: string;
   paidLabel: string;
   paymentMethod: string | null;
@@ -75,6 +76,15 @@ export function AdminPaidOrdersList({ orders }: { orders: PaidOrder[] }) {
                 Checkout: {order.paidLabel}
               </span>
             </div>
+
+            {order.guestMessage ? (
+              <div className="mt-3 rounded-[14px] border border-[rgb(var(--lavender)/0.24)] bg-white/75 px-3 py-2 text-xs leading-5 text-zinc-700">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
+                  Mensagem para os noivos
+                </p>
+                <p className="mt-1 whitespace-pre-line">{order.guestMessage}</p>
+              </div>
+            ) : null}
 
             <ul className="mt-3 space-y-1.5">
               {order.items.map((item) => (

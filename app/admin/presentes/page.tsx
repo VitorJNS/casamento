@@ -40,16 +40,11 @@ export default async function AdminGiftsPage() {
         </p>
       </div>
 
-      <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-8 grid gap-4 md:grid-cols-3">
         <MetricCard
           label="Presentes pagos"
           value={String(data.summary.paidOrders)}
           helper="Pedidos com pagamento confirmado."
-        />
-        <MetricCard
-          label="Itens pagos"
-          value={String(data.summary.paidGiftUnits)}
-          helper="Quantidade total de itens presenteados."
         />
         <MetricCard
           label="Valor dos presentes"

@@ -45,3 +45,5 @@ scripts/drop-guest-whatsapp-unique.sql
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+.env*

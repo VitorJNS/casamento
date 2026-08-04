@@ -68,6 +68,16 @@ body {
   font-family: var(--font-cormorant), serif;
 }
 
+.script-font {
+  font-family: var(--font-great-vibes), cursive;
+}
+
+.dress-code-title {
+  font-family: var(--font-great-vibes), cursive;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
 .monogram-mask {
   -webkit-mask-image: url("/brand/monograma.png");
   mask-image: url("/brand/monograma.png");

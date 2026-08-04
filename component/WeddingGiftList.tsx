@@ -21,7 +21,7 @@ type WeddingGiftListProps = {
 
 export function WeddingGiftList({
   gifts,
-  itemsPerPage = 8,
+  itemsPerPage = 10,
   page,
   onPageChange,
   cartQuantity,
@@ -72,21 +72,18 @@ export function WeddingGiftList({
   }
 
   return (
-    <div ref={listTopRef}>
-      <div className="mb-4 rounded-[24px] border border-zinc-200 bg-white/80 p-3 shadow-sm sm:mb-5 sm:rounded-3xl sm:p-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
-              Lista de presentes
-            </p>
-            <p className="mt-1 text-sm text-zinc-600">
+    <div ref={listTopRef} className="relative">
+      <div className="mb-7 border-y border-[#c9b88b]/60 px-3 py-3 sm:px-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex min-h-11 items-center">
+            <p className="text-sm text-[#66745c]">
               Mostrando {startItem}-{endItem} de {sortedGifts.length} presentes
             </p>
           </div>
 
-          <div className="flex w-full items-center gap-3 sm:w-auto sm:flex-row sm:items-center">
-            <label className="flex min-w-0 flex-1 items-center gap-2 rounded-[18px] border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-700 shadow-sm sm:min-w-[190px] sm:flex-none sm:rounded-full">
-              <span className="whitespace-nowrap text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
+          <div className="flex w-full items-stretch gap-3 sm:w-auto sm:flex-row sm:items-center">
+            <label className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-[#d8ddcf] bg-white/80 px-3 py-2 text-sm text-[#4f6146] sm:h-11 sm:w-[190px] sm:flex-none">
+              <span className="whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.14em] text-[#9b8f75]">
                 Ordenar
               </span>
               <select
@@ -96,9 +93,9 @@ export function WeddingGiftList({
                     event.target.value as "default" | "price-asc" | "price-desc",
                   )
                 }
-                className="bg-transparent text-sm font-medium text-zinc-800 outline-none"
+                className="min-w-0 bg-transparent text-sm font-medium text-[#2f352b] outline-none"
               >
-                <option value="default">Padrao</option>
+                <option value="default">Padrão</option>
                 <option value="price-asc">Mais barato</option>
                 <option value="price-desc">Mais caro</option>
               </select>
@@ -108,25 +105,12 @@ export function WeddingGiftList({
               type="button"
               onClick={onOpenCart}
               aria-label="Ver carrinho"
-              className="flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-[16px] bg-[rgb(var(--olive))] text-white shadow-sm transition hover:opacity-95 sm:hidden"
+              className="flex h-11 min-w-11 shrink-0 items-center justify-center rounded-lg bg-[rgb(var(--olive))] px-3 text-white shadow-sm transition hover:opacity-95 sm:hidden"
             >
-              <span className="relative inline-flex">
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 24 24"
-                  className="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="9" cy="20" r="1.25" />
-                  <circle cx="18" cy="20" r="1.25" />
-                  <path d="M3 4h2l2.2 9.2a1 1 0 0 0 1 .8h8.9a1 1 0 0 0 1-.76L20 7H7" />
-                </svg>
+              <span className="relative inline-flex text-xs font-semibold">
+                Ver
                 {cartQuantity > 0 ? (
-                  <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1 text-[10px] font-bold text-[rgb(var(--olive))]">
+                  <span className="absolute -right-3 -top-3 flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1 text-[10px] font-bold text-[rgb(var(--olive))]">
                     {cartQuantity}
                   </span>
                 ) : null}
@@ -136,25 +120,38 @@ export function WeddingGiftList({
             <button
               type="button"
               onClick={onOpenCart}
-              className="hidden items-center justify-between bg-[rgb(var(--olive))] px-4 py-3 text-left text-white shadow-sm transition hover:opacity-95 sm:flex sm:min-w-[250px] sm:rounded-full"
+              className="hidden h-11 items-center overflow-hidden rounded-lg border border-[#c9b88b] bg-[#fffefa]/82 text-[#4f6146] shadow-[0_6px_14px_rgba(79,97,70,0.07)] transition hover:-translate-y-0.5 hover:shadow-[0_10px_20px_rgba(79,97,70,0.10)] sm:flex"
             >
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/75">
+              <span className="flex h-full items-center gap-2.5 px-3">
+                <span className="relative h-6 w-6" aria-hidden="true">
+                  <span className="absolute bottom-0 left-1/2 h-[0.95rem] w-[1.15rem] -translate-x-1/2 rounded-sm border-[1.5px] border-[#4f6146]" />
+                  <span className="absolute left-1/2 top-0.5 h-3.5 w-3.5 -translate-x-1/2 rounded-t-full border-[1.5px] border-b-0 border-[#4f6146]" />
+                  {cartQuantity > 0 ? (
+                    <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#b19cd9] px-1 text-[9px] font-semibold text-white">
+                      {cartQuantity}
+                    </span>
+                  ) : null}
+                </span>
+                <span className="whitespace-nowrap text-sm font-semibold">
                   Ver carrinho
-                </p>
-                <p className="mt-1 text-sm font-semibold">
-                  {cartQuantity > 0
-                    ? `${cartQuantity} ${cartQuantity === 1 ? "item" : "itens"}`
-                    : "Nenhum item"}
-                </p>
-              </div>
-              <p className="text-sm font-semibold">{cartSubtotalLabel}</p>
+                </span>
+              </span>
+              <span className="h-full w-px bg-[#c9b88b]" />
+              <span className="flex h-full min-w-20 items-center justify-center px-3 text-sm text-[#4f6146]">
+                {cartQuantity > 0
+                  ? `${cartQuantity} ${cartQuantity === 1 ? "item" : "itens"}`
+                  : "Nenhum item"}
+              </span>
+              <span className="h-full w-px bg-[#c9b88b]" />
+              <span className="flex h-full min-w-24 items-center justify-center px-3 text-base font-semibold text-[#4f6146]">
+                {cartSubtotalLabel}
+              </span>
             </button>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-x-3 gap-y-7 sm:grid-cols-3 sm:gap-x-5 sm:gap-y-8 lg:grid-cols-4 xl:grid-cols-5">
         {visibleGifts.map((gift) => (
           <WeddingGiftCard
             key={gift.id}
@@ -173,12 +170,12 @@ export function WeddingGiftList({
       </div>
 
       {totalPages > 1 ? (
-        <div className="mt-5 flex flex-wrap items-center justify-center gap-2 sm:mt-6">
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-2 sm:mt-10">
           <button
             type="button"
             onClick={() => onPageChange(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
-            className="rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-full border border-[#d8ddcf] bg-[#fffefa]/70 px-4 py-2 text-sm font-medium text-[#66745c] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
           >
             Anterior
           </button>
@@ -194,8 +191,8 @@ export function WeddingGiftList({
                 onClick={() => onPageChange(nextPage)}
                 className={`h-10 min-w-10 rounded-full px-3 text-sm font-semibold transition ${
                   isActive
-                    ? "bg-black text-white"
-                    : "border border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-50"
+                    ? "bg-[rgb(var(--olive))] text-white"
+                    : "border border-[#d8ddcf] bg-[#fffefa]/70 text-[#66745c] hover:bg-white"
                 }`}
               >
                 {nextPage}
@@ -207,9 +204,9 @@ export function WeddingGiftList({
             type="button"
             onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
             disabled={currentPage === totalPages}
-            className="rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-full border border-[#d8ddcf] bg-[#fffefa]/70 px-4 py-2 text-sm font-medium text-[#66745c] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Proxima
+            Próxima
           </button>
         </div>
       ) : null}

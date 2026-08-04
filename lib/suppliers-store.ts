@@ -12,6 +12,7 @@ export type SupplierEntryRow = {
   phone: string;
   email: string | null;
   contract_value_cents: number | null;
+  contract_url: string | null;
   amount_paid_cents: number;
   next_payment_due: Date | null;
   note: string | null;
@@ -22,17 +23,49 @@ export type SupplierEntryRow = {
 
 const globalForSupplierSetup = globalThis as typeof globalThis & {
   ensureSuppliersTablePromise?: Promise<void>;
+  ensureSupplierContractUrlColumnPromise?: Promise<void>;
 };
 
 export const SUPPLIERS_TAG = "suppliers";
 
+export function isMissingSupplierContractUrlColumn(error: unknown) {
+  const code =
+    typeof error === "object" && error !== null && "code" in error
+      ? String((error as { code?: unknown }).code)
+      : "";
+  const message = error instanceof Error ? error.message : String(error);
+
+  return message.includes("contract_url") && (code === "42703" || message.includes("42703"));
+}
+
+export async function ensureSupplierContractUrlColumn() {
+  if (globalForSupplierSetup.ensureSupplierContractUrlColumnPromise) {
+    return globalForSupplierSetup.ensureSupplierContractUrlColumnPromise;
+  }
+
+  globalForSupplierSetup.ensureSupplierContractUrlColumnPromise = withPrismaRetry(async () => {
+    const prisma = getPrisma();
+
+    await prisma.$executeRawUnsafe(`
+      ALTER TABLE cerimonial_suppliers
+      ADD COLUMN IF NOT EXISTS contract_url TEXT;
+    `);
+  }).catch((error) => {
+    globalForSupplierSetup.ensureSupplierContractUrlColumnPromise = undefined;
+    throw error;
+  });
+
+  return globalForSupplierSetup.ensureSupplierContractUrlColumnPromise;
+}
+
 export async function ensureSuppliersTable() {
   if (!shouldRunRuntimeDbSetup()) {
-    return;
+    return ensureSupplierContractUrlColumn();
   }
 
   if (globalForSupplierSetup.ensureSuppliersTablePromise) {
-    return globalForSupplierSetup.ensureSuppliersTablePromise;
+    await globalForSupplierSetup.ensureSuppliersTablePromise;
+    return ensureSupplierContractUrlColumn();
   }
 
   globalForSupplierSetup.ensureSuppliersTablePromise = withPrismaRetry(async () => {
@@ -48,6 +81,7 @@ export async function ensureSuppliersTable() {
         phone TEXT NOT NULL,
         email TEXT,
         contract_value_cents INTEGER,
+        contract_url TEXT,
         amount_paid_cents INTEGER NOT NULL DEFAULT 0,
         next_payment_due DATE,
         note TEXT,
@@ -65,6 +99,11 @@ export async function ensureSuppliersTable() {
     await prisma.$executeRawUnsafe(`
       ALTER TABLE cerimonial_suppliers
       ADD COLUMN IF NOT EXISTS contract_value_cents INTEGER;
+    `);
+
+    await prisma.$executeRawUnsafe(`
+      ALTER TABLE cerimonial_suppliers
+      ADD COLUMN IF NOT EXISTS contract_url TEXT;
     `);
 
     await prisma.$executeRawUnsafe(`
@@ -100,33 +139,48 @@ export async function listSuppliers(options?: { includeInactive?: boolean }) {
   return includeInactive ? listAllSuppliersCached() : listActiveSuppliersCached();
 }
 
+async function selectSuppliers(includeInactive: boolean, includeContractUrl: boolean) {
+  const prisma = getPrisma();
+
+  return prisma.$queryRawUnsafe<SupplierEntryRow[]>(
+    `
+      SELECT
+        id,
+        supplier_name,
+        category,
+        supplier_status,
+        contact_name,
+        phone,
+        email,
+        contract_value_cents,
+        ${includeContractUrl ? "contract_url" : "NULL AS contract_url"},
+        amount_paid_cents,
+        next_payment_due,
+        note,
+        is_active,
+        created_at,
+        updated_at
+      FROM cerimonial_suppliers
+      ${includeInactive ? "" : "WHERE is_active = TRUE"}
+      ORDER BY supplier_name ASC
+    `,
+  );
+}
+
 async function querySuppliers(includeInactive: boolean) {
   return withPrismaRetry(async () => {
     await ensureSuppliersTable();
-    const prisma = getPrisma();
 
-    return prisma.$queryRawUnsafe<SupplierEntryRow[]>(
-      `
-        SELECT
-          id,
-          supplier_name,
-          category,
-          supplier_status,
-          contact_name,
-          phone,
-          email,
-          contract_value_cents,
-          amount_paid_cents,
-          next_payment_due,
-          note,
-          is_active,
-          created_at,
-          updated_at
-        FROM cerimonial_suppliers
-        ${includeInactive ? "" : "WHERE is_active = TRUE"}
-        ORDER BY supplier_name ASC
-      `,
-    );
+    try {
+      return await selectSuppliers(includeInactive, true);
+    } catch (error) {
+      if (!isMissingSupplierContractUrlColumn(error)) {
+        throw error;
+      }
+
+      await ensureSupplierContractUrlColumn().catch(() => undefined);
+      return selectSuppliers(includeInactive, false);
+    }
   });
 }
 

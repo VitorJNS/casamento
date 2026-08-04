@@ -4,7 +4,6 @@ import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 
 import { CerimonialShell } from "@/component/CerimonialShell";
-import { formatDisplayDateTime } from "@/lib/display-date";
 import type { PresenceGuest, PresenceStatus } from "@/lib/presence-dashboard";
 
 type CerimonialDashboardProps = {
@@ -23,7 +22,7 @@ type CerimonialDashboardProps = {
 function formatStatus(status: PresenceStatus) {
   if (status === "confirmed") return "Confirmado";
   if (status === "declined") return "Recusado";
-  return "Falta confirmar";
+  return "Pendente";
 }
 
 function getStatusClasses(status: PresenceStatus) {
@@ -42,6 +41,8 @@ function formatPeopleLabel(count: number | null, singular: string, plural: strin
   if (count === null) return "Sem resposta";
   return `${count} ${count === 1 ? singular : plural}`;
 }
+
+type RsvpFilter = "all" | "pending" | "confirmed" | "declined" | "children" | "notes";
 
 function matchesSearch(guest: PresenceGuest, term: string) {
   if (!term) return true;
@@ -63,230 +64,233 @@ function matchesSearch(guest: PresenceGuest, term: string) {
   return haystack.includes(term);
 }
 
-function EmptyColumn({ message }: { message: string }) {
-  return (
-    <div className="flex min-h-[28rem] flex-col items-center justify-center rounded-[28px] border border-dashed border-zinc-300 bg-white/65 px-6 py-10 text-center shadow-[0_20px_60px_rgba(24,24,27,0.05)]">
-      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-zinc-100 text-zinc-500">
-        <CheckCircleIcon className="h-10 w-10" />
-      </div>
-      <p className="mt-6 max-w-[14rem] text-[1.05rem] italic leading-8 text-zinc-600">
-        {message}
-      </p>
-    </div>
-  );
-}
-
 function MetricCard({
   label,
   value,
-  helper,
+  tone = "neutral",
 }: {
   label: string;
   value: number;
-  helper?: string;
+  tone?: "neutral" | "confirmed" | "declined" | "pending" | "notes";
 }) {
+  const toneClasses = {
+    neutral: "bg-zinc-100 text-[rgb(var(--olive))]",
+    confirmed: "bg-emerald-50 text-emerald-700",
+    declined: "bg-rose-50 text-rose-600",
+    pending: "bg-amber-50 text-amber-700",
+    notes: "bg-[rgb(var(--lavender))/0.16] text-[rgb(var(--lavender))]",
+  };
+
   return (
-    <article className="rounded-[28px] border border-zinc-200 bg-white px-6 py-5 shadow-[0_16px_45px_rgba(24,24,27,0.06)]">
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
-        {label}
-      </p>
-      <p className="mt-6 text-5xl font-light tracking-[-0.03em] text-zinc-950">
-        {value}
-      </p>
-      {helper ? (
-        <p className="mt-2 max-w-[16rem] text-sm leading-6 text-zinc-600">{helper}</p>
-      ) : null}
+    <article className="flex items-center gap-4 rounded-[22px] border border-zinc-200 bg-white px-5 py-4 shadow-[0_14px_35px_rgba(24,24,27,0.04)]">
+      <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${toneClasses[tone]}`}>
+        {tone === "confirmed" ? (
+          <CheckCircleIcon className="h-6 w-6" />
+        ) : tone === "declined" ? (
+          <XCircleIcon className="h-6 w-6" />
+        ) : tone === "pending" ? (
+          <ClockIcon className="h-6 w-6" />
+        ) : tone === "notes" ? (
+          <MessageIcon className="h-6 w-6" />
+        ) : (
+          <UsersIcon className="h-6 w-6" />
+        )}
+      </div>
+      <div>
+        <p className="text-sm font-medium text-zinc-600">{label}</p>
+        <p className="mt-1 text-3xl font-semibold tracking-[-0.03em] text-zinc-950">{value}</p>
+      </div>
     </article>
   );
 }
 
-function GuestCard({ guest }: { guest: PresenceGuest }) {
-  const [isExpanded, setIsExpanded] = useState(false);
+function getFamilyLabel(guest: PresenceGuest) {
+  if (guest.familyLabel) return guest.familyLabel;
+  if (guest.householdMembers.length <= 1) return "Sem grupo vinculado";
+  return `${guest.householdMembers.length} pessoas no grupo`;
+}
+
+function getFilterLabel(filter: RsvpFilter) {
+  if (filter === "pending") return "Pendentes";
+  if (filter === "confirmed") return "Confirmados";
+  if (filter === "declined") return "Recusados";
+  if (filter === "children") return "Criancas";
+  if (filter === "notes") return "Com observacao";
+  return "Todos";
+}
+
+function matchesFilter(guest: PresenceGuest, filter: RsvpFilter) {
+  if (filter === "pending") return guest.status === "pending";
+  if (filter === "confirmed") return guest.status === "confirmed";
+  if (filter === "declined") return guest.status === "declined";
+  if (filter === "children") return guest.isChild;
+  if (filter === "notes") return Boolean(guest.responseNote || guest.note);
+  return true;
+}
+
+function getFilterCount(guests: PresenceGuest[], filter: RsvpFilter) {
+  return guests.filter((guest) => matchesFilter(guest, filter)).length;
+}
+
+function GuestRow({ guest }: { guest: PresenceGuest }) {
   const whatsappMessage =
     "Ola, tudo bem? Meu nome e Karine, eu sou a Cerimonialista responsavel pelo casamento dos noivos Yasmim e Vitor. Estou entrando em contato para saber se ja confirmaram presenca no evento.";
   const whatsappHref = `https://wa.me/${guest.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(whatsappMessage)}`;
 
   return (
-    <article className="rounded-[24px] border border-zinc-200 bg-white p-5 shadow-[0_20px_60px_rgba(24,24,27,0.06)]">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <h3 className="truncate text-[1.65rem] font-semibold leading-none text-zinc-950">
-            {guest.guestName}
-          </h3>
-        </div>
-        <div className="flex items-center gap-2">
-          <a
-            href={whatsappHref}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 bg-white text-[rgb(var(--olive))] transition hover:bg-zinc-50"
-            aria-label={`Abrir WhatsApp de ${guest.guestName}`}
-          >
-            <WhatsAppIcon className="h-4 w-4" />
-          </a>
-          <button
-            type="button"
-            onClick={() => setIsExpanded((current) => !current)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-600 transition hover:bg-zinc-50"
-            aria-label={isExpanded ? "Ocultar detalhes" : "Mostrar detalhes"}
-          >
-            <ChevronIcon
-              className={`h-5 w-5 transition-transform ${isExpanded ? "rotate-180" : ""}`}
-            />
-          </button>
-        </div>
-      </div>
-
-      <div className="mt-4 grid gap-3 sm:grid-cols-3">
-        <InfoBox
-          label="Total"
-          value={formatPeopleLabel(guest.countableGuestCount, "pessoa", "pessoas")}
-        />
-        <InfoBox
-          label="Criancas"
-          value={guest.guestCount !== null ? String(guest.childCount) : "Sem resposta"}
-        />
-        <InfoBox label="Status" value={formatStatus(guest.status)} tone={guest.status} />
-      </div>
-
-      {isExpanded ? (
-        <div className="mt-4 border-t border-zinc-100 pt-4">
-          <p className="break-all text-sm text-zinc-600">{guest.whatsapp}</p>
-          {guest.secondaryWhatsapp ? (
-            <p className="break-all text-sm text-zinc-500">{guest.secondaryWhatsapp}</p>
-          ) : null}
-
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <DetailRow
-              label="Resposta"
-              value={
-                guest.respondedAt
-                  ? formatDisplayDateTime(guest.respondedAt)
-                  : "Ainda nao respondeu"
-              }
-            />
-            <DetailRow label="Email" value={guest.email || "Nao informado"} breakAll />
+    <tr className="border-t border-zinc-200 align-middle text-sm text-zinc-700">
+      <td className="min-w-[13rem] px-4 py-4">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[rgb(var(--lavender))/0.14] font-semibold text-[rgb(var(--lavender))]">
+            {guest.guestName.charAt(0).toUpperCase()}
           </div>
-
-          <div className="mt-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
-              Pessoas do mesmo grupo
-            </p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {guest.adultNames.length > 0 ? (
-                guest.adultNames.map((name) => (
-                  <span
-                    key={`${guest.id}-adult-${name}`}
-                    className="rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs text-zinc-700"
-                  >
-                    {name}
-                  </span>
-                ))
-              ) : (
-                <span className="text-sm text-zinc-500">Nenhum outro nome vinculado.</span>
-              )}
-            </div>
-          </div>
-
-          <div className="mt-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
-              Tipo de cadastro
-            </p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              <span className="rounded-full border border-zinc-200 bg-zinc-100 px-3 py-1 text-xs text-zinc-700">
-                {guest.isChild ? "Crianca" : "Adulto"}
-              </span>
-            </div>
-          </div>
-
-          <div className="mt-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
-              Observacao
-            </p>
-            <p className="mt-2 rounded-[18px] bg-zinc-50 px-4 py-3 text-sm leading-6 text-zinc-700">
-              {guest.responseNote || guest.note || "Sem observacoes registradas."}
-            </p>
+          <div className="min-w-0">
+            <p className="truncate text-base font-semibold text-zinc-950">{guest.guestName}</p>
+            <p className="mt-0.5 truncate text-xs text-zinc-500">{guest.isChild ? "Crianca" : "Adulto"}</p>
           </div>
         </div>
-      ) : null}
-    </article>
+      </td>
+      <td className="min-w-[11rem] px-4 py-4">
+        <a
+          href={whatsappHref}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-2 font-medium text-[rgb(var(--olive))] transition hover:text-[#b89543]"
+        >
+          <WhatsAppIcon className="h-4 w-4" />
+          <span>{guest.whatsapp}</span>
+        </a>
+      </td>
+      <td className="min-w-[12rem] px-4 py-4">
+        <p className="max-w-[14rem] truncate">{getFamilyLabel(guest)}</p>
+      </td>
+      <td className="px-4 py-4">
+        <span className="inline-flex rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-700">
+          {guest.isChild ? "Crianca" : "Adulto"}
+        </span>
+      </td>
+      <td className="px-4 py-4">
+        <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${getStatusClasses(guest.status)}`}>
+          {formatStatus(guest.status)}
+        </span>
+      </td>
+      <td className="px-4 py-4 text-right">
+        <a
+          href={whatsappHref}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-2xl border border-[rgb(var(--olive))/0.5] bg-white px-4 py-2 text-sm font-semibold text-[rgb(var(--olive))] transition hover:bg-[rgb(var(--olive))/0.08]"
+        >
+          <WhatsAppIcon className="h-4 w-4" />
+          Chamar no WhatsApp
+        </a>
+      </td>
+    </tr>
   );
 }
 
-function InfoBox({
+function FilterButton({
   label,
-  value,
-  tone,
+  count,
+  isActive,
+  onClick,
 }: {
   label: string;
-  value: string;
-  tone?: PresenceStatus;
+  count: number;
+  isActive: boolean;
+  onClick: () => void;
 }) {
-  const valueClassName =
-    tone === "confirmed"
-      ? "text-emerald-700"
-      : tone === "declined"
-        ? "text-rose-600"
-        : tone === "pending"
-          ? "text-amber-700"
-          : "text-zinc-950";
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border px-4 py-2 text-sm font-semibold transition ${
+        isActive
+          ? "border-[rgb(var(--olive))] bg-[rgb(var(--olive))] text-[#fffdf3]"
+          : "border-zinc-200 bg-white text-zinc-700 hover:border-[rgb(var(--olive))/0.45] hover:text-[rgb(var(--olive))]"
+      }`}
+    >
+      <span>{label}</span>
+      <span
+        className={`rounded-full px-2 py-0.5 text-xs ${
+          isActive ? "bg-white/18 text-white" : "bg-zinc-100 text-zinc-500"
+        }`}
+      >
+        {count}
+      </span>
+    </button>
+  );
+}
+
+function ProgressPanel({
+  respondedCount,
+  totalCount,
+}: {
+  respondedCount: number;
+  totalCount: number;
+}) {
+  const percent = totalCount > 0 ? Math.round((respondedCount / totalCount) * 100) : 0;
 
   return (
-    <div className="rounded-[18px] bg-zinc-100 px-4 py-3">
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
-        {label}
-      </p>
-      <p className={`mt-1.5 text-base font-semibold ${valueClassName}`}>{value}</p>
+    <div className="rounded-[22px] border border-zinc-200 bg-white px-5 py-4 shadow-[0_14px_35px_rgba(24,24,27,0.04)]">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-xl font-medium text-zinc-800">
+          <span className="text-[rgb(var(--olive))]">{respondedCount}</span> de {totalCount} responderam
+        </p>
+        <p className="text-sm font-semibold text-zinc-600">{percent}%</p>
+      </div>
+      <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-zinc-200">
+        <div
+          className="h-full rounded-full bg-[rgb(var(--olive))]"
+          style={{ width: `${percent}%` }}
+        />
+      </div>
     </div>
   );
 }
 
-function DetailRow({
-  label,
-  value,
-  breakAll = false,
-}: {
-  label: string;
-  value: string;
-  breakAll?: boolean;
-}) {
-  return (
-    <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
-        {label}
-      </p>
-      <p className={`mt-1.5 text-sm leading-6 text-zinc-700 ${breakAll ? "break-all" : ""}`}>
-        {value}
-      </p>
-    </div>
-  );
-}
-
-function ColumnSection({
-  title,
-  description,
+function GuestTable({
   guests,
-  emptyMessage,
+  activeFilter,
 }: {
-  title: string;
-  description: string;
   guests: PresenceGuest[];
-  emptyMessage: string;
+  activeFilter: RsvpFilter;
 }) {
   return (
-    <section>
-      <header>
-        <h2 className="text-[2.2rem] font-semibold uppercase leading-none tracking-[-0.03em] text-zinc-950">
-          {title}
-        </h2>
-        <p className="mt-2 text-lg text-zinc-600">{description}</p>
-      </header>
-
-      <div className="mt-5 space-y-5">
+    <section className="overflow-hidden rounded-[22px] border border-zinc-200 bg-white shadow-[0_14px_35px_rgba(24,24,27,0.04)]">
+      <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+        <div>
+          <h2 className="text-2xl font-semibold tracking-[-0.03em] text-zinc-950">
+            Convidados
+          </h2>
+          <p className="mt-1 text-sm text-zinc-600">
+            Mostrando {guests.length} convidado{guests.length === 1 ? "" : "s"} em {getFilterLabel(activeFilter).toLowerCase()}.
+          </p>
+        </div>
+      </div>
+      <div className="overflow-x-auto">
         {guests.length === 0 ? (
-          <EmptyColumn message={emptyMessage} />
+          <div className="border-t border-zinc-200 px-5 py-12 text-center text-sm text-zinc-500">
+            Nenhum convidado encontrado para este filtro.
+          </div>
         ) : (
-          guests.map((guest) => <GuestCard key={guest.id} guest={guest} />)
+          <table className="w-full min-w-[920px] border-collapse">
+            <thead>
+              <tr className="border-t border-zinc-200 bg-[rgb(var(--paper))]/70 text-left text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
+                <th className="px-4 py-3">Convidado</th>
+                <th className="px-4 py-3">WhatsApp</th>
+                <th className="px-4 py-3">Familia / Grupo</th>
+                <th className="px-4 py-3">Tipo</th>
+                <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3 text-right">Acoes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {guests.map((guest) => (
+                <GuestRow key={guest.id} guest={guest} />
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
     </section>
@@ -295,80 +299,99 @@ function ColumnSection({
 
 export function CerimonialDashboard({ guests, summary }: CerimonialDashboardProps) {
   const [search, setSearch] = useState("");
+  const [activeFilter, setActiveFilter] = useState<RsvpFilter>("all");
   const normalizedSearch = search.trim().toLowerCase();
 
-  const filteredGuests = useMemo(
-    () => guests.filter((guest) => matchesSearch(guest, normalizedSearch)),
-    [guests, normalizedSearch],
+  const statusCounts = useMemo(
+    () => ({
+      total: guests.length,
+      confirmed: guests.filter((guest) => guest.status === "confirmed").length,
+      declined: guests.filter((guest) => guest.status === "declined").length,
+      pending: guests.filter((guest) => guest.status === "pending").length,
+      notes: guests.filter((guest) => guest.responseNote || guest.note).length,
+    }),
+    [guests],
   );
 
-  const pendingGuests = filteredGuests.filter((guest) => guest.status === "pending");
-  const confirmedGuests = filteredGuests.filter((guest) => guest.status === "confirmed");
-  const declinedGuests = filteredGuests.filter((guest) => guest.status === "declined");
+  const displayedGuests = useMemo(
+    () =>
+      guests.filter(
+        (guest) =>
+          matchesSearch(guest, normalizedSearch) && matchesFilter(guest, activeFilter),
+      ),
+    [activeFilter, guests, normalizedSearch],
+  );
+
+  const filterItems: Array<{ id: RsvpFilter; label: string }> = [
+    { id: "all", label: "Todos" },
+    { id: "pending", label: "Pendentes" },
+    { id: "confirmed", label: "Confirmados" },
+    { id: "declined", label: "Recusados" },
+    { id: "children", label: "Criancas" },
+    { id: "notes", label: "Com observacao" },
+  ];
 
   return (
-    <CerimonialShell
-      title="Area da Cerimonialista"
-      topRight={<DashboardTopBar search={search} setSearch={setSearch} />}
-    >
+    <CerimonialShell title="Area da Cerimonialista">
       <div>
-        <h1 className="text-[2.8rem] font-semibold tracking-[-0.05em] text-zinc-950">
+        <h1 className="text-[2.8rem] font-semibold tracking-[-0.05em] text-[rgb(var(--olive))]">
           Confirmacao de presenca
         </h1>
-        <p className="mt-2 max-w-3xl text-xl text-zinc-700">
-          Acompanhe quem ja respondeu, quem recusou e quem ainda precisa de contato.
+        <p className="mt-2 max-w-3xl text-lg text-zinc-700">
+          Acompanhe as respostas e acione rapidamente os convidados pelo WhatsApp.
         </p>
       </div>
 
-      <div className="mt-8 grid gap-4 md:grid-cols-2 2xl:grid-cols-4">
-        <MetricCard label="Total de convidados" value={summary.totalGuests} />
-        <MetricCard
-          label="Ja confirmaram"
-          value={summary.confirmedCountableGuests + summary.confirmedChildren}
-          helper={
-            summary.confirmedChildren > 0
-              ? `${summary.confirmedCountableGuests} adultos + ${summary.confirmedChildren} criancas`
-              : `${summary.confirmedCountableGuests} adultos`
-          }
+      <div className="mt-7 grid gap-4 md:grid-cols-2 2xl:grid-cols-5">
+        <MetricCard label="Total de convidados" value={summary.totalGuests || statusCounts.total} />
+        <MetricCard label="Confirmados" value={statusCounts.confirmed} tone="confirmed" />
+        <MetricCard label="Recusados" value={statusCounts.declined} tone="declined" />
+        <MetricCard label="Pendentes" value={statusCounts.pending} tone="pending" />
+        <MetricCard label="Com observacao" value={statusCounts.notes} tone="notes" />
+      </div>
+
+      <div className="mt-5">
+        <ProgressPanel
+          respondedCount={statusCounts.confirmed + statusCounts.declined}
+          totalCount={statusCounts.total}
         />
-        <MetricCard
-          label="Nao comparecem"
-          value={summary.declinedCountableGuests}
-          helper={
-            summary.declinedGuests === 1
-              ? "1 resposta negativa registrada."
-              : `${summary.declinedGuests} adultos.`
-          }
-        />
-        <MetricCard label="Faltam responder" value={summary.pendingGuests} />
+      </div>
+
+      <div className="mt-5 rounded-[22px] border border-zinc-200 bg-white p-4 shadow-[0_14px_35px_rgba(24,24,27,0.04)]">
+        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex flex-wrap gap-2">
+            {filterItems.map((item) => (
+              <FilterButton
+                key={item.id}
+                label={item.label}
+                count={getFilterCount(guests, item.id)}
+                isActive={activeFilter === item.id}
+                onClick={() => setActiveFilter(item.id)}
+              />
+            ))}
+          </div>
+
+          <label className="flex min-w-0 items-center gap-3 rounded-2xl border border-zinc-200 bg-white px-4 py-3 xl:min-w-[22rem]">
+            <SearchIcon className="h-5 w-5 shrink-0 text-zinc-500" />
+            <input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Buscar convidado ou familia..."
+              className="w-full bg-transparent text-sm text-zinc-800 outline-none placeholder:text-zinc-400"
+            />
+          </label>
+        </div>
       </div>
 
       {normalizedSearch ? (
-        <p className="mt-5 text-sm text-zinc-600">
-          Mostrando {filteredGuests.length} resultado{filteredGuests.length === 1 ? "" : "s"} para{" "}
+        <p className="mt-4 text-sm text-zinc-600">
+          Mostrando {displayedGuests.length} resultado{displayedGuests.length === 1 ? "" : "s"} para{" "}
           <span className="font-medium text-zinc-900">"{search}"</span>.
         </p>
       ) : null}
 
-      <div className="mt-8 grid gap-8 2xl:grid-cols-3">
-        <ColumnSection
-          title="Falta confirmar"
-          description="Convidados que ainda precisam de contato."
-          guests={pendingGuests}
-          emptyMessage="Ninguem pendente no momento."
-        />
-        <ColumnSection
-          title="Ja confirmaram"
-          description="Respostas positivas ja registradas."
-          guests={confirmedGuests}
-          emptyMessage="Nenhuma confirmacao encontrada."
-        />
-        <ColumnSection
-          title="Nao comparecem"
-          description="Respostas negativas ja registradas."
-          guests={declinedGuests}
-          emptyMessage="Nenhuma recusa encontrada."
-        />
+      <div className="mt-5">
+        <GuestTable guests={displayedGuests} activeFilter={activeFilter} />
       </div>
     </CerimonialShell>
   );
@@ -478,6 +501,44 @@ function CheckCircleIcon({ className }: { className?: string }) {
     <SvgIcon className={className}>
       <circle cx="12" cy="12" r="9" />
       <path d="m9 12 2 2 4-4" />
+    </SvgIcon>
+  );
+}
+
+function XCircleIcon({ className }: { className?: string }) {
+  return (
+    <SvgIcon className={className}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m15 9-6 6" />
+      <path d="m9 9 6 6" />
+    </SvgIcon>
+  );
+}
+
+function ClockIcon({ className }: { className?: string }) {
+  return (
+    <SvgIcon className={className}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
+    </SvgIcon>
+  );
+}
+
+function MessageIcon({ className }: { className?: string }) {
+  return (
+    <SvgIcon className={className}>
+      <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7A8.4 8.4 0 0 1 4 11.5a8.5 8.5 0 1 1 17 0Z" />
+    </SvgIcon>
+  );
+}
+
+function UsersIcon({ className }: { className?: string }) {
+  return (
+    <SvgIcon className={className}>
+      <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
+      <circle cx="9.5" cy="7" r="3.5" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
     </SvgIcon>
   );
 }

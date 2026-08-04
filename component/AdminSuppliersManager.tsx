@@ -117,6 +117,7 @@ export function AdminSuppliersManager({
   const [draft, setDraft] = useState<SupplierDraft>(emptyDraft);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingContract, setIsUploadingContract] = useState(false);
+  const [isRemovingContract, setIsRemovingContract] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -317,6 +318,42 @@ export function AdminSuppliersManager({
     }
   }
 
+  async function handleRemoveContract() {
+    if (!draft.contractUrl || isRemovingContract) return;
+
+    setIsRemovingContract(true);
+    setErrorMessage(null);
+
+    try {
+      const response = await fetch("/api/admin/suppliers/contracts/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pathname: draft.contractUrl }),
+      });
+      const data = await readJsonResponse(response);
+
+      if (!response.ok) {
+        throw new Error(
+          data?.error?.message ?? "Nao foi possivel remover o contrato.",
+        );
+      }
+
+      setDraft((current) => ({
+        ...current,
+        contractUrl: "",
+        contractFilename: "",
+      }));
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel remover o contrato.",
+      );
+    } finally {
+      setIsRemovingContract(false);
+    }
+  }
+
   function openCreateModal() {
     setErrorMessage(null);
     setEditingSupplier(null);
@@ -485,9 +522,19 @@ export function AdminSuppliersManager({
                   </label>
                 </div>
                 {draft.contractUrl ? (
-                  <p className="mt-2 break-all text-xs text-[rgb(var(--olive))]">
-                    Contrato anexado: {draft.contractFilename || getContractFilename(draft.contractUrl)}
-                  </p>
+                  <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+                    <p className="break-all text-xs text-[rgb(var(--olive))]">
+                      Contrato anexado: {draft.contractFilename || getContractFilename(draft.contractUrl)}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleRemoveContract}
+                      disabled={isRemovingContract}
+                      className="rounded-full border border-rose-200 bg-white px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {isRemovingContract ? "Removendo..." : "Remover contrato"}
+                    </button>
+                  </div>
                 ) : (
                   <p className="mt-2 text-xs text-zinc-500">
                     Nenhum contrato anexado ate o momento.
@@ -526,7 +573,7 @@ export function AdminSuppliersManager({
               <div className="sticky bottom-0 -mx-4 -mb-4 flex flex-wrap gap-3 border-t border-zinc-100 bg-white/95 px-4 py-3 backdrop-blur md:col-span-2 sm:static sm:m-0 sm:border-t-0 sm:bg-transparent sm:p-0">
                 <button
                   type="submit"
-                  disabled={isSaving || isUploadingContract}
+                  disabled={isSaving || isUploadingContract || isRemovingContract}
                   className="btn-primary rounded-full px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60 max-sm:flex-1"
                 >
                   {isSaving

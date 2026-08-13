@@ -57,6 +57,7 @@ const emptyDraft: SupplierDraft = {
 };
 
 const SUPPLIERS_PER_PAGE = 10;
+const MAX_CONTRACT_FILE_SIZE = 10 * 1024 * 1024;
 
 function normalizeSupplier(supplier: AdminSupplier): AdminSupplier {
   return {
@@ -277,8 +278,8 @@ export function AdminSuppliersManager({
       return;
     }
 
-    if (file.size > 4.5 * 1024 * 1024) {
-      setErrorMessage("Contrato: envie um PDF de ate 4,5 MB.");
+    if (file.size > MAX_CONTRACT_FILE_SIZE) {
+      setErrorMessage("Contrato: envie um PDF de ate 10 MB.");
       return;
     }
 

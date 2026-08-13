@@ -6,7 +6,7 @@ import { isAdminAuthenticated } from "@/lib/admin-auth";
 export const runtime = "nodejs";
 export const preferredRegion = "gru1";
 
-const MAX_CONTRACT_FILE_SIZE = 4.5 * 1024 * 1024;
+const MAX_CONTRACT_FILE_SIZE = 10 * 1024 * 1024;
 
 function sanitizeFilename(filename: string) {
   const fallback = "contrato.pdf";
@@ -83,7 +83,7 @@ export async function POST(request: Request) {
         {
           error: {
             code: "FILE_TOO_LARGE",
-            message: "O contrato precisa ter ate 4,5 MB.",
+            message: "O contrato precisa ter ate 10 MB.",
           },
         },
         { status: 400 },

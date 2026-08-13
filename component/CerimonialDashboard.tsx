@@ -134,7 +134,7 @@ function getFilterCount(guests: PresenceGuest[], filter: RsvpFilter) {
 
 function GuestRow({ guest }: { guest: PresenceGuest }) {
   const whatsappMessage =
-    "Ola, tudo bem? Meu nome e Karine, eu sou a Cerimonialista responsavel pelo casamento dos noivos Yasmim e Vitor. Estou entrando em contato para saber se ja confirmaram presenca no evento.";
+    "Ola, tudo bem? Meu nome e Karine, eu sou a Cerimonialista responsavel pelo casamento dos noivos Yasmim e Vitor. Estou entrando em contato para saber se ja confirmaram presença no evento.";
   const whatsappHref = `https://wa.me/${guest.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(whatsappMessage)}`;
 
   return (

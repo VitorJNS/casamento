@@ -38,12 +38,7 @@ const richContent = {
     "Cada presença será extremamente importante para nós. Esperamos que este dia seja leve, emocionante e inesquecível, não apenas para nós, mas também para todos que estarão vivendo esse sonho conosco.",
   ],
   story:
-    "Alguns encontros mudam completamente o rumo da nossa vida, e o nosso começou lá em 2020.",
-  storyDetails: [
-    "Desde então, crescemos juntos, amadurecemos, realizamos sonhos, enfrentamos mudanças e construímos, dia após dia, a nossa família e o nosso lar.",
-    "Entre conquistas, recomeços, quilômetros de distância e muitos planos compartilhados, entendemos que o amor está justamente nos pequenos momentos vividos lado a lado.",
-    "E agora, depois de tantos capítulos especiais, estamos prontos para viver o mais importante deles: o nosso casamento.",
-  ],
+    "Alguns encontros mudam completamente o rumo da nossa vida, e o nosso começou lá em 2020.\n\nDesde então, crescemos juntos, amadurecemos, realizamos sonhos, enfrentamos mudanças e construímos, dia após dia, a nossa família e o nosso lar.\n\nEntre conquistas, recomeços, quilômetros de distância e muitos planos compartilhados, entendemos que o amor está justamente nos pequenos momentos vividos lado a lado.\n\nE agora, depois de tantos capítulos especiais, estamos prontos para viver o mais importante deles: o nosso casamento.",
   dressCodeIntro:
     "Escolhemos com muito carinho o traje esporte fino para celebrar este momento tão especial ao nosso lado. O casamento acontecerá ao final da tarde, em junho, uma época em que as temperaturas costumam ser mais frias.",
   dressCodeGroups: [
@@ -64,7 +59,7 @@ const richContent = {
     }
   ],
   dressCodeColors:
-    "Nossos padrinhos usarão tons de chumbo, nossas madrinhas estarão em lavanda, e o branco será reservado para a noiva. Pedimos, com carinho, que evitem essas tonalidades para que cada um tenha seu destaque especial neste dia tão importante.",
+    "Nossos padrinhos usarão tons de chumbo, nossas madrinhas estarão em lavanda, o branco e o verde oliva serão destinados aos noivos. Pedimos, com carinho, que evitem essas tonalidades para que cada um tenha seu destaque especial neste dia tão importante.",
   rsvp:
     "Para nos auxiliar na organização do casamento, pedimos que confirme sua presença através do formulário abaixo. Informe seu nome, contato e se estará presente. Caso venha acompanhado, nos conte quantas pessoas serão ao todo.",
   gifts:
@@ -202,7 +197,11 @@ function SectionHeader({
         </p>
       ) : null}
       {text ? (
-        <p className={`mt-4 leading-7 text-[#66745c] ${textClassName}`.trim()}>{text}</p>
+        <div className={`mt-4 space-y-2 leading-7 text-[#66745c] ${textClassName}`.trim()}>
+          {text.split("\n\n").map((paragraph) => (
+            <p key={paragraph}>{paragraph}</p>
+          ))}
+        </div>
       ) : null}
     </div>
   );
@@ -469,19 +468,11 @@ export default async function PreviewDesignPage() {
       >
         <div className="mx-auto max-w-6xl">
           <SectionHeader
-            title="Nossa Historia"
+            title="Nossa História"
             text={richContent.story}
-            textClassName="whitespace-nowrap text-[clamp(0.69rem,2.45vw,1rem)] sm:text-base"
+            textClassName="text-base"
           />
           <div className="mx-auto max-w-5xl overflow-hidden rounded-lg border border-[#d8ddcf] bg-[#fffefa]/82 p-5 text-sm leading-7 text-[#66745c] shadow-sm sm:p-6">
-            <div className="space-y-4">
-              {richContent.storyDetails.map((paragraph) => (
-                <p key={paragraph}>{paragraph}</p>
-              ))}
-            </div>
-
-            <div className="my-6 h-px bg-[#d8ddcf]/80" />
-
             <TimelineImagePreview
               src="/story/timeline-full.png"
               alt="Nossa historia"

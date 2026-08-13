@@ -408,7 +408,7 @@ export function RsvpForm() {
             </p>
             <p className="mt-1 leading-6">
               Ela foi preparada com muito carinho para quem desejar participar da
-              construcao do nosso novo lar.
+              construção do nosso novo lar.
             </p>
 
             <div className="mt-3">

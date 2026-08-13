@@ -84,7 +84,7 @@ export function PreviewTopNav({ items }: PreviewTopNavProps) {
             href="#rsvp"
             className="shrink-0 rounded-full bg-[#4f6146] px-4 py-2.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#fffdf3] transition hover:bg-[#b89543] sm:px-5 sm:text-[11px]"
           >
-            Confirmar presenca
+            Confirmar presença
           </a>
         </div>
       </div>

@@ -55,6 +55,75 @@ function normalizeGuestResponses(value: unknown) {
   });
 }
 
+function normalizeRsvpKeyPart(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+}
+
+function getActiveGuestResponses(row: RsvpRow, activeGuestIds: Set<string>) {
+  const guestResponses = normalizeGuestResponses(row.guest_responses);
+  if (guestResponses.length === 0) return [];
+
+  return guestResponses.filter((guest) => activeGuestIds.has(guest.guestId));
+}
+
+function getRsvpGroupKey(row: RsvpRow, activeGuestIds: Set<string>) {
+  const activeGuestResponses = getActiveGuestResponses(row, activeGuestIds);
+
+  if (activeGuestResponses.length === 0) {
+    return `single:${normalizeRsvpKeyPart(row.guest_name)}`;
+  }
+
+  return activeGuestResponses
+    .map((guest) => normalizeRsvpKeyPart(guest.guestName))
+    .sort()
+    .join("|");
+}
+
+function getLatestRsvpRowsByInvite(rows: RsvpRow[], activeGuestIds: Set<string>) {
+  const latestRows = new Map<string, RsvpRow>();
+
+  for (const row of rows) {
+    const guestResponses = normalizeGuestResponses(row.guest_responses);
+    if (guestResponses.length > 0 && getActiveGuestResponses(row, activeGuestIds).length === 0) {
+      continue;
+    }
+
+    const key = getRsvpGroupKey(row, activeGuestIds);
+    if (!latestRows.has(key)) {
+      latestRows.set(key, row);
+    }
+  }
+
+  return Array.from(latestRows.values());
+}
+
+function mapRsvpRow(row: RsvpRow, activeGuestIds: Set<string>) {
+  const activeGuestResponses = getActiveGuestResponses(row, activeGuestIds);
+  const guestResponses =
+    activeGuestResponses.length > 0
+      ? activeGuestResponses
+      : normalizeGuestResponses(row.guest_responses);
+
+  return {
+    id: row.id,
+    guestName: row.guest_name,
+    whatsapp: row.whatsapp,
+    email: row.email,
+    attendance: row.attendance,
+    guestCount: row.guest_count,
+    childCount: row.child_count,
+    countableGuestCount: Math.max(row.guest_count - row.child_count, 0),
+    companionNames: normalizeCompanionNames(row.companion_names),
+    guestResponses,
+    note: row.note,
+    createdAt: toIsoString(row.created_at),
+  };
+}
+
 export async function getAdminDashboardData() {
   return withPrismaRetry(async () => {
     const prisma = getPrisma();
@@ -100,18 +169,20 @@ export async function getAdminDashboardData() {
     0,
   );
 
-  const rsvpConfirmed = rsvpRows.filter((row) => row.attendance === "confirmed");
-  const rsvpDeclined = rsvpRows.filter((row) => row.attendance === "declined");
   const confirmedGuests = presenceData.summary.confirmedCountableGuests;
   const confirmedChildren = presenceData.summary.confirmedChildren;
   const declinedGuests = presenceData.summary.declinedCountableGuests;
   const declinedChildren = presenceData.summary.declinedChildren;
   const guestListEntries = await listGuestListEntries({ includeInactive: false });
+  const activeGuestIds = new Set(guestListEntries.map((guest) => guest.id));
+  const currentRsvpRows = getLatestRsvpRowsByInvite(rsvpRows, activeGuestIds);
+  const rsvpConfirmed = currentRsvpRows.filter((row) => row.attendance === "confirmed");
+  const rsvpDeclined = currentRsvpRows.filter((row) => row.attendance === "declined");
   const presenceById = new Map(dataToPresenceMap(presenceData.guests).map((entry) => [entry.id, entry]));
 
     return {
       summary: {
-        totalRsvps: rsvpRows.length,
+        totalRsvps: currentRsvpRows.length,
         confirmedRsvps: rsvpConfirmed.length,
         declinedRsvps: rsvpDeclined.length,
         confirmedGuests,
@@ -133,20 +204,7 @@ export async function getAdminDashboardData() {
         ),
         paidGiftUnits,
       },
-      rsvps: rsvpRows.map((row) => ({
-        id: row.id,
-        guestName: row.guest_name,
-        whatsapp: row.whatsapp,
-        email: row.email,
-        attendance: row.attendance,
-        guestCount: row.guest_count,
-        childCount: row.child_count,
-        countableGuestCount: Math.max(row.guest_count - row.child_count, 0),
-        companionNames: normalizeCompanionNames(row.companion_names),
-        guestResponses: normalizeGuestResponses(row.guest_responses),
-        note: row.note,
-        createdAt: toIsoString(row.created_at),
-      })),
+      rsvps: currentRsvpRows.map((row) => mapRsvpRow(row, activeGuestIds)),
       paidOrders: paidOrders.map((order) => ({
         publicId: order.publicId,
         guestName: order.guestName,
@@ -234,18 +292,20 @@ const getAdminGuestsDataCached = unstable_cache(
     listGuestListEntries({ includeInactive: false }),
   ]);
 
-  const rsvpConfirmed = rsvpRows.filter((row) => row.attendance === "confirmed");
-  const rsvpDeclined = rsvpRows.filter((row) => row.attendance === "declined");
   const confirmedGuests = presenceData.summary.confirmedCountableGuests;
   const confirmedChildren = presenceData.summary.confirmedChildren;
   const declinedGuests = presenceData.summary.declinedCountableGuests;
   const declinedChildren = presenceData.summary.declinedChildren;
+  const activeGuestIds = new Set(guestListEntries.map((guest) => guest.id));
+  const currentRsvpRows = getLatestRsvpRowsByInvite(rsvpRows, activeGuestIds);
+  const rsvpConfirmed = currentRsvpRows.filter((row) => row.attendance === "confirmed");
+  const rsvpDeclined = currentRsvpRows.filter((row) => row.attendance === "declined");
 
   const presenceById = new Map(dataToPresenceMap(presenceData.guests).map((entry) => [entry.id, entry]));
 
   return {
     summary: {
-      totalRsvps: rsvpRows.length,
+      totalRsvps: currentRsvpRows.length,
       confirmedRsvps: rsvpConfirmed.length,
       declinedRsvps: rsvpDeclined.length,
       confirmedGuests,
@@ -253,20 +313,7 @@ const getAdminGuestsDataCached = unstable_cache(
       declinedGuests,
       declinedChildren,
     },
-    rsvps: rsvpRows.map((row) => ({
-      id: row.id,
-      guestName: row.guest_name,
-      whatsapp: row.whatsapp,
-      email: row.email,
-      attendance: row.attendance,
-      guestCount: row.guest_count,
-      childCount: row.child_count,
-      countableGuestCount: Math.max(row.guest_count - row.child_count, 0),
-      companionNames: normalizeCompanionNames(row.companion_names),
-      guestResponses: normalizeGuestResponses(row.guest_responses),
-      note: row.note,
-      createdAt: toIsoString(row.created_at),
-    })),
+    rsvps: currentRsvpRows.map((row) => mapRsvpRow(row, activeGuestIds)),
     guestPresence: presenceData,
     guestList: guestListEntries.map((guest) => {
       const presence = presenceById.get(guest.id);

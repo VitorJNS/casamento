@@ -9,8 +9,14 @@ type InviteGuest = {
   guestName: string;
   familyLabel: string | null;
   isChild: boolean;
-  whatsapp: string;
   latestAttendance?: AttendanceStatus | null;
+};
+
+type GuestMatch = {
+  id: string;
+  guestName: string;
+  familyLabel: string | null;
+  isChild: boolean;
 };
 
 type GuestSelection = {
@@ -20,14 +26,13 @@ type GuestSelection = {
 };
 
 type LookupState = {
-  whatsapp: string;
+  lookupGuestId: string;
   familyLabel: string | null;
   guests: InviteGuest[];
 };
 
 const initialContactState = {
   guestName: "",
-  whatsapp: "",
   email: "",
   note: "",
 };
@@ -39,6 +44,7 @@ export function RsvpForm({
 }) {
   const [contactState, setContactState] = useState(initialContactState);
   const [lookupState, setLookupState] = useState<LookupState | null>(null);
+  const [guestMatches, setGuestMatches] = useState<GuestMatch[]>([]);
   const [guestSelections, setGuestSelections] = useState<GuestSelection[]>([]);
   const [isLookingUp, setIsLookingUp] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -50,14 +56,48 @@ export function RsvpForm({
     [guestSelections],
   );
 
+  function applyLookupData(data: {
+    lookupGuestId?: string;
+    familyLabel?: string | null;
+    guests?: InviteGuest[];
+    latestResponses?: Record<string, AttendanceStatus>;
+  }) {
+    const latestResponses =
+      data.latestResponses && typeof data.latestResponses === "object"
+        ? data.latestResponses
+        : {};
+    const guests = Array.isArray(data.guests)
+      ? data.guests.map((guest) => ({
+          ...guest,
+          latestAttendance: latestResponses[guest.id] ?? null,
+        }))
+      : [];
+
+    setLookupState({
+      lookupGuestId: data.lookupGuestId ?? guests[0]?.id ?? "",
+      familyLabel: data.familyLabel ?? null,
+      guests,
+    });
+    setGuestSelections(
+      guests.map((guest) => ({
+        guestId: guest.id,
+        guestName: guest.guestName,
+        status: guest.latestAttendance === "declined" ? "declined" : "confirmed",
+      })),
+    );
+  }
+
   async function handleLookup() {
     setIsLookingUp(true);
     setErrorMessage(null);
     setSuccessMessage(null);
+    setLookupState(null);
+    setGuestMatches([]);
+    setGuestSelections([]);
 
     try {
       const response = await fetch(
-        `/api/rsvp?whatsapp=${encodeURIComponent(contactState.whatsapp)}`,
+        `/api/rsvp?name=${encodeURIComponent(contactState.guestName)}`,
         {
           method: "GET",
           cache: "no-store",
@@ -68,40 +108,55 @@ export function RsvpForm({
 
       if (!response.ok) {
         throw new Error(
-          data?.error?.message ?? "Nao foi possivel localizar convidados com esse WhatsApp.",
+          data?.error?.message ?? "Nao foi possivel localizar convidados com esse nome.",
         );
       }
 
-      const latestResponses =
-        data.latestResponses && typeof data.latestResponses === "object"
-          ? (data.latestResponses as Record<string, AttendanceStatus>)
-          : {};
-      const guests = Array.isArray(data.guests)
-        ? (data.guests as InviteGuest[]).map((guest) => ({
-            ...guest,
-            latestAttendance: latestResponses[guest.id] ?? null,
-          }))
-        : [];
+      if (Array.isArray(data.matches)) {
+        setLookupState(null);
+        setGuestSelections([]);
+        setGuestMatches(data.matches as GuestMatch[]);
+        return;
+      }
 
-      setLookupState({
-        whatsapp: data.whatsapp,
-        familyLabel: data.familyLabel ?? null,
-        guests,
-      });
-      setGuestSelections(
-        guests.map((guest) => ({
-          guestId: guest.id,
-          guestName: guest.guestName,
-          status: guest.latestAttendance === "declined" ? "declined" : "confirmed",
-        })),
-      );
+      applyLookupData(data);
     } catch (error) {
       setLookupState(null);
+      setGuestMatches([]);
       setGuestSelections([]);
       setErrorMessage(
         error instanceof Error
           ? error.message
-          : "Nao foi possivel localizar convidados com esse WhatsApp.",
+          : "Nao foi possivel localizar convidados com esse nome.",
+      );
+    } finally {
+      setIsLookingUp(false);
+    }
+  }
+
+  async function handleSelectMatch(guestId: string) {
+    setIsLookingUp(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    try {
+      const response = await fetch(`/api/rsvp?guestId=${encodeURIComponent(guestId)}`, {
+        method: "GET",
+        cache: "no-store",
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.error?.message ?? "Nao foi possivel carregar esse convite.");
+      }
+
+      setGuestMatches([]);
+      applyLookupData(data);
+    } catch (error) {
+      setLookupState(null);
+      setGuestSelections([]);
+      setErrorMessage(
+        error instanceof Error ? error.message : "Nao foi possivel carregar esse convite.",
       );
     } finally {
       setIsLookingUp(false);
@@ -152,8 +207,8 @@ export function RsvpForm({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          lookupGuestId: lookupState?.lookupGuestId,
           guestName: contactState.guestName,
-          whatsapp: contactState.whatsapp,
           email: contactState.email,
           note: contactState.note || undefined,
           guests: answeredGuests,
@@ -168,9 +223,10 @@ export function RsvpForm({
         );
       }
 
-      setSuccessMessage("Resposta registrada com sucesso. Obrigado por confirmar sua presenca.");
+      setSuccessMessage("Resposta registrada com sucesso. Obrigado por confirmar sua presença.");
       setContactState(initialContactState);
       setLookupState(null);
+      setGuestMatches([]);
       setGuestSelections([]);
     } catch (error) {
       setErrorMessage(
@@ -195,42 +251,21 @@ export function RsvpForm({
           </span>
           <input
             value={contactState.guestName}
-            onChange={(event) =>
+            onChange={(event) => {
               setContactState((current) => ({
                 ...current,
                 guestName: event.target.value,
-              }))
-            }
+              }));
+              setLookupState(null);
+              setGuestMatches([]);
+              setGuestSelections([]);
+            }}
             className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28]"
-            placeholder="Quem está respondendo"
+            placeholder="Digite pelo menos 3 letras do seu nome"
           />
         </label>
 
-        <label className="block">
-          <span className="mb-1.5 block text-sm font-medium text-zinc-700">
-            WhatsApp
-          </span>
-          <div className="relative">
-            {!contactState.whatsapp ? (
-              <span className="pointer-events-none absolute inset-x-3 top-1/2 -translate-y-1/2 whitespace-nowrap text-[clamp(0.58rem,2.05vw,0.78rem)] leading-none text-zinc-400 sm:inset-x-4">
-                Digite seu WhatsApp para localizar sua família ou grupo
-              </span>
-            ) : null}
-            <input
-              value={contactState.whatsapp}
-              onChange={(event) =>
-                setContactState((current) => ({
-                  ...current,
-                  whatsapp: event.target.value,
-                }))
-              }
-              className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28]"
-              placeholder=""
-            />
-          </div>
-        </label>
-
-        <label className="block">
+        <label className="block sm:col-span-2">
           <span className="mb-1.5 block text-sm font-medium text-zinc-700">
             Email para receber a confirmação
           </span>
@@ -253,12 +288,49 @@ export function RsvpForm({
           <button
             type="button"
             onClick={handleLookup}
-            disabled={isLookingUp || !contactState.whatsapp.trim()}
+            disabled={isLookingUp || contactState.guestName.trim().length < 3}
             className="rounded-full border border-zinc-300 px-5 py-3 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isLookingUp ? "Buscando convidados..." : "Buscar meus nomes"}
           </button>
         </div>
+
+        {guestMatches.length > 0 ? (
+          <div className="sm:col-span-2">
+            <div className="rounded-[24px] border border-zinc-200 bg-[rgb(var(--paper))] p-4">
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500">
+                Escolha seu nome
+              </p>
+              <p className="mt-1 text-sm leading-6 text-zinc-600">
+                Encontramos mais de um convidado com esse nome. Selecione a opcao correta
+                para abrir o grupo do convite.
+              </p>
+
+              <div className="mt-4 grid gap-3">
+                {guestMatches.map((guest) => (
+                  <button
+                    key={guest.id}
+                    type="button"
+                    onClick={() => handleSelectMatch(guest.id)}
+                    disabled={isLookingUp}
+                    className="rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-left transition hover:border-[rgb(var(--olive))] hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <span className="block text-base font-semibold text-zinc-900">
+                      {guest.guestName}
+                    </span>
+                    <span className="mt-1 block text-sm text-zinc-500">
+                      {guest.familyLabel
+                        ? guest.familyLabel
+                        : guest.isChild
+                          ? "Crianca"
+                          : "Convidado individual"}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         {lookupState ? (
           <div className="sm:col-span-2">

@@ -13,7 +13,7 @@ Esperamos que este dia seja leve, emocionante e inesquecível — não apenas pa
 Com amor,
 Yas & Vitor`,
 
-  storyTitle: "Nossa Historia",
+  storyTitle: "Nossa História",
   storyText: `Alguns encontros mudam completamente o rumo da nossa vida — e o nosso começou lá em 2020.
 
 Desde então, crescemos juntos, amadurecemos, realizamos sonhos, enfrentamos mudanças e construímos, dia após dia, a nossa família e o nosso lar.

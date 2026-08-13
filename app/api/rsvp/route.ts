@@ -11,7 +11,7 @@ import {
   getGuestListColumnAvailability,
   normalizeWhatsapp,
   RSVP_TAG,
-type GuestListEntryRow,
+  type GuestListEntryRow,
 } from "@/lib/rsvp-store";
 
 export const runtime = "nodejs";
@@ -23,8 +23,8 @@ const guestResponseSchema = z.object({
 });
 
 const rsvpSchema = z.object({
+  lookupGuestId: z.string().trim().min(1),
   guestName: z.string().trim().min(2).max(140),
-  whatsapp: z.string().trim().min(8).max(40),
   email: z.string().trim().email().max(160),
   note: z.string().trim().max(600).optional(),
   guests: z.array(guestResponseSchema).min(1).max(20),
@@ -36,8 +36,34 @@ function mapGuestRow(row: GuestListEntryRow) {
     guestName: row.guest_name,
     familyLabel: row.family_label,
     isChild: row.is_child,
-    whatsapp: row.whatsapp,
   };
+}
+
+function mapGuestMatch(row: GuestListEntryRow) {
+  return {
+    id: row.id,
+    guestName: row.guest_name,
+    familyLabel: row.family_label,
+    isChild: row.is_child,
+  };
+}
+
+function getInviteGroupKey(row: GuestListEntryRow) {
+  const familyLabel = row.family_label?.trim();
+  return familyLabel ? `family:${familyLabel}` : `guest:${row.id}`;
+}
+
+function uniqueInviteMatches(rows: GuestListEntryRow[]) {
+  const matches = new Map<string, GuestListEntryRow>();
+
+  for (const row of rows) {
+    const key = getInviteGroupKey(row);
+    if (!matches.has(key)) {
+      matches.set(key, row);
+    }
+  }
+
+  return Array.from(matches.values());
 }
 
 type LatestGuestResponseRow = {
@@ -45,95 +71,105 @@ type LatestGuestResponseRow = {
   attendance: "confirmed" | "declined";
 };
 
-async function loadGuestsByWhatsapp(whatsapp: string) {
+function guestSelectSql(columns: Awaited<ReturnType<typeof getGuestListColumnAvailability>>) {
+  return `
+    id,
+    guest_name,
+    whatsapp,
+    whatsapp_normalized,
+    ${columns.secondaryWhatsapp ? "secondary_whatsapp" : "NULL AS secondary_whatsapp"},
+    ${
+      columns.secondaryWhatsappNormalized
+        ? "secondary_whatsapp_normalized"
+        : "NULL AS secondary_whatsapp_normalized"
+    },
+    ${columns.email ? "email" : "NULL AS email"},
+    ${columns.adultNames ? "adult_names" : "'[]'::jsonb AS adult_names"},
+    ${columns.childCount ? "child_count" : "0 AS child_count"},
+    ${columns.companionNames ? "companion_names" : "'[]'::jsonb AS companion_names"},
+    ${columns.familyLabel ? "family_label" : "NULL AS family_label"},
+    ${columns.isChild ? "is_child" : "FALSE AS is_child"},
+    note,
+    is_active,
+    created_at,
+    updated_at
+  `;
+}
+
+async function searchGuestsByName(name: string) {
   await ensureGuestListTable();
   const columns = await getGuestListColumnAvailability();
+  const normalizedName = name.trim();
+
   return withPrismaRetry(async () => {
     const prisma = getPrisma();
 
     return prisma.$queryRawUnsafe<GuestListEntryRow[]>(
     `
-      SELECT
-        id,
-        guest_name,
-        whatsapp,
-        whatsapp_normalized,
-        ${columns.secondaryWhatsapp ? "secondary_whatsapp" : "NULL AS secondary_whatsapp"},
-        ${
-          columns.secondaryWhatsappNormalized
-            ? "secondary_whatsapp_normalized"
-            : "NULL AS secondary_whatsapp_normalized"
-        },
-        ${columns.email ? "email" : "NULL AS email"},
-        ${columns.adultNames ? "adult_names" : "'[]'::jsonb AS adult_names"},
-        ${columns.childCount ? "child_count" : "0 AS child_count"},
-        ${columns.companionNames ? "companion_names" : "'[]'::jsonb AS companion_names"},
-        ${columns.familyLabel ? "family_label" : "NULL AS family_label"},
-        ${columns.isChild ? "is_child" : "FALSE AS is_child"},
-        note,
-        is_active,
-        created_at,
-        updated_at
+      SELECT ${guestSelectSql(columns)}
       FROM guest_list_entries
       WHERE is_active = TRUE
-        AND whatsapp_normalized = $1
+        AND guest_name ILIKE $1
       ORDER BY guest_name ASC
+      LIMIT 10
     `,
-    normalizeWhatsapp(whatsapp),
+    `%${normalizedName}%`,
     );
   });
 }
 
-async function loadInviteGroupByWhatsapp(whatsapp: string) {
-  const directGuests = await loadGuestsByWhatsapp(whatsapp);
+async function loadGuestById(guestId: string) {
+  await ensureGuestListTable();
+  const columns = await getGuestListColumnAvailability();
 
-  if (directGuests.length === 0) {
+  return withPrismaRetry(async () => {
+    const prisma = getPrisma();
+
+    const rows = await prisma.$queryRawUnsafe<GuestListEntryRow[]>(
+    `
+      SELECT ${guestSelectSql(columns)}
+      FROM guest_list_entries
+      WHERE is_active = TRUE
+        AND id = $1
+      LIMIT 1
+    `,
+    guestId,
+    );
+
+    return rows[0] ?? null;
+  });
+}
+
+async function loadInviteGroupByGuestId(guestId: string) {
+  const selectedGuest = await loadGuestById(guestId);
+
+  if (!selectedGuest) {
     return [];
   }
 
-  const familyLabel = directGuests.find((guest) => guest.family_label)?.family_label?.trim();
+  const familyLabel = selectedGuest.family_label?.trim();
 
   if (!familyLabel) {
-    return directGuests;
+    return [selectedGuest];
   }
 
   const columns = await getGuestListColumnAvailability();
+  if (!columns.familyLabel) {
+    return [selectedGuest];
+  }
+
   return withPrismaRetry(async () => {
     const prisma = getPrisma();
 
     return prisma.$queryRawUnsafe<GuestListEntryRow[]>(
     `
-      SELECT
-        id,
-        guest_name,
-        whatsapp,
-        whatsapp_normalized,
-        ${columns.secondaryWhatsapp ? "secondary_whatsapp" : "NULL AS secondary_whatsapp"},
-        ${
-          columns.secondaryWhatsappNormalized
-            ? "secondary_whatsapp_normalized"
-            : "NULL AS secondary_whatsapp_normalized"
-        },
-        ${columns.email ? "email" : "NULL AS email"},
-        ${columns.adultNames ? "adult_names" : "'[]'::jsonb AS adult_names"},
-        ${columns.childCount ? "child_count" : "0 AS child_count"},
-        ${columns.companionNames ? "companion_names" : "'[]'::jsonb AS companion_names"},
-        ${columns.familyLabel ? "family_label" : "NULL AS family_label"},
-        ${columns.isChild ? "is_child" : "FALSE AS is_child"},
-        note,
-        is_active,
-        created_at,
-        updated_at
+      SELECT ${guestSelectSql(columns)}
       FROM guest_list_entries
       WHERE is_active = TRUE
-        AND (
-          family_label = $1
-          OR whatsapp_normalized = $2
-        )
+        AND family_label = $1
       ORDER BY guest_name ASC
     `,
     familyLabel,
-    normalizeWhatsapp(whatsapp),
     );
   });
 }
@@ -178,36 +214,72 @@ async function loadLatestGuestResponses(guestIds: string[]) {
 
 export async function GET(request: NextRequest) {
   try {
-    const whatsapp = request.nextUrl.searchParams.get("whatsapp")?.trim();
+    const guestId = request.nextUrl.searchParams.get("guestId")?.trim();
+    const name = request.nextUrl.searchParams.get("name")?.trim();
 
-    if (!whatsapp) {
+    if (guestId) {
+      const guests = await loadInviteGroupByGuestId(guestId);
+
+      if (guests.length === 0) {
+        return NextResponse.json(
+          {
+            error: {
+              code: "INVITE_NOT_FOUND",
+              message: "Nao encontramos esse convidado na lista.",
+            },
+          },
+          { status: 404 },
+        );
+      }
+
+      return NextResponse.json({
+        lookupGuestId: guestId,
+        familyLabel: guests.find((guest) => guest.family_label)?.family_label ?? null,
+        guests: guests.map(mapGuestRow),
+        latestResponses: Object.fromEntries(
+          (
+            await loadLatestGuestResponses(guests.map((guest) => guest.id))
+          ).entries(),
+        ),
+      });
+    }
+
+    if (!name || name.length < 3) {
       return NextResponse.json(
         {
           error: {
-            code: "MISSING_WHATSAPP",
-            message: "Informe o WhatsApp para localizar seu convite.",
+            code: "MISSING_NAME",
+            message: "Digite pelo menos 3 letras do nome para localizar seu convite.",
           },
         },
         { status: 400 },
       );
     }
 
-    const guests = await loadInviteGroupByWhatsapp(whatsapp);
+    const matches = uniqueInviteMatches(await searchGuestsByName(name));
 
-    if (guests.length === 0) {
+    if (matches.length === 0) {
       return NextResponse.json(
         {
           error: {
             code: "INVITE_NOT_FOUND",
-            message: "Nao encontramos convidados cadastrados com esse WhatsApp.",
+            message: "Nao encontramos convidados cadastrados com esse nome.",
           },
         },
         { status: 404 },
       );
     }
 
+    if (matches.length > 1) {
+      return NextResponse.json({
+        matches: matches.map(mapGuestMatch),
+      });
+    }
+
+    const guests = await loadInviteGroupByGuestId(matches[0].id);
+
     return NextResponse.json({
-      whatsapp: guests[0].whatsapp,
+      lookupGuestId: matches[0].id,
       familyLabel: guests.find((guest) => guest.family_label)?.family_label ?? null,
       guests: guests.map(mapGuestRow),
       latestResponses: Object.fromEntries(
@@ -237,7 +309,7 @@ export async function POST(request: Request) {
     await ensureRsvpTable();
     await ensureGuestListTable();
 
-    const invitedGuests = await loadInviteGroupByWhatsapp(payload.whatsapp);
+    const invitedGuests = await loadInviteGroupByGuestId(payload.lookupGuestId);
     const invitedGuestMap = new Map(invitedGuests.map((guest) => [guest.id, guest]));
     const latestResponses = await loadLatestGuestResponses(
       invitedGuests.map((guest) => guest.id),
@@ -247,7 +319,7 @@ export async function POST(request: Request) {
       const invitedGuest = invitedGuestMap.get(guest.guestId);
 
       if (!invitedGuest) {
-        throw new Error("Um dos convidados selecionados nao pertence a este WhatsApp.");
+        throw new Error("Um dos convidados selecionados nao pertence a este convite.");
       }
 
       return {
@@ -298,8 +370,8 @@ export async function POST(request: Request) {
       `,
       id,
       payload.guestName,
-      payload.whatsapp,
-      normalizeWhatsapp(payload.whatsapp),
+      invitedGuests[0]?.whatsapp ?? "",
+      normalizeWhatsapp(invitedGuests[0]?.whatsapp ?? ""),
       payload.email ?? null,
       confirmedGuests.length > 0 ? "confirmed" : "declined",
       confirmedGuests.length,

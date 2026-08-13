@@ -20,7 +20,7 @@ const weddingDate = "20 de Junho de 2027";
 const fullNavItems = [
   // { href: "#home", label: "Início" },
   { href: "#bem-vindos", label: "Bem-vindos" },
-  { href: "#o-casal", label: "Nossa Historia" },
+  { href: "#o-casal", label: "Nossa História" },
   { href: "#dress-code", label: "Dress Code" },
   { href: "#cerimonia-jantar", label: "Cerimônia & Jantar" },
   // { href: "#rsvp", label: "Confirmar presença" },
@@ -86,7 +86,7 @@ const cleanContent = {
 };
 
 const navItems = [
-  { href: "#o-casal", label: "Nossa Historia" },
+  { href: "#o-casal", label: "Nossa História" },
   { href: "#cerimonia", label: "Cerimônia" },
   { href: "#rsvp", label: "Confirmar presença" },
   { href: "#presentes", label: "Presentes" },

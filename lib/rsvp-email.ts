@@ -64,7 +64,7 @@ export function renderRsvpConfirmationEmail(input: RsvpEmailInput) {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light only" />
     <meta name="supported-color-schemes" content="light only" />
-    <title>Sua confirmacao de presenca foi registrada</title>
+    <title>Sua confirmação de presença foi registrada</title>
     <style>
       :root { color-scheme: light only; supported-color-schemes: light only; }
       body, table, td, div, p, h1, a { color-scheme: light only; }
@@ -92,13 +92,13 @@ export function renderRsvpConfirmationEmail(input: RsvpEmailInput) {
             <tr>
               <td class="email-hero" align="center" bgcolor="#fbfaf8" style="padding:40px 32px;background-color:#fbfaf8;background-image:linear-gradient(135deg,#fbfaf8,#ffffff);">
                 <div style="font-size:12px;font-weight:700;letter-spacing:0.26em;text-transform:uppercase;color:#71717a;">Yasmim &amp; Vitor</div>
-                <h1 class="email-title" style="margin:14px 0 0;font-family:Georgia,'Times New Roman',serif;font-size:42px;line-height:1.05;font-weight:700;color:#18181b;">Confirmacao registrada</h1>
-                <p style="margin:16px auto 0;max-width:480px;font-size:15px;line-height:1.7;color:#52525b;">Obrigado por responder. Isso nos ajuda muito na organizacao do nosso grande dia.</p>
+                <h1 class="email-title" style="margin:14px 0 0;font-family:Georgia,'Times New Roman',serif;font-size:42px;line-height:1.05;font-weight:700;color:#18181b;">Confirmação registrada</h1>
+                <p style="margin:16px auto 0;max-width:480px;font-size:15px;line-height:1.7;color:#52525b;">Obrigado por responder. Isso nos ajuda muito na organização do nosso grande dia.</p>
               </td>
             </tr>
             <tr>
               <td class="email-body" bgcolor="#ffffff" style="padding:32px;background-color:#ffffff;">
-                <p style="margin:0;font-size:16px;line-height:1.7;color:#3f3f46;">Ola, <strong style="color:#18181b;">${escapeHtml(input.respondentName)}</strong>! Recebemos sua confirmacao de presenca.</p>
+                <p style="margin:0;font-size:16px;line-height:1.7;color:#3f3f46;">Ola, <strong style="color:#18181b;">${escapeHtml(input.respondentName)}</strong>! Recebemos sua confirmação de presença.</p>
 
                 <div style="margin-top:24px;border:1px solid #e4e4e7;border-radius:24px;background-color:#fafaf9;padding:22px;">
                   <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
@@ -124,7 +124,7 @@ export function renderRsvpConfirmationEmail(input: RsvpEmailInput) {
                 </div>
 
                 <div style="margin-top:28px;border:1px solid #e4e4e7;border-radius:22px;background:#fafafa;padding:18px;">
-                  <p style="margin:0;font-size:14px;line-height:1.7;color:#52525b;">Se precisar alterar alguma resposta depois, fale diretamente com os noivos ou com a cerimonialista.</p>
+                  <p style="margin:0;font-size:14px;line-height:1.7;color:#52525b;">Se precisar alterar alguma resposta depois, fale diretamente com a cerimonialista.</p>
                 </div>
               </td>
             </tr>
@@ -138,7 +138,7 @@ export function renderRsvpConfirmationEmail(input: RsvpEmailInput) {
   const text = [
     "Yasmim & Vitor",
     "",
-    `Ola, ${input.respondentName}! Recebemos sua confirmacao de presenca.`,
+    `Ola, ${input.respondentName}! Recebemos sua confirmação de presença.`,
     input.familyLabel ? `Grupo: ${input.familyLabel}` : "",
     "",
     "Nomes respondidos:",
@@ -170,7 +170,7 @@ export async function sendRsvpConfirmationEmail(input: RsvpEmailInput) {
     body: JSON.stringify({
       from: env.EMAIL_FROM,
       to: input.email,
-      subject: "Sua confirmacao de presenca foi registrada",
+      subject: "Sua confirmação de presença foi registrada",
       html: rendered.html,
       text: rendered.text,
     }),

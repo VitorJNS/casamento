@@ -55,6 +55,14 @@ function getFamilyLabel(guest: PresenceGuest) {
   return `${guest.householdMembers.length} pessoas no mesmo grupo`;
 }
 
+function normalizeSearchText(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
 export function GuestListManager({
   initialGuests,
 }: {
@@ -71,22 +79,47 @@ export function GuestListManager({
   const [isResetting, setIsResetting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const pendingCount = useMemo(
     () => guests.filter((guest) => guest.status === "pending").length,
     [guests],
   );
-  const totalPages = Math.max(1, Math.ceil(guests.length / GUESTS_PER_PAGE));
+  const normalizedSearchTerm = normalizeSearchText(searchTerm);
+  const isSearchActive = normalizedSearchTerm.length >= 3;
+  const filteredGuests = useMemo(() => {
+    if (!isSearchActive) {
+      return guests;
+    }
+
+    return guests.filter((guest) => {
+      const searchableText = normalizeSearchText(
+        [
+          guest.guestName,
+          guest.familyLabel ?? "",
+          guest.whatsapp,
+          guest.householdMembers.join(" "),
+        ].join(" "),
+      );
+
+      return searchableText.includes(normalizedSearchTerm);
+    });
+  }, [guests, isSearchActive, normalizedSearchTerm]);
+  const totalPages = Math.max(1, Math.ceil(filteredGuests.length / GUESTS_PER_PAGE));
   const visibleGuests = useMemo(() => {
     const start = (page - 1) * GUESTS_PER_PAGE;
-    return guests.slice(start, start + GUESTS_PER_PAGE);
-  }, [guests, page]);
-  const startItem = guests.length === 0 ? 0 : (page - 1) * GUESTS_PER_PAGE + 1;
-  const endItem = Math.min(page * GUESTS_PER_PAGE, guests.length);
+    return filteredGuests.slice(start, start + GUESTS_PER_PAGE);
+  }, [filteredGuests, page]);
+  const startItem = filteredGuests.length === 0 ? 0 : (page - 1) * GUESTS_PER_PAGE + 1;
+  const endItem = Math.min(page * GUESTS_PER_PAGE, filteredGuests.length);
 
   useEffect(() => {
     setPage((current) => Math.min(current, totalPages));
   }, [totalPages]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [normalizedSearchTerm]);
 
   useEffect(() => {
     setGuests(initialGuests);
@@ -293,10 +326,50 @@ export function GuestListManager({
         </p>
       ) : null}
 
+      <div className="mt-5 rounded-2xl border border-zinc-200 bg-[rgb(var(--paper))] p-4">
+        <label
+          htmlFor="guest-search"
+          className="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500"
+        >
+          Pesquisar convidado
+        </label>
+        <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="relative flex-1">
+            <SearchIcon className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+            <input
+              id="guest-search"
+              type="search"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Digite pelo menos 3 letras do nome"
+              className="h-12 w-full rounded-full border border-zinc-300 bg-white pl-11 pr-4 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28]"
+            />
+          </div>
+          {searchTerm ? (
+            <button
+              type="button"
+              onClick={() => setSearchTerm("")}
+              className="rounded-full border border-zinc-300 bg-white px-4 py-3 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50"
+            >
+              Limpar
+            </button>
+          ) : null}
+        </div>
+        <p className="mt-2 text-sm text-zinc-500">
+          {isSearchActive
+            ? `${filteredGuests.length} resultado${filteredGuests.length === 1 ? "" : "s"} encontrado${filteredGuests.length === 1 ? "" : "s"}.`
+            : "A busca começa a filtrar automaticamente a partir de 3 letras."}
+        </p>
+      </div>
+
       <div className="mt-5 grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
         {guests.length === 0 ? (
           <p className="rounded-2xl border border-dashed border-zinc-300 bg-[rgb(var(--paper))] px-4 py-5 text-sm text-zinc-600 lg:col-span-2 2xl:col-span-3">
             Nenhum convidado cadastrado ainda.
+          </p>
+        ) : filteredGuests.length === 0 ? (
+          <p className="rounded-2xl border border-dashed border-zinc-300 bg-[rgb(var(--paper))] px-4 py-5 text-sm text-zinc-600 lg:col-span-2 2xl:col-span-3">
+            Nenhum convidado encontrado para essa busca.
           </p>
         ) : (
           visibleGuests.map((guest) => {
@@ -484,7 +557,7 @@ export function GuestListManager({
       <ListPagination
         page={page}
         totalPages={totalPages}
-        totalItems={guests.length}
+        totalItems={filteredGuests.length}
         startItem={startItem}
         endItem={endItem}
         itemLabel="convidados"
@@ -644,6 +717,15 @@ function PhoneIcon({ className }: { className?: string }) {
   return (
     <SvgIcon className={className}>
       <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.35 1.9.66 2.8a2 2 0 0 1-.45 2.11L8.05 9.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.31 1.84.53 2.8.66A2 2 0 0 1 22 16.92Z" />
+    </SvgIcon>
+  );
+}
+
+function SearchIcon({ className }: { className?: string }) {
+  return (
+    <SvgIcon className={className}>
+      <path d="m21 21-4.34-4.34" />
+      <path d="M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16Z" />
     </SvgIcon>
   );
 }

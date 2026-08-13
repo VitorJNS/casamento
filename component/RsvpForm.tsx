@@ -32,7 +32,11 @@ const initialContactState = {
   note: "",
 };
 
-export function RsvpForm() {
+export function RsvpForm({
+  giftListHref = "#lista-de-presentes",
+}: {
+  giftListHref?: string;
+}) {
   const [contactState, setContactState] = useState(initialContactState);
   const [lookupState, setLookupState] = useState<LookupState | null>(null);
   const [guestSelections, setGuestSelections] = useState<GuestSelection[]>([]);
@@ -413,7 +417,7 @@ export function RsvpForm() {
 
             <div className="mt-3">
               <a
-                href="#lista-de-presentes"
+                href={giftListHref}
                 className="btn-secondary rounded-full px-4 py-2 text-sm font-semibold"
               >
                 Ver lista de presentes

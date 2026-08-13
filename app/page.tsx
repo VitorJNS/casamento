@@ -583,7 +583,7 @@ export default async function PreviewDesignPage() {
             title="Vamos celebrar?"
             text={richContent.rsvp}
           />
-          <RsvpForm />
+          <RsvpForm giftListHref="#presentes" />
         </div>
       </section>
 

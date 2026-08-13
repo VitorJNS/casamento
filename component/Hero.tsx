@@ -13,7 +13,7 @@ export function Hero({
   dateText,
   coupleName,
   subtitle,
-  heroPhotoSrc = "/prewedding/03.jpg",
+  heroPhotoSrc = "/noivos/noivos.png",
   heroPhotoAlt = "Foto do casal",
 }: HeroProps) {
   return (
@@ -25,7 +25,7 @@ export function Hero({
 
       <div className="pointer-events-none absolute inset-2 rounded-3xl border border-white/40" />
 
-      <div className="relative mx-auto mb-[clamp(1rem,2.2svh,2rem)] aspect-[3/4] w-[min(68vw,clamp(11rem,31svh,17.25rem))] lg:w-[clamp(12rem,32svh,18rem)]">
+      <div className="relative mx-auto mb-[clamp(1rem,2.2svh,2rem)] aspect-[4/3] w-[min(82vw,clamp(16rem,44svh,27rem))] lg:w-[clamp(20rem,48svh,31rem)]">
         <Image
           src="/ornaments/topo-decoracao.png"
           alt=""
@@ -34,16 +34,16 @@ export function Hero({
           className="pointer-events-none z-0 object-contain opacity-95"
         />
 
-        <div className="absolute left-[10.5%] right-[10.5%] top-[6%] bottom-[10.5%] z-10 overflow-hidden rounded-[47%] shadow-[0_20px_45px_rgba(0,0,0,0.12)]">
+        <div className="absolute inset-[7%] z-10 overflow-hidden rounded-[2rem] shadow-[0_20px_45px_rgba(0,0,0,0.12)]">
           <Image
             src={heroPhotoSrc}
             alt={heroPhotoAlt}
             fill
             priority
-            className="object-cover"
+            className="object-contain"
             style={{
               objectPosition: "50% 50%",
-              transform: "scale(1.52) translateY(-8%)",
+              transform: "scale(1)",
               transformOrigin: "center",
             }}
           />

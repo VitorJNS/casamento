@@ -407,24 +407,20 @@ export default async function PreviewDesignPage() {
           </div> */}
         </div>
 
-        <div className="relative order-1 mx-auto w-full max-w-[18rem] sm:max-w-sm lg:order-2 lg:max-w-md">
-          <div className="absolute inset-0 -rotate-6 scale-105 rounded-full bg-[#4f6146]/10" />
-          <div className="relative aspect-[4/5] overflow-hidden rounded-full shadow-2xl shadow-[#4f6146]/20 outline outline-1 -outline-offset-1 outline-black/5">
+        <div className="relative order-1 mx-auto w-full max-w-[21rem] sm:max-w-md lg:order-2 lg:max-w-xl">
+          <div className="absolute inset-0 -rotate-3 scale-105 rounded-[2.5rem] bg-[#4f6146]/10" />
+          <div className="relative aspect-[4/3] overflow-hidden rounded-[2.5rem] shadow-2xl shadow-[#4f6146]/20 outline outline-1 -outline-offset-1 outline-black/5">
             <Image
-              src="/prewedding/03.jpg"
+              src="/noivos/noivos.png"
               alt="Yasmim e Vitor"
               fill
               priority
-              sizes="(max-width: 1024px) 80vw, 448px"
-              className="object-cover"
-              style={{
-                objectPosition: "50% 50%",
-                transform: "scale(1.24) translateY(-5%)",
-                transformOrigin: "center",
-              }}
+              sizes="(max-width: 640px) 336px, (max-width: 1024px) 448px, 576px"
+              className="object-contain"
+              style={{ objectPosition: "50% 50%" }}
             />
           </div>
-          <div className="absolute -bottom-3 -right-2 flex h-24 w-24 items-center justify-center rounded-full border border-[#b89543]/40 bg-[#fffdf3]/75 text-center backdrop-blur sm:-bottom-6 sm:-right-6 sm:h-40 sm:w-40">
+          <div className="absolute -bottom-8 right-4 flex h-24 w-24 items-center justify-center rounded-full border border-[#b89543]/40 bg-[#fffdf3]/85 text-center backdrop-blur sm:-bottom-10 sm:right-8 sm:h-32 sm:w-32">
             <p className="display-font px-4 text-base italic text-[#b89543] sm:text-lg">
               Save the Date
             </p>
@@ -503,7 +499,7 @@ export default async function PreviewDesignPage() {
         <div className="mx-auto max-w-6xl">
           <SectionHeader
             title="Cerimônia & Jantar"
-            text="Abaixo, disponibilizamos o endereço completo e o link para acesso pelo Google Maps, para facilitar sua chegada a cerimonia e ao jantat"
+            text="Abaixo, disponibilizamos o endereço completo e o link para acesso pelo Google Maps, para facilitar sua chegada a cerimonia e ao jantar"
           />
           <div className="grid gap-8">
             <InfoPanel

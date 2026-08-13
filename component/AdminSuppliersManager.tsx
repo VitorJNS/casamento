@@ -1,5 +1,6 @@
 "use client";
 
+import { upload } from "@vercel/blob/client";
 import type { InputHTMLAttributes, ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -58,6 +59,18 @@ const emptyDraft: SupplierDraft = {
 
 const SUPPLIERS_PER_PAGE = 10;
 const MAX_CONTRACT_FILE_SIZE = 10 * 1024 * 1024;
+
+function sanitizeContractFilename(filename: string) {
+  const normalized = filename
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9._-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .toLowerCase();
+
+  return normalized || "contrato.pdf";
+}
 
 function normalizeSupplier(supplier: AdminSupplier): AdminSupplier {
   return {
@@ -287,25 +300,16 @@ export function AdminSuppliersManager({
     setErrorMessage(null);
 
     try {
-      const response = await fetch(
-        `/api/admin/suppliers/contracts/upload?filename=${encodeURIComponent(file.name)}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": file.type || "application/pdf" },
-          body: file,
-        },
-      );
-      const data = await readJsonResponse(response);
-
-      if (!response.ok) {
-        throw new Error(
-          data?.error?.message ?? "Nao foi possivel anexar o contrato.",
-        );
-      }
+      const pathname = `supplier-contracts/${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}-${sanitizeContractFilename(file.name)}`;
+      const blob = await upload(pathname, file, {
+        access: "private",
+        handleUploadUrl: "/api/admin/suppliers/contracts/upload",
+        contentType: "application/pdf",
+      });
 
       setDraft((current) => ({
         ...current,
-        contractUrl: data.contractUrl,
+        contractUrl: blob.pathname,
         contractFilename: file.name,
       }));
     } catch (error) {

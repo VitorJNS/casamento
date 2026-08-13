@@ -1,4 +1,4 @@
-import { put } from "@vercel/blob";
+import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { NextResponse } from "next/server";
 
 import { isAdminAuthenticated } from "@/lib/admin-auth";
@@ -49,57 +49,29 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!request.body) {
-      return NextResponse.json(
-        {
-          error: {
-            code: "MISSING_FILE",
-            message: "Selecione um arquivo de contrato.",
-          },
-        },
-        { status: 400 },
-      );
-    }
+    const body = (await request.json()) as HandleUploadBody;
+    const jsonResponse = await handleUpload({
+      request,
+      body,
+      onBeforeGenerateToken: async (pathname) => {
+        const normalizedPathname = pathname.trim();
+        const filename = sanitizeFilename(normalizedPathname.split("/").pop() ?? "contrato.pdf");
 
-    const { searchParams } = new URL(request.url);
-    const filename = sanitizeFilename(searchParams.get("filename") ?? "contrato.pdf");
-    const contentType = request.headers.get("content-type") ?? "application/pdf";
-    const contentLength = Number(request.headers.get("content-length") ?? 0);
+        if (
+          !normalizedPathname.startsWith("supplier-contracts/") ||
+          !filename.endsWith(".pdf")
+        ) {
+          throw new Error("Envie um arquivo PDF de contrato.");
+        }
 
-    if (!filename.endsWith(".pdf") || !contentType.includes("application/pdf")) {
-      return NextResponse.json(
-        {
-          error: {
-            code: "INVALID_FILE_TYPE",
-            message: "Envie um arquivo PDF.",
-          },
-        },
-        { status: 400 },
-      );
-    }
-
-    if (contentLength > MAX_CONTRACT_FILE_SIZE) {
-      return NextResponse.json(
-        {
-          error: {
-            code: "FILE_TOO_LARGE",
-            message: "O contrato precisa ter ate 10 MB.",
-          },
-        },
-        { status: 400 },
-      );
-    }
-
-    const pathname = `supplier-contracts/${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}-${filename}`;
-    const blob = await put(pathname, request.body, {
-      access: "private",
-      contentType: "application/pdf",
+        return {
+          allowedContentTypes: ["application/pdf"],
+          maximumSizeInBytes: MAX_CONTRACT_FILE_SIZE,
+        };
+      },
     });
 
-    return NextResponse.json({
-      contractUrl: blob.pathname,
-      pathname: blob.pathname,
-    });
+    return NextResponse.json(jsonResponse);
   } catch (error) {
     console.error("Nao foi possivel anexar contrato no Blob.", error);
 

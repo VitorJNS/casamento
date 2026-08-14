@@ -1,5 +1,4 @@
 import { GiftRegistry } from "@/component/GiftRegistry";
-import { LinkCard } from "@/component/LinkCard";
 import { RsvpForm } from "@/component/RsvpForm";
 import { Countdown } from "@/component/Countdown";
 import { PreviewNavScrollController } from "@/component/PreviewNavScrollController";
@@ -354,7 +353,7 @@ export default async function PreviewDesignPage() {
 
       <section
         id="home"
-        className="relative z-10 mx-auto grid min-h-[calc(100svh-5rem)] max-w-6xl items-center gap-10 px-5 py-10 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:py-16"
+        className="relative z-10 mx-auto grid min-h-[calc(100svh-5rem)] max-w-6xl scroll-mt-24 items-center gap-10 px-5 py-10 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:py-16"
       >
         <div className="order-2 space-y-8 lg:order-1">
           <div>
@@ -519,7 +518,7 @@ export default async function PreviewDesignPage() {
 
       <section
         id="dress-code"
-        className="relative z-10 scroll-mt-[-40px] bg-white/45 px-5 py-20 sm:px-6"
+        className="relative z-10 scroll-mt-[20px] bg-white/45 px-5 py-20 sm:px-6"
       >
         <div className="mx-auto max-w-4xl">
           <SectionHeader
@@ -576,13 +575,32 @@ export default async function PreviewDesignPage() {
 
       <PreviewDivider className="relative z-10 py-6" />
 
-      <section id="rsvp" className="relative z-10 px-5 py-20 sm:px-6">
-        <div className="mx-auto max-w-3xl">
+      <section
+        id="rsvp"
+        className="relative z-10 scroll-mt-20 overflow-hidden bg-[#fff7fb] px-5 py-20 sm:px-6 lg:py-24"
+      >
+        <Image
+          src="/ornaments/lavanda-preto-branco.png"
+          alt=""
+          width={260}
+          height={440}
+          className="pointer-events-none absolute left-0 top-8 hidden w-56 -translate-x-16 -rotate-12 opacity-35 lg:block"
+        />
+        <Image
+          src="/ornaments/flor-bottom.png"
+          alt=""
+          width={260}
+          height={220}
+          className="pointer-events-none absolute bottom-0 right-0 hidden w-60 translate-x-10 opacity-45 lg:block"
+        />
+        <div className="relative mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[0.9fr_1.1fr]">
+          <div>
           <SectionHeader
             kicker="Confirme sua presença"
             title="Vamos celebrar?"
             text={richContent.rsvp}
           />
+          </div>
           <RsvpForm giftListHref="#presentes" />
         </div>
       </section>
@@ -612,7 +630,7 @@ export default async function PreviewDesignPage() {
 
       <PreviewDivider className="relative z-10 py-6" />
 
-      <section id="momentos" className="relative z-10 px-5 py-20 sm:px-6">
+      <section id="momentos" className="relative z-10 scroll-mt-4 px-5 py-20 sm:px-6">
         <div className="mx-auto max-w-2xl text-center">
           <SectionHeader
             title="Momentos"
@@ -621,13 +639,20 @@ export default async function PreviewDesignPage() {
           <p className="mb-6 leading-7 text-[#66745c]">
             {richContent.moments[1]}
           </p>
-          <LinkCard
-            title="Envie suas fotos do casamento"
-            description="Clique para abrir a pasta e fazer upload das suas fotos."
+          <a
             href={cleanContent.photosUploadLink}
-            buttonText="Enviar fotos"
-            actionsAlign="center"
-          />
+            target="_blank"
+            rel="noreferrer"
+            className="mx-auto mt-10 flex min-h-52 max-w-xl flex-col items-center justify-center rounded-[1.75rem] border border-dashed border-[#c9a65a] bg-[#fffdf3]/74 px-6 py-10 text-[#4f6146] shadow-[0_20px_60px_rgba(79,97,70,0.08)] transition hover:-translate-y-1 hover:bg-[#fffdf3]"
+          >
+            <span className="text-5xl leading-none">+</span>
+            <span className="mt-4 text-xs font-bold uppercase tracking-[0.28em]">
+              Enviar fotos
+            </span>
+            <span className="mt-3 text-sm text-[#6d705f]">
+              Clique para abrir a pasta e compartilhar seus registros.
+            </span>
+          </a>
         </div>
       </section>
 

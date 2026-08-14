@@ -242,11 +242,11 @@ export function RsvpForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-[28px] border border-zinc-200 bg-white/88 p-5 shadow-sm backdrop-blur sm:p-6"
+      className="rounded-[2rem] border border-[#c9a65a]/35 bg-[#fffdf3]/86 p-5 shadow-[0_24px_80px_rgba(79,97,70,0.10)] backdrop-blur sm:p-7"
     >
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block sm:col-span-2">
-          <span className="mb-1.5 block text-sm font-medium text-zinc-700">
+          <span className="mb-1.5 block text-xs font-bold uppercase tracking-[0.2em] text-[#7b6234]">
             Seu nome
           </span>
           <input
@@ -260,13 +260,13 @@ export function RsvpForm({
               setGuestMatches([]);
               setGuestSelections([]);
             }}
-            className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28]"
+            className="w-full rounded-lg border border-[#d9c6a4] bg-white/88 px-4 py-3 text-sm text-[#2f302d] outline-none transition placeholder:text-[#9b8f75] focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28]"
             placeholder="Digite pelo menos 3 letras do seu nome"
           />
         </label>
 
         <label className="block sm:col-span-2">
-          <span className="mb-1.5 block text-sm font-medium text-zinc-700">
+          <span className="mb-1.5 block text-xs font-bold uppercase tracking-[0.2em] text-[#7b6234]">
             Email para receber a confirmação
           </span>
           <input
@@ -279,7 +279,7 @@ export function RsvpForm({
                 email: event.target.value,
               }))
             }
-            className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28]"
+            className="w-full rounded-lg border border-[#d9c6a4] bg-white/88 px-4 py-3 text-sm text-[#2f302d] outline-none transition placeholder:text-[#9b8f75] focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28]"
             placeholder="Digite o email para receber o comprovante"
           />
         </label>
@@ -289,7 +289,7 @@ export function RsvpForm({
             type="button"
             onClick={handleLookup}
             disabled={isLookingUp || contactState.guestName.trim().length < 3}
-            className="rounded-full border border-zinc-300 px-5 py-3 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-lg border border-[#c9a65a] bg-[#fffaf1] px-5 py-3 text-xs font-bold uppercase tracking-[0.16em] text-[#4f6146] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isLookingUp ? "Buscando convidados..." : "Buscar meus nomes"}
           </button>
@@ -297,11 +297,11 @@ export function RsvpForm({
 
         {guestMatches.length > 0 ? (
           <div className="sm:col-span-2">
-            <div className="rounded-[24px] border border-zinc-200 bg-[rgb(var(--paper))] p-4">
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500">
+            <div className="rounded-[1.5rem] border border-[#d9c6a4] bg-[#fffaf1] p-4">
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#7b6234]">
                 Escolha seu nome
               </p>
-              <p className="mt-1 text-sm leading-6 text-zinc-600">
+              <p className="mt-1 text-sm leading-6 text-[#5f6b55]">
                 Encontramos mais de um convidado com esse nome. Selecione a opcao correta
                 para abrir o grupo do convite.
               </p>
@@ -313,7 +313,7 @@ export function RsvpForm({
                     type="button"
                     onClick={() => handleSelectMatch(guest.id)}
                     disabled={isLookingUp}
-                    className="rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-left transition hover:border-[rgb(var(--olive))] hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                    className="rounded-2xl border border-[#d9c6a4] bg-white/86 px-4 py-3 text-left transition hover:border-[rgb(var(--olive))] hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     <span className="block text-base font-semibold text-zinc-900">
                       {guest.guestName}
@@ -334,13 +334,13 @@ export function RsvpForm({
 
         {lookupState ? (
           <div className="sm:col-span-2">
-            <div className="rounded-[24px] border border-zinc-200 bg-[rgb(var(--paper))] p-4">
+            <div className="rounded-[1.5rem] border border-[#d9c6a4] bg-[#fffaf1] p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-500">
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#7b6234]">
                     Confirmacao por grupo
                   </p>
-                  <p className="mt-1 text-sm leading-6 text-zinc-600">
+                  <p className="mt-1 text-sm leading-6 text-[#5f6b55]">
                     {lookupState.familyLabel
                       ? `${lookupState.familyLabel}: escolha quem vai comparecer ou quem nao podera ir neste grupo.`
                       : "Escolha abaixo quem você deseja confirmar ou recusar neste convite."}
@@ -375,7 +375,7 @@ export function RsvpForm({
                   return (
                     <div
                       key={guest.id}
-                      className="rounded-2xl border border-zinc-200 bg-white px-4 py-4"
+                      className="rounded-2xl border border-[#d9c6a4] bg-white/86 px-4 py-4"
                     >
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <div>
@@ -448,7 +448,7 @@ export function RsvpForm({
         ) : null}
 
         <label className="block sm:col-span-2">
-          <span className="mb-1.5 block text-sm font-medium text-zinc-700">
+          <span className="mb-1.5 block text-xs font-bold uppercase tracking-[0.2em] text-[#7b6234]">
             Recado para os noivos
           </span>
           <textarea
@@ -460,7 +460,7 @@ export function RsvpForm({
               }))
             }
             rows={4}
-            className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28]"
+            className="w-full rounded-lg border border-[#d9c6a4] bg-white/88 px-4 py-3 text-sm text-[#2f302d] outline-none transition placeholder:text-[#9b8f75] focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28]"
             placeholder="Se quiser, deixe um recado carinhoso para nós."
           />
         </label>

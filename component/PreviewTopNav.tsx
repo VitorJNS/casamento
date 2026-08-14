@@ -33,6 +33,12 @@ export function PreviewTopNav({ items }: PreviewTopNavProps) {
     setIsOpen(false);
   }
 
+  function scrollToHome(event: React.MouseEvent<HTMLAnchorElement>) {
+    event.preventDefault();
+    window.scrollTo({ top: 30, behavior: "smooth" });
+    closeMenu();
+  }
+
   return (
     <nav
       data-preview-top-nav
@@ -41,6 +47,7 @@ export function PreviewTopNav({ items }: PreviewTopNavProps) {
       <div className="mx-auto flex h-20 max-w-6xl items-center justify-between gap-3 px-5 sm:px-6">
         <a
           href="#home"
+          onClick={scrollToHome}
           className="relative h-14 w-14 shrink-0 rounded-full border border-[#d8ddcf] bg-white/65 shadow-sm transition hover:bg-white"
           aria-label="Ir para o inicio"
         >

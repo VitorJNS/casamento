@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { startTransition, useState } from "react";
 
@@ -144,12 +145,12 @@ export function AdminLoginForm() {
           {isSubmitting ? "Entrando..." : submitLabel}
         </button>
 
-        <a
-          href="/"
+        <Link
+          href="/#home"
           className="inline-flex rounded-full border border-[#d8ddcf] px-4 py-2 text-sm font-medium text-[#66745c] transition hover:bg-white hover:text-[#4f6146] max-sm:w-full max-sm:justify-center"
         >
           Voltar para o site
-        </a>
+        </Link>
       </div>
     </form>
   );

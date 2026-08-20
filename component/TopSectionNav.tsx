@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 type NavItem = {
@@ -137,7 +138,7 @@ export function TopSectionNav({ items }: TopSectionNavProps) {
               );
             })}
 
-            <a
+            <Link
               href="/admin"
               className="whitespace-nowrap rounded-full px-2.5 py-2 text-[9px] font-semibold tracking-[0.08em] uppercase text-[rgb(var(--olive))] transition lg:px-3 lg:text-[10px]"
               style={{
@@ -146,7 +147,7 @@ export function TopSectionNav({ items }: TopSectionNavProps) {
               }}
             >
               Noivos
-            </a>
+            </Link>
           </nav>
         </div>
       </div>
@@ -192,8 +193,9 @@ export function TopSectionNav({ items }: TopSectionNavProps) {
             </div>
 
             <nav className="mt-6 grid gap-2 pb-8">
-              <a
+              <Link
                 href="/admin"
+                onClick={closeMenu}
                 className="rounded-2xl px-4 py-3 text-sm font-semibold uppercase tracking-[0.08em] text-[rgb(var(--olive))] transition"
                 style={{
                   backgroundColor: "rgb(var(--lavender) / 0.14)",
@@ -201,7 +203,7 @@ export function TopSectionNav({ items }: TopSectionNavProps) {
                 }}
               >
                 Area dos noivos
-              </a>
+              </Link>
 
               {items.map((item) => {
                 const isActive = item.id === activeId;

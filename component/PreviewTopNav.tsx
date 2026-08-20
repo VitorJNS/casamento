@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 type PreviewTopNavItem = {
@@ -81,12 +82,12 @@ export function PreviewTopNav({ items }: PreviewTopNavProps) {
           >
             Menu
           </button>
-          <a
+          <Link
             href="/admin"
             className="hidden rounded-full border border-[#d8ddcf] px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#4f6146] transition hover:bg-white xl:inline-flex"
           >
             Noivos
-          </a>
+          </Link>
           <a
             href="#rsvp"
             className="shrink-0 rounded-full bg-[#4f6146] px-4 py-2.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#fffdf3] transition hover:bg-[#b89543] sm:px-5 sm:text-[11px]"
@@ -144,18 +145,20 @@ export function PreviewTopNav({ items }: PreviewTopNavProps) {
               >
                 Confirmar presenca
               </a>
-              <a
+              <Link
                 href="/admin"
+                onClick={closeMenu}
                 className="rounded-2xl border border-[#d8ddcf] bg-white/70 px-4 py-3 text-sm font-semibold uppercase tracking-[0.08em] text-[#4f6146] transition hover:bg-white"
               >
                 Area dos noivos
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/cerimonial"
+                onClick={closeMenu}
                 className="rounded-2xl border border-[#d8ddcf] bg-white/70 px-4 py-3 text-sm font-semibold uppercase tracking-[0.08em] text-[#4f6146] transition hover:bg-white"
               >
                 Cerimonialista
-              </a>
+              </Link>
             </div>
           </aside>
         </div>

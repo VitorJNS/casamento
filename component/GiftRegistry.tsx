@@ -687,6 +687,7 @@ export function GiftRegistry({
       {cartQuantity > 0 ? (
         <button
           type="button"
+          data-mobile-cart-bar
           onClick={() => setModalOpen(true)}
           className="fixed inset-x-4 bottom-4 z-40 flex items-center justify-between rounded-full bg-[rgb(var(--olive))] px-5 py-3 text-sm font-semibold text-white shadow-lg sm:hidden"
         >

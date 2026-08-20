@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Cormorant_Garamond, Great_Vibes } from "next/font/google";
+import { WeddingMusicPlayer } from "@/component/WeddingMusicPlayer";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -44,6 +45,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} ${greatVibes.variable} antialiased`}
       >
+        <WeddingMusicPlayer />
         {children}
       </body>
     </html>

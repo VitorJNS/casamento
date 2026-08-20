@@ -3,6 +3,45 @@
 import { useEffect, useRef, useState } from "react";
 
 const audioSrc = "/audio/musica-casamento.mp3";
+const musicStateStorageKey = "casamento-music-player-state";
+
+type MusicPlayerState = {
+  currentTime: number;
+  wasPlaying: boolean;
+};
+
+function readStoredMusicState() {
+  try {
+    const rawState = window.sessionStorage.getItem(musicStateStorageKey);
+
+    if (!rawState) {
+      return null;
+    }
+
+    const parsedState = JSON.parse(rawState) as Partial<MusicPlayerState>;
+
+    if (typeof parsedState.currentTime !== "number") {
+      return null;
+    }
+
+    return {
+      currentTime: parsedState.currentTime,
+      wasPlaying: parsedState.wasPlaying === true,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function storeMusicState(audio: HTMLAudioElement) {
+  window.sessionStorage.setItem(
+    musicStateStorageKey,
+    JSON.stringify({
+      currentTime: Number.isFinite(audio.currentTime) ? audio.currentTime : 0,
+      wasPlaying: !audio.paused,
+    } satisfies MusicPlayerState),
+  );
+}
 
 export function WeddingMusicPlayer() {
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -17,6 +56,16 @@ export function WeddingMusicPlayer() {
     }
 
     audio.volume = 0.35;
+    const storedState = readStoredMusicState();
+
+    const restoreMusicPosition = () => {
+      if (!storedState || storedState.currentTime <= 0) {
+        return;
+      }
+
+      const duration = Number.isFinite(audio.duration) ? audio.duration : Infinity;
+      audio.currentTime = Math.min(storedState.currentTime, Math.max(duration - 1, 0));
+    };
 
     const playAudio = async () => {
       try {
@@ -28,7 +77,19 @@ export function WeddingMusicPlayer() {
       }
     };
 
-    void playAudio();
+    if (audio.readyState >= 1) {
+      restoreMusicPosition();
+    } else {
+      audio.addEventListener("loadedmetadata", restoreMusicPosition, {
+        once: true,
+      });
+    }
+
+    if (storedState?.wasPlaying !== false) {
+      void playAudio();
+    } else {
+      setShowControl(true);
+    }
 
     const handleFirstInteraction = () => {
       if (audio.paused) {
@@ -36,12 +97,20 @@ export function WeddingMusicPlayer() {
       }
     };
 
+    const persistMusicState = () => storeMusicState(audio);
+    const persistIntervalId = window.setInterval(persistMusicState, 2000);
+
     window.addEventListener("pointerdown", handleFirstInteraction, { once: true });
     window.addEventListener("keydown", handleFirstInteraction, { once: true });
+    window.addEventListener("beforeunload", persistMusicState);
 
     return () => {
+      persistMusicState();
+      window.clearInterval(persistIntervalId);
+      audio.removeEventListener("loadedmetadata", restoreMusicPosition);
       window.removeEventListener("pointerdown", handleFirstInteraction);
       window.removeEventListener("keydown", handleFirstInteraction);
+      window.removeEventListener("beforeunload", persistMusicState);
     };
   }, []);
 
@@ -74,8 +143,14 @@ export function WeddingMusicPlayer() {
         loop
         preload="auto"
         autoPlay
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
+        onPlay={(event) => {
+          setIsPlaying(true);
+          storeMusicState(event.currentTarget);
+        }}
+        onPause={(event) => {
+          setIsPlaying(false);
+          storeMusicState(event.currentTarget);
+        }}
       />
       {showControl ? (
         <button

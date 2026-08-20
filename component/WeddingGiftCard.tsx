@@ -48,13 +48,16 @@ export function WeddingGiftCard({
       </div>
 
       <div className="flex flex-1 flex-col pt-3">
-        <div className="min-h-12 sm:min-h-[4.25rem]">
+        <div className="min-h-[5.25rem] sm:min-h-[5.5rem]">
           {category ? (
             <p className="hidden text-[10px] font-semibold uppercase tracking-[0.18em] text-[#9b8f75] sm:block">
               {category}
             </p>
           ) : null}
-          <h3 className="line-clamp-2 text-[0.95rem] font-medium leading-5 text-[#2f352b] sm:text-base">
+          <h3
+            className="line-clamp-3 break-words text-[0.9rem] font-medium leading-5 text-[#2f352b] sm:text-base"
+            title={title}
+          >
             {title}
           </h3>
         </div>

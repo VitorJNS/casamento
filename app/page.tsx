@@ -4,9 +4,9 @@ import { Countdown } from "@/component/Countdown";
 import { PreviewNavScrollController } from "@/component/PreviewNavScrollController";
 import { PreviewTopNav } from "@/component/PreviewTopNav";
 import { TimelineImagePreview } from "@/component/TimelineImagePreview";
-import { WeddingMusicPlayer } from "@/component/WeddingMusicPlayer";
 import { getDisplayGiftCatalog } from "@/lib/gifts";
 import Image from "next/image";
+import Link from "next/link";
 
 export const revalidate = 300;
 
@@ -299,7 +299,6 @@ export default async function PreviewDesignPage() {
 
   return (
     <main className="design-preview-shell relative isolate min-h-screen overflow-hidden bg-[#fffdf3] text-[#2f302d]">
-      <WeddingMusicPlayer />
       {/* <Ornament side="left" />
       <Ornament side="right" /> */}
 
@@ -336,12 +335,12 @@ export default async function PreviewDesignPage() {
             ))}
           </div>
           <div className="flex items-center gap-2">
-            <a
+            <Link
               href="/admin"
               className="hidden rounded-full border border-[#d8ddcf] px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#4f6146] transition hover:bg-white md:inline-flex"
             >
               Noivos
-            </a>
+            </Link>
             <a
               href="#rsvp"
               className="rounded-full bg-[#4f6146] px-5 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#fffdf3] transition hover:bg-[#b89543]"

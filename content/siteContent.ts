@@ -1,3 +1,41 @@
+const giftDisplayOrder = [
+  "gift-teste-cartao",
+  "gift-fogao-inducao",
+  "gift-air-fryer",
+  "gift-jogo-toalhas",
+  "gift-passeio-vaticano",
+  "gift-proximos-capitulos",
+  "gift-filhos-quatro-patas",
+  "gift-mini-nos",
+  "gift-micro-ondas",
+  "gift-cafeteira-casamento",
+  "gift-jogo-tacas",
+  "gift-maquina-lavar",
+  "gift-date-night",
+  "gift-jantar-romantico",
+  "gift-passeios",
+  "gift-noites-frias",
+  "gift-ifood",
+  "gift-cozinha-imaginaria",
+  "gift-sobrevivencia-pos-mudanca",
+  "gift-moveis-improvisados",
+  "gift-home-office",
+  "gift-romaria-recem-casados",
+  "gift-lua-de-mel",
+];
+
+function orderWeddingGifts<T extends { id: string }>(gifts: T[]) {
+  const displayRank = new Map(
+    giftDisplayOrder.map((giftId, index) => [giftId, index]),
+  );
+
+  return [...gifts].sort(
+    (firstGift, secondGift) =>
+      (displayRank.get(firstGift.id) ?? Number.MAX_SAFE_INTEGER) -
+      (displayRank.get(secondGift.id) ?? Number.MAX_SAFE_INTEGER),
+  );
+}
+
 export const siteContent = {
   coupleName: "Yasmim & Vitor",
   welcomeTitle: "Sejam bem-vindos",
@@ -119,7 +157,7 @@ Não deixe nenhum momento passar despercebido — queremos guardar cada memória
     "A presença de cada um de vocês já torna este dia ainda mais especial para nós.\nCriamos nossa lista de presentes apenas para aqueles que desejarem participar, de alguma forma, da construção do nosso novo lar e do início desta nova fase das nossas vidas. ✨\nCada gesto será recebido com muita gratidão e carinho, e certamente fará parte da nossa história e do nosso futuro juntos.",
   giftListIntro:
     "Agora você pode juntar vários presentes em uma única compra, preencher seus dados e concluir tudo em um checkout único.",
-  weddingGifts: [
+  weddingGifts: orderWeddingGifts([
     {
       id: "gift-teste-cartao",
       category: "Teste",
@@ -131,7 +169,7 @@ Não deixe nenhum momento passar despercebido — queremos guardar cada memória
     {
       id: "gift-moveis-improvisados",
       category: "Casa nova",
-      title: "Projeto “adeus móveis improvisados”",
+      title: "Projeto 'adeus móveis improvisados'",
       description:
         "Ajude os noivos a construírem um lar bonito, aconchegante e digno de adultos funcionais 🛋️",
       priceLabel: "R$ 350,00",
@@ -151,7 +189,7 @@ Não deixe nenhum momento passar despercebido — queremos guardar cada memória
     {
       id: "gift-ifood",
       category: "Experiências",
-      title: "Fundo “vamos pedir iFood hoje mesmo”",
+      title: "Fundo 'vamos pedir iFood hoje mesmo'",
       description:
         "Nem só de amor vive um casal moderno.",
       priceLabel: "R$ 200,00",
@@ -171,21 +209,11 @@ Não deixe nenhum momento passar despercebido — queremos guardar cada memória
     {
       id: "gift-lua-de-mel",
       category: "Lua de mel",
-      title: "Fundo “vamos sumir do mapa por alguns dias”",
+      title: "Fundo 'vamos sumir do mapa por alguns dias'",
       description: "Ajude os noivos a viverem a tão sonhada lua de mel.",
       priceLabel: "R$ 1.500,00",
       infinityPay: "",
       imageSrc: "/presents/Fundo%20%E2%80%9Cvamos%20sumir%20do%20mapa%20por%20alguns%20dias%E2%80%9D.png",
-    },
-    {
-      id: "gift-terapia-preventiva",
-      category: "Experiencias",
-      title: "Terapia de casal preventiva KKKK",
-      description:
-        "Contribua para futuras discussões sobre louça, coberta e temperatura do ar-condicionado.",
-      priceLabel: "R$ 200,00",
-      infinityPay: "",
-      imageSrc: "/presents/Terapia%20de%20casal%20preventiva%20KKKK.png",
     },
     {
       id: "gift-home-office",
@@ -203,7 +231,7 @@ Não deixe nenhum momento passar despercebido — queremos guardar cada memória
       title: "Contribuição oficial dos filhos de quatro patas",
       description:
         "Aurora, Amanda, Theo, Valentina e Lua agradecem hahaha",
-      priceLabel: "R$ 300,00",
+      priceLabel: "R$ 600,00",
       infinityPay: "",
       imageSrc: "/presents/Contribui%C3%A7%C3%A3o%20oficial%20dos%20filhos%20de%20quatro%20patas.png",
     },
@@ -238,24 +266,6 @@ Não deixe nenhum momento passar despercebido — queremos guardar cada memória
       imageSrc: "/presents/Kit%20cozinha%20gourmet%20imagin%C3%A1ria.png",
     },
     {
-      id: "gift-brunch",
-      category: "Experiências",
-      title: "Fundo “vamos tomar um brunch chique”",
-      description: "Um pequeno luxo para celebrarmos a vida a dois.",
-      priceLabel: "R$ 180,00",
-      infinityPay: "",
-      imageSrc: "/presents/Fundo%20%E2%80%9Cvamos%20tomar%20um%20brunch%20chique%E2%80%9D.png",
-    },
-    {
-      id: "gift-sushi",
-      category: "Experiências",
-      title: "Reserva estratégica para sushi",
-      description: "Porque alguns dias pedem comida japonesa e paz.",
-      priceLabel: "R$ 170,00",
-      infinityPay: "",
-      imageSrc: "/presents/Reserva%20estrat%C3%A9gica%20para%20sushi.png",
-    },
-    {
       id: "gift-jantar-romantico",
       category: "Lua de mel",
       title: "Jantar romântico patrocinado",
@@ -268,22 +278,102 @@ Não deixe nenhum momento passar despercebido — queremos guardar cada memória
     {
       id: "gift-mini-nos",
       category: "Família",
-      title: "Fundo “talvez venha um mini nós por aí”",
+      title: "Fundo 'talvez venha um mini nós por aí'",
       description:
         "Ajude os noivos a começarem o futuro quartinho, as roupinhas minúsculas e os sonhos da nossa futura família hahaha",
-      priceLabel: "R$ 250,00",
+      priceLabel: "R$ 450,00",
       infinityPay: "",
       imageSrc: "/presents/Fundo%20%E2%80%9Ctalvez%20venha%20um%20mini%20n%C3%B3s%20por%20a%C3%AD%E2%80%9D.png",
     },
     {
       id: "gift-romaria-recem-casados",
       category: "Experiências",
-      title: "Projeto “mini romaria dos recém-casados”",
+      title: "Projeto 'mini romaria dos recém-casados'",
       description:
         "Porque depois do casamento também queremos agradecer cada benção recebida juntinhos 🤍",
-      priceLabel: "R$ 220,00",
+      priceLabel: "R$ 450,00",
       infinityPay: "",
       imageSrc: "/presents/Projeto%20%E2%80%9Cmini%20romaria%20dos%20rec%C3%A9m-casados%E2%80%9D.png",
     },
-  ],
+    {
+      id: "gift-fogao-inducao",
+      category: "Casa nova",
+      title: "Fogão por indução — início oficial da nossa era MasterChef",
+      description:
+        "Patrocine nossas futuras aventuras culinárias — as receitas podem dar errado, mas pelo menos o fogão será bonito. 😂",
+      priceLabel: "R$ 1.800,00",
+      infinityPay: "",
+      imageSrc: "/presents/fogao-inducao.png",
+    },
+    {
+      id: "gift-jogo-toalhas",
+      category: "Casa nova",
+      title: "Jogo de toalhas para nossa casa 🛁🤍",
+      description:
+        "Para começarmos a vida de casados com toalhas bonitas, macias e oficialmente combinando hahaha",
+      priceLabel: "R$ 200,00",
+      infinityPay: "",
+      imageSrc: "/presents/jogo-toalhas.png",
+    },
+    {
+      id: "gift-maquina-lavar",
+      category: "Casa nova",
+      title: "Máquina de lavar — patrocinando nossa independência doméstica 🧺😂",
+      description:
+        "Para que a pilha de roupas nunca mais vença a gente. Liberdade, praticidade e mais tempo juntos! 🤍",
+      priceLabel: "R$ 4.500,00",
+      infinityPay: "",
+      imageSrc: "/presents/Maquina%20de%20Lavar.png",
+    },
+    {
+      id: "gift-cafeteira-casamento",
+      category: "Casa nova",
+      title: "Cafeteira — combustível oficial deste casamento ☕🤎",
+      description:
+        "Para abastecer nossos dias, as conversas, os planos e, principalmente, a paciência um com o outro 😂🤍",
+      priceLabel: "R$ 400,00",
+      infinityPay: "",
+      imageSrc: "/presents/Cafeteira.png",
+    },
+    {
+      id: "gift-proximos-capitulos",
+      category: "Experiências",
+      title: "Fundo para os próximos capítulos da nossa história 📖🤍",
+      description:
+        "Para realizarmos sonhos, vivermos pequenas e grandes aventuras e continuarmos colecionando memórias inesquecíveis juntos. ✨",
+      priceLabel: "R$ 390,00",
+      infinityPay: "",
+      imageSrc: "/presents/Fundo%20para%20os%20proximos%20capitulos.png",
+    },
+    {
+      id: "gift-micro-ondas",
+      category: "Casa nova",
+      title: "Micro-ondas — para salvar os dias corridos ⏰🍝",
+      description:
+        "Para esquentar refeições, ganhar tempo e ter mais momentos para o que realmente importa: nós dois! 🤍",
+      priceLabel: "R$ 500,00",
+      infinityPay: "",
+      imageSrc: "/presents/Micro-ondas.png",
+    },
+    {
+      id: "gift-jogo-tacas",
+      category: "Casa nova",
+      title: "Jogo de taças — porque a noiva é a louca das taças 🥂😂",
+      description:
+        "Para brindarmos cada conquista, cada novo capítulo e, claro, justificar a necessidade de ter uma taça diferente para cada ocasião hahaha.",
+      priceLabel: "R$ 250,00",
+      infinityPay: "",
+      imageSrc: "/presents/Jogo%20de%20tacas.png",
+    },
+    {
+      id: "gift-passeio-vaticano",
+      category: "Lua de mel",
+      title: "Passeio na lua de mel — Vaticano & Basílica de São Pedro",
+      description:
+        "Ajude os noivos a viverem um dos momentos mais especiais da viagem: conhecer o Vaticano, visitar a Basílica de São Pedro e agradecer por esse novo capítulo da nossa história.",
+      priceLabel: "R$ 500,00",
+      infinityPay: "",
+      imageSrc: "/presents/Passeio%20lua%20de%20mel.png",
+    },
+  ]),
 };

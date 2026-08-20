@@ -133,8 +133,15 @@ function getFilterCount(guests: PresenceGuest[], filter: RsvpFilter) {
 }
 
 function GuestRow({ guest }: { guest: PresenceGuest }) {
-  const whatsappMessage =
-    "Ola, tudo bem? Meu nome e Karine, eu sou a Cerimonialista responsavel pelo casamento dos noivos Yasmim e Vitor. Estou entrando em contato para saber se ja confirmaram presença no evento.";
+  const whatsappMessage = `Olá! Tudo bem? 😊
+
+Meu nome é Karine e sou a cerimonialista responsável pelo casamento da Yasmim e do Vitor. 💍✨
+
+Estou entrando em contato para saber se vocês já conseguiram confirmar a presença no casamento. A confirmação é muito importante para que possamos organizar todos os detalhes desse dia tão especial com muito carinho.
+
+Caso ainda não tenham confirmado ou tenham alguma dúvida sobre o evento, podem falar comigo por aqui. Estou à disposição para ajudar e esclarecer o que for necessário. 🤍
+
+Será um prazer contar com vocês nesse momento tão especial para os noivos!`;
   const whatsappHref = `https://wa.me/${guest.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(whatsappMessage)}`;
 
   return (

@@ -298,7 +298,7 @@ Não deixe nenhum momento passar despercebido — queremos guardar cada memória
     {
       id: "gift-fogao-inducao",
       category: "Casa nova",
-      title: "Fogão por indução — início oficial da nossa era MasterChef 🍳🔥",
+      title: "Fogão por indução — início oficial da nossa era MasterChef",
       description:
         "Patrocine nossas futuras aventuras culinárias — as receitas podem dar errado, mas pelo menos o fogão será bonito. 😂",
       priceLabel: "R$ 1.800,00",
@@ -368,7 +368,7 @@ Não deixe nenhum momento passar despercebido — queremos guardar cada memória
     {
       id: "gift-passeio-vaticano",
       category: "Lua de mel",
-      title: "Passeio na lua de mel — Vaticano & Basílica de São Pedro ⛪VA🤍",
+      title: "Passeio na lua de mel — Vaticano & Basílica de São Pedro",
       description:
         "Ajude os noivos a viverem um dos momentos mais especiais da viagem: conhecer o Vaticano, visitar a Basílica de São Pedro e agradecer por esse novo capítulo da nossa história.",
       priceLabel: "R$ 500,00",

@@ -232,6 +232,12 @@ body:has(.design-preview-shell)::after {
   display: none;
 }
 
+@media (max-width: 640px) {
+  body:has([data-mobile-cart-bar]) .music-player-button {
+    bottom: 5rem;
+  }
+}
+
 /* Ajuste para telas menores */
 @media (max-width: 640px) {
   body::before,

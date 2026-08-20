@@ -4,6 +4,7 @@ import { Countdown } from "@/component/Countdown";
 import { PreviewNavScrollController } from "@/component/PreviewNavScrollController";
 import { PreviewTopNav } from "@/component/PreviewTopNav";
 import { TimelineImagePreview } from "@/component/TimelineImagePreview";
+import { WeddingMusicPlayer } from "@/component/WeddingMusicPlayer";
 import { getDisplayGiftCatalog } from "@/lib/gifts";
 import Image from "next/image";
 
@@ -298,6 +299,7 @@ export default async function PreviewDesignPage() {
 
   return (
     <main className="design-preview-shell relative isolate min-h-screen overflow-hidden bg-[#fffdf3] text-[#2f302d]">
+      <WeddingMusicPlayer />
       {/* <Ornament side="left" />
       <Ornament side="right" /> */}
 

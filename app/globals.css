@@ -238,6 +238,23 @@ body:has(.design-preview-shell)::after {
   }
 }
 
+@keyframes music-player-attention {
+  0%,
+  100% {
+    box-shadow: 0 10px 28px rgb(79 97 70 / 0.16);
+    transform: translateY(0) scale(1);
+  }
+
+  50% {
+    box-shadow: 0 14px 34px rgb(79 97 70 / 0.24);
+    transform: translateY(-1px) scale(1.035);
+  }
+}
+
+.music-player-button--attention {
+  animation: music-player-attention 1.8s ease-in-out infinite;
+}
+
 /* Ajuste para telas menores */
 @media (max-width: 640px) {
   body::before,

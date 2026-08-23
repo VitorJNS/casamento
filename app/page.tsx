@@ -370,7 +370,7 @@ export default async function PreviewDesignPage() {
           <p className="max-w-md text-lg leading-8 text-[#66745c]">
             {richContent.hero}
           </p>
-          <div className="max-w-lg pt-5">
+          <div className="-mt-5 max-w-lg pt-0 sm:mt-0 sm:pt-5">
             <Countdown
               targetISO="2027-06-20T16:00:00-03:00"
               label="Faltam"

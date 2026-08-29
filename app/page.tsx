@@ -65,7 +65,7 @@ const richContent = {
   gifts:
     "A presença de cada um de vocês já torna este dia ainda mais especial para nós. Criamos nossa lista de presentes apenas para aqueles que desejarem participar, de alguma forma, da construção do nosso novo lar e do início desta nova fase das nossas vidas.",
   giftListIntro:
-    "Agora você pode juntar vários presentes em uma única compra, preencher seus dados e concluir tudo em um checkout único.",
+    "Se desejar nos presentear, você pode escolher um ou mais itens da lista e finalizar tudo de forma simples em um único pedido.",
   moments: [
     "Cada sorriso, abraço e momento vivido neste dia será extremamente especial para nós. Criamos este espaço para que vocês possam compartilhar todas as fotos e vídeos registrados durante o casamento.",
     "Todos os arquivos enviados serão salvos diretamente em nossa pasta do Google Drive. Não deixe nenhum momento passar despercebido: queremos guardar cada memória deste dia inesquecível ao lado de vocês.",

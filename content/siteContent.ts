@@ -156,7 +156,7 @@ Não deixe nenhum momento passar despercebido — queremos guardar cada memória
   pixText:
     "A presença de cada um de vocês já torna este dia ainda mais especial para nós.\nCriamos nossa lista de presentes apenas para aqueles que desejarem participar, de alguma forma, da construção do nosso novo lar e do início desta nova fase das nossas vidas. ✨\nCada gesto será recebido com muita gratidão e carinho, e certamente fará parte da nossa história e do nosso futuro juntos.",
   giftListIntro:
-    "Agora você pode juntar vários presentes em uma única compra, preencher seus dados e concluir tudo em um checkout único.",
+    "Se desejar nos presentear, você pode escolher um ou mais itens da lista e finalizar tudo de forma simples em um único pedido.",
   weddingGifts: orderWeddingGifts([
     {
       id: "gift-moveis-improvisados",

@@ -159,14 +159,6 @@ Não deixe nenhum momento passar despercebido — queremos guardar cada memória
     "Agora você pode juntar vários presentes em uma única compra, preencher seus dados e concluir tudo em um checkout único.",
   weddingGifts: orderWeddingGifts([
     {
-      id: "gift-teste-cartao",
-      category: "Teste",
-      title: "Presente teste",
-      description: "Item temporário para testar pagamento com cartão.",
-      priceLabel: "R$ 5,00",
-      infinityPay: "",
-    },
-    {
       id: "gift-moveis-improvisados",
       category: "Casa nova",
       title: "Projeto 'adeus móveis improvisados'",

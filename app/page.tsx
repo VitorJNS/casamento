@@ -475,6 +475,7 @@ export default async function PreviewDesignPage() {
           <div className="mx-auto max-w-5xl overflow-hidden rounded-lg border border-[#d8ddcf] bg-[#fffefa]/82 p-5 text-sm leading-7 text-[#66745c] shadow-sm sm:p-6">
             <TimelineImagePreview
               src="/story/timeline-full.png"
+              mobileSrc="/story/timeline-mobile.png"
               alt="Nossa historia"
             />
           </div>

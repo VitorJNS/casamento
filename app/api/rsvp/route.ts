@@ -349,6 +349,10 @@ export async function POST(request: Request) {
     const confirmedChildren = confirmedGuests.filter(
       (guest) => invitedGuestMap.get(guest.guestId)?.is_child,
     ).length;
+    const respondentName =
+      invitedGuestMap.get(payload.lookupGuestId)?.guest_name ??
+      normalizedGuestResponses[0]?.guestName ??
+      payload.guestName;
 
     await withPrismaRetry(() =>
       prisma.$executeRawUnsafe(
@@ -369,7 +373,7 @@ export async function POST(request: Request) {
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10::jsonb, $11, CURRENT_TIMESTAMP)
       `,
       id,
-      payload.guestName,
+      respondentName,
       invitedGuests[0]?.whatsapp ?? "",
       normalizeWhatsapp(invitedGuests[0]?.whatsapp ?? ""),
       payload.email ?? null,
@@ -384,7 +388,7 @@ export async function POST(request: Request) {
 
     try {
       await sendRsvpConfirmationEmail({
-        respondentName: payload.guestName,
+        respondentName,
         email: payload.email,
         familyLabel: invitedGuests.find((guest) => guest.family_label)?.family_label ?? null,
         responses: normalizedGuestResponses.map((guest) => ({

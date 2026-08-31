@@ -107,10 +107,16 @@ function mapRsvpRow(row: RsvpRow, activeGuestIds: Set<string>) {
     activeGuestResponses.length > 0
       ? activeGuestResponses
       : normalizeGuestResponses(row.guest_responses);
+  const displayGuestName =
+    guestResponses.find((guest) =>
+      normalizeRsvpKeyPart(guest.guestName).startsWith(normalizeRsvpKeyPart(row.guest_name)),
+    )?.guestName ??
+    guestResponses[0]?.guestName ??
+    row.guest_name;
 
   return {
     id: row.id,
-    guestName: row.guest_name,
+    guestName: displayGuestName,
     whatsapp: row.whatsapp,
     email: row.email,
     attendance: row.attendance,

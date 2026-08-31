@@ -78,6 +78,15 @@ export function RsvpForm({
       familyLabel: data.familyLabel ?? null,
       guests,
     });
+
+    const lookupGuest = guests.find((guest) => guest.id === data.lookupGuestId);
+    if (lookupGuest) {
+      setContactState((current) => ({
+        ...current,
+        guestName: lookupGuest.guestName,
+      }));
+    }
+
     setGuestSelections(
       guests.map((guest) => ({
         guestId: guest.id,

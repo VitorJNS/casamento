@@ -1,9 +1,10 @@
-﻿"use client";
+"use client";
 
 import type { InputHTMLAttributes, ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 
 import { CerimonialShell } from "@/component/CerimonialShell";
+import { SupplierFormDialog, SupplierFormSection } from "@/component/SupplierFormDialog";
 import { ListPagination } from "@/component/ListPagination";
 import { formatPriceCents, parsePriceLabelToCents } from "@/lib/currency";
 import { formatDisplayDate } from "@/lib/display-date";
@@ -111,6 +112,7 @@ export function CerimonialSuppliersManager({
 
   async function handleCreate(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (isSaving) return;
     const validationMessage = validateSupplierDraft(draft);
 
     if (validationMessage) {
@@ -232,11 +234,11 @@ export function CerimonialSuppliersManager({
         </div>
       </div>
 
-      <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-8 grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-4">
         {quickStats.map((item) => (
           <article
             key={item.label}
-            className="rounded-[24px] border border-zinc-200 bg-white p-4 shadow-sm"
+            className="min-w-0 overflow-hidden rounded-[24px] border border-zinc-200 bg-white p-4 shadow-sm"
           >
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">
               {item.label}
@@ -248,7 +250,7 @@ export function CerimonialSuppliersManager({
         ))}
       </div>
 
-      <div className="mt-8 grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
+      <div className="mt-8 grid min-w-0 gap-3 lg:grid-cols-2 2xl:grid-cols-3">
         {visibleSuppliers.map((supplier) => (
           <SupplierCard
             key={supplier.id}
@@ -273,111 +275,82 @@ export function CerimonialSuppliersManager({
       />
 
       {isModalOpen ? (
-        <div className="fixed inset-0 z-[140] flex items-center justify-center bg-black/35 p-3 backdrop-blur-sm sm:p-4">
-          <div className="max-h-[calc(100dvh-1.5rem)] w-full max-w-2xl overflow-y-auto rounded-[24px] border border-zinc-200 bg-white p-4 shadow-[0_30px_80px_rgba(24,24,27,0.18)] sm:max-h-[calc(100dvh-2rem)] sm:rounded-[32px] sm:p-6">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <h2 className="text-2xl font-semibold tracking-[-0.04em] text-zinc-950 sm:text-[2rem]">
-                  Adicionar fornecedor
-                </h2>
-                <p className="mt-1 text-sm leading-6 text-zinc-600 sm:mt-2 sm:leading-7">
-                  Cadastre o parceiro com contrato, status e dados de pagamento.
-                </p>
-              </div>
-
-            </div>
-
-            <form onSubmit={handleCreate} className="mt-4 grid gap-3 md:grid-cols-2">
-              <Field
+        <SupplierFormDialog title={"Adicionar fornecedor"} onClose={() => { setIsModalOpen(false); setErrorMessage(null); }} onSubmit={handleCreate} busy={isSaving} submitLabel={isSaving ? "Salvando..." : "Salvar fornecedor"} error={errorMessage}>
+          <div className="grid gap-4 pb-5">
+            <Field
                 value={draft.supplierName}
                 onChange={(value) => setDraft((current) => ({ ...current, supplierName: value }))}
                 placeholder="Nome do fornecedor"
               />
-              <Field
+            <Field
                 value={draft.category}
                 onChange={(value) => setDraft((current) => ({ ...current, category: value }))}
                 placeholder="Categoria"
               />
-
-              <StatusSelector
+            <Field
+                value={draft.phone}
+                onChange={(value) => setDraft((current) => ({ ...current, phone: value }))}
+                placeholder="Telefone ou WhatsApp" type="tel" inputMode="tel"
+              />
+            <StatusSelector
                 value={draft.supplierStatus}
                 onChange={(value) =>
                   setDraft((current) => ({ ...current, supplierStatus: value }))
                 }
               />
-              <Field
+          </div>
+          <SupplierFormSection title="Contato adicional">
+            <p className="text-sm text-zinc-600">Quem será seu contato com o fornecedor?</p>
+            <Field
                 value={draft.contactName}
                 onChange={(value) => setDraft((current) => ({ ...current, contactName: value }))}
-                placeholder="Responsavel"
+                placeholder="Nome do responsável"
               />
-              <Field
-                value={draft.phone}
-                onChange={(value) => setDraft((current) => ({ ...current, phone: value }))}
-                placeholder="Telefone ou WhatsApp"
-              />
-              <Field
+            <Field
                 value={draft.email}
                 onChange={(value) => setDraft((current) => ({ ...current, email: value }))}
                 placeholder="Email"
                 type="email"
               />
-              <Field
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-zinc-50 p-3 text-sm">
+              <div><p className="text-zinc-500">Telefone informado</p><p className="mt-1 break-all">{draft.phone || "Ainda não informado"}</p></div>
+              <button type="button" className="min-h-12 text-left font-medium text-[rgb(var(--olive))]" onClick={(event) => {
+                const phone = event.currentTarget.closest("dialog")?.querySelector<HTMLInputElement>('input[type="tel"]');
+                phone?.focus();
+                phone?.scrollIntoView({ block: "center" });
+              }}>Editar nos dados essenciais</button>
+            </div>
+          </SupplierFormSection>
+          <SupplierFormSection title="Contrato e pagamentos">
+            <Field
                 value={draft.contractValue}
                 onChange={(value) => setDraft((current) => ({ ...current, contractValue: value }))}
                 placeholder="Valor do contrato"
                 inputMode="numeric"
               />
-              <Field
+            <Field
                 value={draft.amountPaid}
                 onChange={(value) => setDraft((current) => ({ ...current, amountPaid: value }))}
-                placeholder="Valor ja pago"
+                placeholder="Valor já pago"
                 inputMode="numeric"
               />
-              <Field
+            <Field
                 value={draft.nextPaymentDue}
                 onChange={(value) => setDraft((current) => ({ ...current, nextPaymentDue: value }))}
                 placeholder="Data de fechamento do contrato"
                 type="date"
               />
-              <div className="md:col-span-2">
-                <textarea
-                  value={draft.note}
-                  onChange={(event) =>
-                    setDraft((current) => ({ ...current, note: event.target.value }))
-                  }
-                  placeholder="Observacoes importantes"
-                  className="min-h-24 w-full rounded-2xl border border-zinc-300 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28] sm:min-h-32 sm:py-3"
-                />
-              </div>
 
-              {errorMessage ? (
-                <p className="whitespace-pre-line rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm leading-6 text-rose-700 md:col-span-2">
-                  {errorMessage}
-                </p>
-              ) : null}
-
-              <div className="sticky bottom-0 -mx-4 -mb-4 flex flex-wrap gap-3 border-t border-zinc-100 bg-white/95 px-4 py-3 backdrop-blur md:col-span-2 sm:static sm:m-0 sm:border-t-0 sm:bg-transparent sm:p-0">
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="btn-primary rounded-full px-5 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60 max-sm:flex-1"
-                >
-                  {isSaving ? "Salvando..." : "Salvar fornecedor"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsModalOpen(false);
-                    setErrorMessage(null);
-                  }}
-                  className="rounded-full border border-zinc-300 px-4 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 max-sm:flex-1"
-                >
-                  Fechar
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+          </SupplierFormSection>
+          <SupplierFormSection title="Observações">
+            <label className="grid gap-2 text-sm font-medium text-zinc-700">
+              Observações importantes
+              <textarea value={draft.note} onChange={(event) => setDraft((current) => ({ ...current, note: event.target.value }))} maxLength={600} rows={5} placeholder="Registre os combinados com o fornecedor." className="min-h-32 w-full min-w-0 resize-y rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-base font-normal outline-none focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender)/0.28)]" />
+            </label>
+            <p className="text-right text-xs text-zinc-500">{draft.note.length}/600 caracteres</p>
+          </SupplierFormSection>
+          <p className="mt-5 text-xs text-zinc-500">Nome, categoria e telefone são obrigatórios.</p>
+        </SupplierFormDialog>
       ) : null}
 
       {supplierPendingDelete ? (
@@ -453,9 +426,9 @@ function SupplierCard({
   const nextLabel = getNextPaymentLabel(supplier);
 
   return (
-    <article className="rounded-[18px] border border-zinc-200 bg-white p-4 shadow-[0_10px_28px_rgba(24,24,27,0.05)]">
+    <article className="min-w-0 overflow-hidden rounded-[18px] border border-zinc-200 bg-white p-4 shadow-[0_10px_28px_rgba(24,24,27,0.05)]">
       <div className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 gap-3">
+        <div className="flex min-w-0 flex-1 gap-3">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-[linear-gradient(135deg,rgba(177,156,217,0.28),rgba(88,102,74,0.22))] text-sm font-semibold text-[rgb(var(--olive))]">
             {initials || "FV"}
           </div>
@@ -483,7 +456,7 @@ function SupplierCard({
         </button>
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-3 text-xs text-zinc-600">
+      <div className="mt-3 flex min-w-0 flex-wrap gap-3 text-xs text-zinc-600">
         <ActionLink href={whatsappHref} label="WhatsApp">
           <PhoneIcon className="h-3.5 w-3.5" />
         </ActionLink>
@@ -495,16 +468,16 @@ function SupplierCard({
       </div>
 
       <div className="mt-3 border-t border-zinc-100 pt-3">
-        <div className="flex items-start justify-between gap-3">
-          <div>
+        <div className="flex min-w-0 items-start justify-between gap-3">
+          <div className="min-w-0">
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
               Valor do contrato
             </p>
-            <p className="mt-1 text-xl font-semibold text-zinc-950">{contractValueLabel}</p>
+            <p className="mt-1 break-words text-xl font-semibold text-zinc-950">{contractValueLabel}</p>
           </div>
-          <div className="text-right text-xs text-zinc-600">
-            <p>{supplier.contactName || "Nao informado"}</p>
-            <p className="mt-1">{supplier.phone}</p>
+          <div className="min-w-0 text-right text-xs text-zinc-600">
+            <p className="truncate">{supplier.contactName || "Nao informado"}</p>
+            <p className="mt-1 truncate">{supplier.phone}</p>
           </div>
         </div>
 
@@ -530,9 +503,9 @@ function SupplierCard({
           />
         </div>
 
-        <div className="mt-2 flex items-center justify-between gap-3 text-xs text-zinc-600">
-          <span>{paymentSummary}</span>
-          <span>{nextLabel}</span>
+        <div className="mt-2 flex min-w-0 items-center justify-between gap-3 text-xs text-zinc-600">
+          <span className="min-w-0 truncate">{paymentSummary}</span>
+          <span className="shrink-0">{nextLabel}</span>
         </div>
       </div>
 
@@ -606,6 +579,8 @@ function Field({
   inputMode?: InputHTMLAttributes<HTMLInputElement>["inputMode"];
 }) {
   return (
+    <label className="grid min-w-0 gap-2 text-sm font-medium text-zinc-700">
+      <span>{placeholder}{["Nome do fornecedor", "Categoria", "Telefone ou WhatsApp"].includes(placeholder) ? " *" : ""}</span>
     <input
       type={type}
       value={value}
@@ -619,8 +594,9 @@ function Field({
       step={step}
       min={min}
       inputMode={inputMode}
-      className="w-full rounded-2xl border border-zinc-300 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28] sm:py-3"
+      className="min-h-12 min-w-0 w-full rounded-2xl border border-zinc-300 bg-white px-4 py-2.5 text-base font-normal outline-none transition focus:border-[rgb(var(--olive))] focus:ring-2 focus:ring-[rgb(var(--lavender))/0.28] sm:py-3"
     />
+    </label>
   );
 }
 
@@ -635,15 +611,15 @@ function StatusSelector({
     value: CerimonialSupplier["supplierStatus"];
     label: string;
   }> = [
-    { value: "contratado", label: "Contratado" },
     { value: "pendente", label: "Pendente" },
+    { value: "contratado", label: "Contratado" },
     { value: "negociacao", label: "Negociacao" },
   ];
 
   return (
     <div className="flex flex-col gap-2 text-sm text-zinc-700">
       <span className="font-medium">Status</span>
-      <div className="grid grid-cols-3 gap-1 rounded-2xl border border-zinc-200 bg-zinc-100 p-1">
+      <div className="grid min-w-0 grid-cols-3 gap-1 rounded-2xl border border-zinc-200 bg-zinc-100 p-1">
         {options.map((option) => {
           const isSelected = value === option.value;
 
@@ -652,9 +628,10 @@ function StatusSelector({
               key={option.value}
               type="button"
               onClick={() => onChange(option.value)}
-              className={`rounded-xl px-2 py-2 text-xs font-semibold transition sm:text-sm ${
+              aria-pressed={isSelected}
+              className={`min-h-12 min-w-0 overflow-hidden rounded-xl px-1.5 py-2 text-[11px] font-semibold transition sm:px-2 sm:text-sm ${
                 isSelected
-                  ? "bg-white text-[rgb(var(--olive))] shadow-sm"
+                  ? "border border-[rgb(var(--lavender))] bg-[rgb(var(--lavender)/0.12)] text-[rgb(var(--olive))]"
                   : "text-zinc-600 hover:bg-white/70 hover:text-zinc-900"
               }`}
             >

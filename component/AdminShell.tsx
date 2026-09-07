@@ -34,10 +34,10 @@ export function AdminShell({
   const pathname = usePathname();
 
   return (
-    <main className="logged-area-shell relative isolate min-h-dvh bg-[#fffdf3] text-zinc-950">
+    <main className="logged-area-shell relative isolate min-h-dvh w-full max-w-full overflow-x-hidden bg-[#fffdf3] text-zinc-950">
       <LoggedAreaBackdrop />
 
-      <div className="relative z-10 xl:grid xl:min-h-dvh xl:grid-cols-[290px_minmax(0,1fr)] xl:items-start">
+      <div className="relative z-10 w-full max-w-full min-w-0 xl:grid xl:min-h-dvh xl:grid-cols-[290px_minmax(0,1fr)] xl:items-start">
         <aside className="hidden border-r border-[#d8ddcf]/90 bg-[#fffefa]/88 px-6 py-6 backdrop-blur xl:sticky xl:top-0 xl:flex xl:h-dvh xl:flex-col xl:overflow-hidden">
           <div className="flex shrink-0 justify-center">
             <div className="flex h-24 w-24 items-center justify-center rounded-full border border-[#d8ddcf]/80 bg-white/45 shadow-sm xl:h-28 xl:w-28">
@@ -83,7 +83,7 @@ export function AdminShell({
           </div>
         </aside>
 
-        <div className="min-w-0">
+        <div className="min-w-0 max-w-full overflow-x-hidden">
           <header className="sticky top-0 z-30 border-b border-[#d8ddcf]/90 bg-[#fffefa]/88 px-5 py-3 backdrop-blur xl:static xl:bg-[#fffefa]/64 xl:px-10 xl:py-5">
             <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
               <div className="flex items-center justify-between gap-3 xl:hidden">
@@ -120,7 +120,7 @@ export function AdminShell({
             </div>
           </header>
 
-          <section className="px-5 pb-28 pt-8 xl:px-10 xl:py-10">{children}</section>
+          <section className="w-full max-w-full overflow-x-hidden px-5 pb-28 pt-8 xl:px-10 xl:py-10">{children}</section>
         </div>
       </div>
 

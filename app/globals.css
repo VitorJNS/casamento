@@ -1,5 +1,57 @@
 @import "tailwindcss";
 
+.supplier-dialog {
+  box-sizing: border-box;
+  position: fixed;
+  inset: var(--supplier-top, 0px) 0 auto;
+  margin: 0 auto;
+  padding: 0;
+  border: 0;
+  width: 100dvw;
+  max-width: 100%;
+  height: var(--supplier-height, 100dvh);
+  max-height: none;
+  overflow: hidden;
+  background: white;
+  color: #18181b;
+}
+.supplier-dialog,
+.supplier-dialog * {
+  box-sizing: border-box;
+}
+.supplier-dialog[open] { display: flex; flex-direction: column; }
+.supplier-dialog::backdrop { background: rgb(0 0 0 / 35%); backdrop-filter: blur(4px); }
+.supplier-dialog header,
+.supplier-dialog form,
+.supplier-dialog fieldset,
+.supplier-dialog footer,
+.supplier-dialog details,
+.supplier-dialog summary {
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+}
+.supplier-form-body {
+  border: 0;
+  margin: 0;
+  scroll-padding-block: 16px;
+}
+.supplier-form-footer { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+.supplier-form-section summary { list-style: none; }
+.supplier-form-section summary::-webkit-details-marker { display: none; }
+.supplier-form-section[open] .supplier-section-chevron { transform: rotate(180deg); }
+.supplier-dialog input, .supplier-dialog textarea { font-size: 16px; }
+@media (min-width: 640px) {
+  .supplier-dialog {
+    top: calc(var(--supplier-top, 0px) + 16px);
+    width: min(640px, calc(100% - 32px));
+    height: calc(var(--supplier-height, 100dvh) - 32px);
+    max-height: 860px;
+    border-radius: 24px;
+    box-shadow: 0 30px 80px rgb(24 24 27 / 18%);
+  }
+}
+
 /* Tema (claro) */
 :root {
   /* RGB (3 valores) pra facilitar rgba() */
@@ -230,6 +282,14 @@ body:has(.logged-area-shell)::after,
 body:has(.design-preview-shell)::before,
 body:has(.design-preview-shell)::after {
   display: none;
+}
+
+body:has(.logged-area-shell) {
+  overflow-x: hidden;
+}
+
+.logged-area-shell {
+  overflow-x: hidden;
 }
 
 @media (max-width: 640px) {

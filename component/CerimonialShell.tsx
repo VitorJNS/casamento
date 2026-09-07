@@ -23,8 +23,6 @@ type NavItem = {
 const navItems: NavItem[] = [
   { label: "Lista de Convidados", href: "/cerimonial/dashboard", icon: UsersIcon },
   { label: "Fornecedores", href: "/cerimonial/fornecedores", icon: HandshakeIcon },
-  // { label: "Mesas e Setores", icon: ChairIcon },
-  // { label: "Relatorios", icon: ChartIcon },
 ];
 
 export function CerimonialShell({
@@ -35,10 +33,10 @@ export function CerimonialShell({
   const pathname = usePathname();
 
   return (
-    <main className="logged-area-shell relative isolate min-h-dvh bg-[#fffdf3] text-zinc-950">
+    <main className="logged-area-shell relative isolate min-h-dvh w-full max-w-full overflow-x-hidden bg-[#fffdf3] text-zinc-950">
       <LoggedAreaBackdrop />
 
-      <div className="relative z-10 xl:grid xl:min-h-dvh xl:grid-cols-[290px_minmax(0,1fr)] xl:items-start">
+      <div className="relative z-10 w-full max-w-full min-w-0 xl:grid xl:min-h-dvh xl:grid-cols-[290px_minmax(0,1fr)] xl:items-start">
         <aside className="border-b border-[#d8ddcf]/90 bg-[#fffefa]/88 px-5 py-5 backdrop-blur xl:sticky xl:top-0 xl:flex xl:h-dvh xl:flex-col xl:overflow-hidden xl:border-b-0 xl:border-r xl:px-6 xl:py-6">
           <div className="flex shrink-0 justify-center">
             <div className="flex h-24 w-24 items-center justify-center rounded-full border border-[#d8ddcf]/80 bg-white/45 shadow-sm xl:h-28 xl:w-28">
@@ -101,7 +99,7 @@ export function CerimonialShell({
           </div>
         </aside>
 
-        <div className="min-w-0">
+        <div className="min-w-0 max-w-full overflow-x-hidden">
           <header className="border-b border-[#d8ddcf]/90 bg-[#fffefa]/72 px-5 py-5 backdrop-blur xl:px-10">
             <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
               <div>
@@ -119,7 +117,7 @@ export function CerimonialShell({
             </div>
           </header>
 
-          <section className="px-5 py-8 xl:px-10 xl:py-10">{children}</section>
+          <section className="w-full max-w-full overflow-x-hidden px-5 py-8 xl:px-10 xl:py-10">{children}</section>
         </div>
       </div>
     </main>
@@ -162,17 +160,6 @@ function UsersIcon({ className }: { className?: string }) {
   );
 }
 
-function ChairIcon({ className }: { className?: string }) {
-  return (
-    <SvgIcon className={className}>
-      <path d="M6 11V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v5" />
-      <path d="M4 13h16v4H4z" />
-      <path d="M6 17v3" />
-      <path d="M18 17v3" />
-    </SvgIcon>
-  );
-}
-
 function HandshakeIcon({ className }: { className?: string }) {
   return (
     <SvgIcon className={className}>
@@ -180,18 +167,6 @@ function HandshakeIcon({ className }: { className?: string }) {
       <path d="m13 12-2-2a2 2 0 0 0-2.83 0l-3.34 3.34a2 2 0 0 0 0 2.83l2 2a2 2 0 0 0 2.83 0L12 16" />
       <path d="m7 7 2 2" />
       <path d="m15 15 2 2" />
-    </SvgIcon>
-  );
-}
-
-function ChartIcon({ className }: { className?: string }) {
-  return (
-    <SvgIcon className={className}>
-      <path d="M4 19V5" />
-      <path d="M20 19H4" />
-      <path d="M8 17v-6" />
-      <path d="M12 17V9" />
-      <path d="M16 17V7" />
     </SvgIcon>
   );
 }

@@ -52,3 +52,50 @@ O teclado físico de iOS/Android não foi testado; a alteração de viewport foi
 
 Com `npm run dev` ativo e Chrome instalado, execute `npm run test:suppliers`. Para outra porta local, defina SUPPLIER_TEST_URL (ex.: http://localhost:3100).
 O runner cria uma rota temporária com os componentes reais e a remove em finally. Não execute build/deploy durante a suíte. Resultados ficam em design/fornecedor-mobile/validacao/.
+
+
+---
+
+# Guest cards and responsive message dialog - 2026-09-16
+
+final result: passed
+
+Scope: selected option 3 applied to the existing guest manager and AdminShell. Browser evidence uses synthetic guests (no database writes). Existing supplier report above is preserved.
+
+## Visual references and normalization
+
+Sources: public/design/convidados/opcao-3.png and opcao-3-mensagem-aberta.png (1713x918); opcao-3-mensagem-tablet.png (1047x1502, normalized to 834x1194 CSS); opcao-3-mensagem-celular.png (853x1844, normalized to 390x844 CSS). Generated references represent layout intent; existing application navigation, typography tokens and authenticated shell remain in place.
+
+Implementation evidence: public/design/convidados/implementacao/{desktop,tablet,celular,estreito,paisagem}-{cards,mensagem}.png. Dialog captures use 1713x918, 834x1194, 390x844, 320x568 and 844x390 respectively at deviceScaleFactor 1. Card captures are full-page screenshots at those viewport widths.
+
+## Findings and comparison history
+
+- P2 fixed: initial desktop dialog stretched to viewport height. Tablet/desktop now use content-sized height, capped at viewport minus 64px and vertically centered. Mobile retains nearly full-height reading area.
+- P2 fixed: very narrow cards need additional room for response metadata. Below 300px card width, status/type use the first row and response spans the second. Heights remain identical across every non-editing card.
+- Two equal columns on wider content areas and one on narrow areas. Group names and variable-length observations do not increase card height. Full group names are available in a separate accessible dialog.
+- Full-view and focused review: desktop message and mobile message captures visually inspected; narrow full-page cards checked for status, footer and group alignment. Focused regions are readable in those captures without an additional crop.
+
+## Required surfaces
+
+- Typography: existing sans-serif and weights retained; title 24px, message 16px mobile / 18px larger screens with relaxed line-height. Text preserves line breaks and wraps long unbroken strings. Small card metadata remains readable; full names are available in details.
+- Spacing/layout: fixed section geometry for resting cards; matching footers with/without notes; content-sized desktop dialog and near-full-height mobile dialog. Footer/header stay outside the message scroller.
+- Tokens: existing olive, lavender, paper and neutral borders retained; dimmed modal backdrop and semantic status colors.
+- Assets: existing app branding retained; Lucide icons used for message, group, close and actions. No new raster assets required by the implemented component.
+- Copy: full response note and internal note remain separate. Empty cards show Sem observacao; nonempty ones offer Ler mensagem or Ler anotacao. Group overflow exposes every name.
+
+## Verification
+
+Passed at all five viewport sizes: equal card heights, no horizontal viewport/card overflow, modal contained in viewport, complete long-message/internal-note content, body scroll lock, internal scrolling, close button in viewport, Escape dismissal, focus restoration and modal focus containment, all group members accessible. No browser page errors.
+
+Existing npm run test:guests passed (create updates list and count with mocked API). ESLint and TypeScript checks are recorded in the task verification.
+
+P3: responsive mockups are illustrative; the existing admin shell, search copy and content density differ from generated background elements intentionally. No actionable P0/P1/P2 findings remain within scope. Editing mode retains its existing form layout and is intentionally not a fixed-height summary card.
+
+
+## Follow-up: compact group and mobile controls
+
+Group dialog now uses content height at all breakpoints (max-width 480px). Six names fit without scrolling at 390x844: dialog height 496px. Small/landscape viewports cap the dialog and scroll the list. Message mode retains its responsive reading layout. Group chips and +N button are all 36px tall. Music control sits above the marked mobile admin navigation, including safe-area inset; desktop retains its previous position.
+
+Verified 390x844, 320x568, 834x1194, 844x390 and 1440x900: chip height equality, modal bounds, group contents, play/pause state and music/navigation clearance, focus restoration and long message scrolling. Corrected native dialog bottom positioning after focused inspection to avoid unnecessary group scrolling. Evidence: public/design/convidados/implementacao/grupo-compacto-celular.png and musica-acima-navegacao.png.
+
+final result: passed

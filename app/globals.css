@@ -298,6 +298,12 @@ body:has(.logged-area-shell) {
   }
 }
 
+@media (width < 80rem) {
+  body:has([data-mobile-admin-nav]) .music-player-button {
+    bottom: calc(6.25rem + env(safe-area-inset-bottom));
+  }
+}
+
 @keyframes music-player-attention {
   0%,
   100% {

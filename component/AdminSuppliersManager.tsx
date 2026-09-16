@@ -4,6 +4,8 @@ import { upload } from "@vercel/blob/client";
 import type { InputHTMLAttributes, ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 
+import { SupplierFilters } from "@/component/SupplierFilters";
+import { filterSuppliers, getSupplierCategories } from "@/lib/supplier-filters";
 import { AdminShell } from "@/component/AdminShell";
 import { SupplierFormDialog, SupplierFormSection } from "@/component/SupplierFormDialog";
 import { ListPagination } from "@/component/ListPagination";
@@ -136,6 +138,10 @@ export function AdminSuppliersManager({
   const [isDeleting, setIsDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("");
+  const categories = useMemo(() => getSupplierCategories(suppliers), [suppliers]);
+  const filteredSuppliers = useMemo(() => filterSuppliers(suppliers, search, category), [suppliers, search, category]);
 
   const budgetTotalCents = suppliers.reduce(
     (total, supplier) => total + (supplier.contractValueCents ?? 0),
@@ -166,13 +172,13 @@ export function AdminSuppliersManager({
     },
   ];
 
-  const totalPages = Math.max(1, Math.ceil(suppliers.length / SUPPLIERS_PER_PAGE));
+  const totalPages = Math.max(1, Math.ceil(filteredSuppliers.length / SUPPLIERS_PER_PAGE));
   const visibleSuppliers = useMemo(() => {
     const start = (page - 1) * SUPPLIERS_PER_PAGE;
-    return suppliers.slice(start, start + SUPPLIERS_PER_PAGE);
-  }, [page, suppliers]);
-  const startItem = suppliers.length === 0 ? 0 : (page - 1) * SUPPLIERS_PER_PAGE + 1;
-  const endItem = Math.min(page * SUPPLIERS_PER_PAGE, suppliers.length);
+    return filteredSuppliers.slice(start, start + SUPPLIERS_PER_PAGE);
+  }, [page, filteredSuppliers]);
+  const startItem = filteredSuppliers.length === 0 ? 0 : (page - 1) * SUPPLIERS_PER_PAGE + 1;
+  const endItem = Math.min(page * SUPPLIERS_PER_PAGE, filteredSuppliers.length);
 
   useEffect(() => {
     setPage((current) => Math.min(current, totalPages));
@@ -424,7 +430,13 @@ export function AdminSuppliersManager({
         </button>
       </div>
 
+      <SupplierFilters search={search} category={category} categories={categories} resultCount={filteredSuppliers.length}
+        onSearchChange={(value) => { setSearch(value); setPage(1); }}
+        onCategoryChange={(value) => { setCategory(value); setPage(1); }}
+        onClear={() => { setSearch(""); setCategory(""); setPage(1); }} />
+
       <div className="mt-4 grid min-w-0 gap-3 lg:grid-cols-2 2xl:grid-cols-3">
+        {filteredSuppliers.length === 0 ? <p className="rounded-2xl border border-dashed border-zinc-300 p-5 text-sm text-zinc-600 lg:col-span-2 2xl:col-span-3">{suppliers.length === 0 ? "Nenhum fornecedor cadastrado ainda." : "Nenhum fornecedor encontrado para esses filtros."}</p> : null}
         {visibleSuppliers.map((supplier) => (
           <SupplierCard
             key={supplier.id}
@@ -441,7 +453,7 @@ export function AdminSuppliersManager({
       <ListPagination
         page={page}
         totalPages={totalPages}
-        totalItems={suppliers.length}
+        totalItems={filteredSuppliers.length}
         startItem={startItem}
         endItem={endItem}
         itemLabel="fornecedores"

@@ -9,7 +9,7 @@ import {
   finishRequestMetric,
   startRequestMetric,
 } from "@/lib/request-metrics";
-import { sendRsvpConfirmationEmail } from "@/lib/rsvp-email";
+import { sendRsvpConfirmationEmail, sendRsvpCoupleEmail } from "@/lib/rsvp-email";
 import {
   ensureGuestListTable,
   ensureRsvpTable,
@@ -392,19 +392,27 @@ export async function POST(request: Request) {
       ),
     );
 
-    try {
-      await sendRsvpConfirmationEmail({
-        respondentName,
-        email: payload.email,
-        familyLabel: invitedGuests.find((guest) => guest.family_label)?.family_label ?? null,
-        responses: normalizedGuestResponses.map((guest) => ({
-          guestName: guest.guestName,
-          attendance: guest.attendance,
-        })),
-      });
-    } catch (emailError) {
-      console.error("Nao foi possivel enviar email de confirmacao de presenca.", emailError);
-    }
+    const emailInput = {
+      respondentName,
+      email: payload.email,
+      familyLabel: invitedGuests.find((guest) => guest.family_label)?.family_label ?? null,
+      responses: normalizedGuestResponses.map((guest) => ({
+        guestName: guest.guestName,
+        attendance: guest.attendance,
+      })),
+    };
+    const emailResults = await Promise.allSettled([
+      sendRsvpConfirmationEmail(emailInput),
+      sendRsvpCoupleEmail({ ...emailInput, rsvpId: id, note: payload.note }),
+    ]);
+    emailResults.forEach((result, index) => {
+      if (result.status === "rejected") {
+        console.error(
+          index === 0 ? "Falha no email do convidado." : "Falha no aviso de RSVP aos noivos.",
+          result.reason,
+        );
+      }
+    });
 
     revalidateTag(RSVP_TAG, { expire: 0 });
     revalidateTag(PRESENCE_TAG, { expire: 0 });

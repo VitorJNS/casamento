@@ -12,6 +12,68 @@ type RsvpEmailInput = {
   responses: RsvpEmailResponse[];
 };
 
+type RsvpCoupleEmailInput = RsvpEmailInput & {
+  rsvpId: string;
+  note?: string | null;
+};
+
+const COUPLE_EMAILS = ["iaresisa@gmail.com", "vitorjosedonascimento2002@gmail.com"];
+
+export function renderRsvpCoupleEmail(input: RsvpCoupleEmailInput) {
+  const confirmedNames = input.responses
+    .filter((response) => response.attendance === "confirmed")
+    .map((response) => response.guestName);
+  const subject = confirmedNames.length === 1
+    ? `${confirmedNames[0]} confirmou presença`
+    : `${confirmedNames.length} pessoas confirmaram presença`;
+  const text = [
+    "Yasmim & Vitor — Nova confirmação de presença",
+    `Resposta enviada por: ${input.respondentName}`,
+    `E-mail de contato: ${input.email}`,
+    input.familyLabel ? `Grupo: ${input.familyLabel}` : "",
+    "",
+    ...input.responses.map((response) => `${response.guestName}: ${response.attendance === "confirmed" ? "Presença confirmada" : "Não irá"}`),
+    "",
+    `Observação: ${input.note?.trim() || "Nenhuma"}`,
+  ].join("\n");
+  const html = `<html lang="pt-BR"><body style="font-family:Arial,sans-serif;color:#27272a;padding:24px;">
+    <h1 style="font-size:24px;">Nova confirmação de presença</h1>
+    <p style="white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6;">${escapeHtml(text)}</p>
+  </body></html>`;
+  return { subject, text, html };
+}
+
+export async function sendRsvpCoupleEmail(input: RsvpCoupleEmailInput) {
+  if (!input.responses.some((response) => response.attendance === "confirmed")) {
+    return { skipped: true };
+  }
+  const env = getOptionalServerEnv();
+  if (!env.RESEND_API_KEY || !env.EMAIL_FROM) {
+    console.warn("Aviso aos noivos ignorado: RESEND_API_KEY ou EMAIL_FROM nao configurado.");
+    return { skipped: true };
+  }
+  const rendered = renderRsvpCoupleEmail(input);
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${env.RESEND_API_KEY}`,
+      "Content-Type": "application/json",
+      "Idempotency-Key": `rsvp-couple-${input.rsvpId}`,
+    },
+    body: JSON.stringify({
+      from: env.EMAIL_FROM,
+      to: COUPLE_EMAILS,
+      ...rendered,
+    }),
+    cache: "no-store",
+  });
+  const body = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new Error(`Resend falhou ao avisar os noivos (${response.status}): ${JSON.stringify(body)}`);
+  }
+  return { skipped: false, id: body?.id as string | undefined };
+}
+
 function escapeHtml(value: string) {
   return value
     .replace(/&/g, "&amp;")

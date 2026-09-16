@@ -1,10 +1,15 @@
-import { revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { toIsoString, toIsoStringOrNull } from "@/lib/date";
 import { getPrisma, withPrismaRetry } from "@/lib/prisma";
+import {
+  failRequestMetric,
+  finishRequestMetric,
+  startRequestMetric,
+} from "@/lib/request-metrics";
 import {
   ensureSupplierContractUrlColumn,
   ensureSuppliersTable,
@@ -190,8 +195,12 @@ export async function PATCH(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
+  const metric = startRequestMetric("/api/admin/suppliers/[id]", "PATCH", request);
   const authError = await requireAdminApiAuth();
-  if (authError) return authError;
+  if (authError) {
+    finishRequestMetric(metric, 401);
+    return authError;
+  }
 
   try {
     const payload = supplierSchema.parse(await request.json());
@@ -200,6 +209,7 @@ export async function PATCH(
     const [updated] = await updateSupplier(payload, id);
 
     if (!updated) {
+      finishRequestMetric(metric, 404);
       return NextResponse.json(
         {
           error: {
@@ -212,9 +222,13 @@ export async function PATCH(
     }
 
     revalidateTag(SUPPLIERS_TAG, { expire: 0 });
+    revalidatePath("/admin/fornecedores");
+    revalidatePath("/cerimonial/fornecedores");
+    finishRequestMetric(metric, 200);
     return NextResponse.json({ supplier: mapSupplier(updated) });
   } catch (error) {
     if (error instanceof z.ZodError) {
+      finishRequestMetric(metric, 400);
       return NextResponse.json(
         {
           error: {
@@ -227,6 +241,7 @@ export async function PATCH(
       );
     }
 
+    failRequestMetric(metric, error);
     return NextResponse.json(
       {
         error: {
@@ -241,11 +256,15 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
+  const metric = startRequestMetric("/api/admin/suppliers/[id]", "DELETE", request);
   const authError = await requireAdminApiAuth();
-  if (authError) return authError;
+  if (authError) {
+    finishRequestMetric(metric, 401);
+    return authError;
+  }
 
   try {
     await ensureSuppliersTable();
@@ -266,6 +285,7 @@ export async function DELETE(
     );
 
     if (result === 0) {
+      finishRequestMetric(metric, 404);
       return NextResponse.json(
         {
           error: {
@@ -278,8 +298,12 @@ export async function DELETE(
     }
 
     revalidateTag(SUPPLIERS_TAG, { expire: 0 });
+    revalidatePath("/admin/fornecedores");
+    revalidatePath("/cerimonial/fornecedores");
+    finishRequestMetric(metric, 200);
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
+    failRequestMetric(metric, "DELETE_SUPPLIER_FAILED");
     return NextResponse.json(
       {
         error: {

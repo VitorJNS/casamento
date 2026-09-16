@@ -1,10 +1,15 @@
-import { revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { toIsoString, toIsoStringOrNull } from "@/lib/date";
 import { getPrisma, withPrismaRetry } from "@/lib/prisma";
+import {
+  failRequestMetric,
+  finishRequestMetric,
+  startRequestMetric,
+} from "@/lib/request-metrics";
 import {
   ensureSupplierContractUrlColumn,
   ensureSuppliersTable,
@@ -262,8 +267,12 @@ async function requireAdminApiAuth() {
 }
 
 export async function POST(request: Request) {
+  const metric = startRequestMetric("/api/admin/suppliers", "POST", request);
   const authError = await requireAdminApiAuth();
-  if (authError) return authError;
+  if (authError) {
+    finishRequestMetric(metric, 401);
+    return authError;
+  }
 
   try {
     const payload = supplierSchema.parse(await request.json());
@@ -275,9 +284,13 @@ export async function POST(request: Request) {
     const [created] = await findSupplierById(id);
 
     revalidateTag(SUPPLIERS_TAG, { expire: 0 });
+    revalidatePath("/admin/fornecedores");
+    revalidatePath("/cerimonial/fornecedores");
+    finishRequestMetric(metric, 200);
     return NextResponse.json({ supplier: mapSupplier(created) });
   } catch (error) {
     if (error instanceof z.ZodError) {
+      finishRequestMetric(metric, 400);
       return NextResponse.json(
         {
           error: {
@@ -290,6 +303,7 @@ export async function POST(request: Request) {
       );
     }
 
+    failRequestMetric(metric, error);
     return NextResponse.json(
       {
         error: {

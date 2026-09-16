@@ -15,6 +15,17 @@ type DraftState = {
   isChild: boolean;
 };
 
+type GuestApiEntry = {
+  id: string;
+  guestName: string;
+  whatsapp: string;
+  secondaryWhatsapp: string | null;
+  email: string | null;
+  familyLabel: string | null;
+  isChild: boolean;
+  note: string | null;
+};
+
 const emptyDraft: DraftState = {
   guestName: "",
   whatsapp: "",
@@ -25,22 +36,39 @@ const emptyDraft: DraftState = {
 
 const GUESTS_PER_PAGE = 10;
 
+function normalizeWhatsapp(value: string) {
+  return value.replace(/\D/g, "");
+}
+
+function mapGuestApiEntryToPresenceGuest(guest: GuestApiEntry): PresenceGuest {
+  return {
+    id: guest.id,
+    guestName: guest.guestName,
+    whatsapp: guest.whatsapp,
+    secondaryWhatsapp: guest.secondaryWhatsapp,
+    whatsappNormalized: normalizeWhatsapp(guest.whatsapp),
+    note: guest.note,
+    familyLabel: guest.familyLabel,
+    isChild: guest.isChild,
+    householdMembers: [guest.guestName],
+    status: "pending",
+    rsvpId: null,
+    email: guest.email,
+    guestCount: null,
+    childCount: 0,
+    countableGuestCount: null,
+    companionNames: [],
+    adultNames: [],
+    responseNote: null,
+    respondedAt: null,
+    sourceKind: "guest-list",
+  };
+}
+
 function getStatusLabel(status: PresenceGuest["status"]) {
   if (status === "confirmed") return "Confirmado";
   if (status === "declined") return "Recusado";
   return "Pendente";
-}
-
-function getStatusClasses(status: PresenceGuest["status"]) {
-  if (status === "confirmed") {
-    return "border-emerald-200 bg-emerald-50 text-emerald-700";
-  }
-
-  if (status === "declined") {
-    return "border-rose-200 bg-rose-50 text-rose-700";
-  }
-
-  return "border-amber-200 bg-amber-50 text-amber-700";
 }
 
 function getStatusDotClasses(status: PresenceGuest["status"]) {
@@ -121,10 +149,6 @@ export function GuestListManager({
     setPage(1);
   }, [normalizedSearchTerm]);
 
-  useEffect(() => {
-    setGuests(initialGuests);
-  }, [initialGuests]);
-
   function openCreateModal() {
     setDraft(emptyDraft);
     setErrorMessage(null);
@@ -171,6 +195,13 @@ export function GuestListManager({
         throw new Error(data?.error?.message ?? "Nao foi possivel cadastrar o convidado.");
       }
 
+      if (data?.guest) {
+        setGuests((current) =>
+          [...current, mapGuestApiEntryToPresenceGuest(data.guest)].sort((a, b) =>
+            a.guestName.localeCompare(b.guestName, "pt-BR"),
+          ),
+        );
+      }
       closeCreateModal();
       router.refresh();
     } catch (error) {

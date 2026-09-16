@@ -1,9 +1,14 @@
-import { revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { PRESENCE_TAG } from "@/lib/presence-dashboard";
 import { getPrisma, withPrismaRetry } from "@/lib/prisma";
+import {
+  failRequestMetric,
+  finishRequestMetric,
+  startRequestMetric,
+} from "@/lib/request-metrics";
 import { sendRsvpConfirmationEmail } from "@/lib/rsvp-email";
 import {
   ensureGuestListTable,
@@ -304,6 +309,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: Request) {
+  const metric = startRequestMetric("/api/rsvp", "POST", request);
   try {
     const payload = rsvpSchema.parse(await request.json());
     await ensureRsvpTable();
@@ -402,12 +408,17 @@ export async function POST(request: Request) {
 
     revalidateTag(RSVP_TAG, { expire: 0 });
     revalidateTag(PRESENCE_TAG, { expire: 0 });
+    revalidatePath("/admin/convidados");
+    revalidatePath("/admin/dashboard");
+    revalidatePath("/cerimonial/dashboard");
+    finishRequestMetric(metric, 200);
     return NextResponse.json({
       success: true,
       id,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
+      finishRequestMetric(metric, 400);
       return NextResponse.json(
         {
           error: {
@@ -420,6 +431,7 @@ export async function POST(request: Request) {
       );
     }
 
+    failRequestMetric(metric, error);
     return NextResponse.json(
       {
         error: {

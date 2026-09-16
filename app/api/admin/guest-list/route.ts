@@ -1,4 +1,4 @@
-import { revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
@@ -6,6 +6,11 @@ import { z } from "zod";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { toIsoString } from "@/lib/date";
 import { getPrisma, withPrismaRetry } from "@/lib/prisma";
+import {
+  failRequestMetric,
+  finishRequestMetric,
+  startRequestMetric,
+} from "@/lib/request-metrics";
 import {
   ensureGuestListTable,
   getGuestListColumnAvailability,
@@ -111,8 +116,12 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const metric = startRequestMetric("/api/admin/guest-list", "POST", request);
   const authError = await requireAdminApiAuth();
-  if (authError) return authError;
+  if (authError) {
+    finishRequestMetric(metric, 401);
+    return authError;
+  }
 
   try {
     const payload = guestSchema.parse(await request.json());
@@ -218,9 +227,14 @@ export async function POST(request: Request) {
     revalidateTag(GUEST_LIST_TAG, { expire: 0 });
     revalidateTag(RSVP_TAG, { expire: 0 });
     revalidateTag(PRESENCE_TAG, { expire: 0 });
+    revalidatePath("/admin/convidados");
+    revalidatePath("/admin/dashboard");
+    revalidatePath("/cerimonial/dashboard");
+    finishRequestMetric(metric, 200);
     return NextResponse.json({ guest: mapGuestEntry(created) });
   } catch (error) {
     if (error instanceof z.ZodError) {
+      finishRequestMetric(metric, 400);
       return NextResponse.json(
         {
           error: {
@@ -234,6 +248,7 @@ export async function POST(request: Request) {
     }
 
     if (isDuplicateWhatsappError(error)) {
+      finishRequestMetric(metric, 409);
       return NextResponse.json(
         {
           error: {
@@ -246,6 +261,7 @@ export async function POST(request: Request) {
       );
     }
 
+    failRequestMetric(metric, error);
     return NextResponse.json(
       {
         error: {

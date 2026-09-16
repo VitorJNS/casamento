@@ -6,6 +6,7 @@ import { requireAdminAuth } from "@/lib/admin-auth";
 import * as adminDashboard from "@/lib/admin-dashboard";
 
 export const preferredRegion = "gru1";
+export const dynamic = "force-dynamic";
 
 export default async function AdminGuestsPage() {
   await requireAdminAuth();

@@ -10,7 +10,8 @@
     "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
-    "test:suppliers": "node scripts/check-supplier-form.mjs"
+    "test:suppliers": "node scripts/check-supplier-form.mjs",
+    "test:guests": "node scripts/check-guest-refresh.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.18.0",

@@ -1,8 +1,10 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
+import { SupplierFilters } from "@/component/SupplierFilters";
+import { filterSuppliers, getSupplierCategories } from "@/lib/supplier-filters";
 import { CerimonialShell } from "@/component/CerimonialShell";
 import { ListPagination } from "@/component/ListPagination";
 import { formatDisplayDate, formatDisplayDateTime } from "@/lib/display-date";
@@ -28,38 +30,13 @@ export function CerimonialSuppliersBoard({
   initialSuppliers: CerimonialSupplierView[];
 }) {
   const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const normalizedSearch = search.trim().toLowerCase();
-
-  const suppliers = useMemo(() => {
-    if (!normalizedSearch) return initialSuppliers;
-
-    return initialSuppliers.filter((supplier) =>
-      [
-        supplier.supplierName,
-        supplier.category,
-        supplier.contactName,
-        supplier.phone,
-        supplier.email,
-        supplier.note,
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase()
-        .includes(normalizedSearch),
-    );
-  }, [initialSuppliers, normalizedSearch]);
-
-  const categoryCount = useMemo(
-    () =>
-      new Set(
-        initialSuppliers
-          .map((supplier) => supplier.category.trim())
-          .filter(Boolean),
-      ).size,
-    [initialSuppliers],
-  );
+  const [requestedPage, setPage] = useState(1);
+  const [category, setCategory] = useState("");
+  const categories = useMemo(() => getSupplierCategories(initialSuppliers), [initialSuppliers]);
+  const suppliers = useMemo(() => filterSuppliers(initialSuppliers, search, category), [initialSuppliers, search, category]);
+  const categoryCount = categories.length;
   const totalPages = Math.max(1, Math.ceil(suppliers.length / SUPPLIERS_PER_PAGE));
+  const page = Math.min(requestedPage, totalPages);
   const visibleSuppliers = useMemo(() => {
     const start = (page - 1) * SUPPLIERS_PER_PAGE;
     return suppliers.slice(start, start + SUPPLIERS_PER_PAGE);
@@ -67,18 +44,9 @@ export function CerimonialSuppliersBoard({
   const startItem = suppliers.length === 0 ? 0 : (page - 1) * SUPPLIERS_PER_PAGE + 1;
   const endItem = Math.min(page * SUPPLIERS_PER_PAGE, suppliers.length);
 
-  useEffect(() => {
-    setPage(1);
-  }, [normalizedSearch]);
-
-  useEffect(() => {
-    setPage((current) => Math.min(current, totalPages));
-  }, [totalPages]);
-
   return (
     <CerimonialShell
       title="Area da Cerimonialista"
-      topRight={<SupplierSearch search={search} setSearch={setSearch} />}
     >
       <div>
         <h1 className="text-[2.8rem] font-semibold tracking-[-0.05em] text-zinc-950">
@@ -109,12 +77,10 @@ export function CerimonialSuppliersBoard({
         />
       </div>
 
-      {normalizedSearch ? (
-        <p className="mt-5 text-sm text-zinc-600">
-          Mostrando {suppliers.length} resultado{suppliers.length === 1 ? "" : "s"} para{" "}
-          <span className="font-medium text-zinc-900">"{search}"</span>.
-        </p>
-      ) : null}
+      <SupplierFilters search={search} category={category} categories={categories} resultCount={suppliers.length}
+        onSearchChange={(value) => { setSearch(value); setPage(1); }}
+        onCategoryChange={(value) => { setCategory(value); setPage(1); }}
+        onClear={() => { setSearch(""); setCategory(""); setPage(1); }} />
 
       <div className="mt-8 grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
         {suppliers.length === 0 ? (
@@ -137,26 +103,6 @@ export function CerimonialSuppliersBoard({
         onNext={() => setPage((current) => Math.min(totalPages, current + 1))}
       />
     </CerimonialShell>
-  );
-}
-
-function SupplierSearch({
-  search,
-  setSearch,
-}: {
-  search: string;
-  setSearch: (value: string) => void;
-}) {
-  return (
-    <label className="flex min-w-0 flex-1 items-center gap-3 rounded-full border border-zinc-200 bg-white px-5 py-3 shadow-sm xl:min-w-[18rem] xl:flex-none xl:px-6">
-      <SearchIcon className="h-5 w-5 shrink-0 text-zinc-500" />
-      <input
-        value={search}
-        onChange={(event) => setSearch(event.target.value)}
-        placeholder="Buscar fornecedor..."
-        className="w-full bg-transparent text-base text-zinc-800 outline-none placeholder:text-zinc-400"
-      />
-    </label>
   );
 }
 
@@ -368,15 +314,6 @@ function SvgIcon({
     >
       {children}
     </svg>
-  );
-}
-
-function SearchIcon({ className }: { className?: string }) {
-  return (
-    <SvgIcon className={className}>
-      <circle cx="11" cy="11" r="7" />
-      <path d="m20 20-3.5-3.5" />
-    </SvgIcon>
   );
 }
 
